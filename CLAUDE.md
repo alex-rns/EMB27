@@ -93,8 +93,11 @@ Don't revisit this agreement unless I explicitly ask.
   PlatformIO re-creates a `.gitignore` in each lesson whenever it regenerates IntelliSense
   (`pio project init --ide vscode`), so deleting it is pointless: the root file ignores
   `/module-*/*/.gitignore` and those copies stay local;
-- new lesson project: add it to the workspace, the module README and the module CLAUDE.md
-  (the `/new-lesson` skill does all of this).
+- new lesson project: add it to the workspace, the module README and the module CLAUDE.md;
+- **project skills** (`.claude/skills/`, tracked, 2026-10-10) run the routine steps:
+  `/new-lesson N.M <topic>` creates and registers a lesson project, `/new-task <type> <slug>` adds a
+  homework step, `/finish-lesson` builds every task, checks consistency, asks the check questions,
+  then updates the docs and commits. Follow the skill when the user invokes it or describes that situation.
   `default_envs` = the task being worked on. Without it, Upload flashes **every** task in turn.
   With it, a plain `pio run` builds only that task, so to build everything list every `-e <env>` (CI too);
 - commit after every step that works. Format: `<folder>: <what was done>`

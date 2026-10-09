@@ -10,7 +10,7 @@
 |---|---|---|---|
 | 1.1 | Measuring current and voltage | — | lecture only |
 | 1.2 | Can you burn an LED? Resistance and voltage | — | lecture only |
-| 1.3 | ESP32: first program, Blink | `1.3-esp32-blink` | ✅ base + 4 extras |
+| 1.3 | ESP32: first program, Blink | `1.3-esp32-blink` | ✅ base + 4 extras · ⏳ `/finish-lesson` not run (no check questions yet) |
 | 1.4 | GPIO and pinout, reading the datasheet | `1.4-gpio-pinout` | ⏳ template only, homework not given yet |
 | 1.5 | Signals and a button (oscilloscope) | — | — |
 | 1.6 | Intro to the ADC: reading light | — | — |
@@ -66,3 +66,7 @@ Tasks 01–03 were reconstructed from the session (they were only intermediate e
    Decided 2026-10-10: links only, no static images.
 3. 1.4: the PlatformIO template still has `int result = myFunction(2, 3);`
    (`-Wunused-variable`). Replace it when the homework starts.
+4. 1.3 task 04: the README says the flash length moves "between 100 ms and 15 ms", but the code
+   reaches **10 ms**. The bound is checked after `flashMs += stepMs`, and 100 − 15 is not a multiple of 10,
+   so the sequence is 100, 90, …, 20, 10 → flip. Found by the skill tests on 2026-10-10.
+   Left as an exercise: the user traces it on paper and decides whether to fix the code or the README.
