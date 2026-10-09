@@ -70,14 +70,28 @@ Don't revisit this agreement unless I explicitly ask.
   PlatformIO only sees a project when `platformio.ini` sits at the root of a workspace folder,
   so a new module = a new entry in this file's `folders`;
 - every module's `platformio.ini` has `build_src_flags = -Wall -Wextra`
-  (warnings for our `src/` only, not for the Arduino framework);
+  (warnings for our own code only, not for the Arduino framework);
+- **module layout (agreed 2026-10-10)** — a homework = base task + optional extras, so:
+  ```
+  module-X.Y/
+  ├── README.md            ← assignment + table of tasks (type, what it shows)
+  ├── platformio.ini       ← src_dir = tasks; one [env:<task>] per task with
+  │                          build_src_filter = +<<task>/>; shared settings in [env]
+  └── tasks/NN-<type>-<slug>/   type = lecture | base | extra
+      ├── main.cpp, diagram.json, wokwi.toml (→ ../../.pio/build/<task>/firmware.bin)
+      ├── README.md        ← what was done, wiring, what breaks on real hardware
+      └── photo(s)         ← resized to ~1600 px, GPS/EXIF stripped (the repo is public)
+  ```
+  `default_envs` = the task being worked on. Without it, Upload flashes **every** task in turn.
+  With it, a plain `pio run` builds only that task, so to build everything list every `-e <env>` (CI too);
 - commit after every step that works. Format: `<folder>: <what was done>`
   (`repo:` for root configs, `docs:` for CLAUDE.md/PLAN.md). No branches needed, everything on `main`;
 - remote `origin` = https://github.com/alex-rns/EMB27 (**public**, since 2026-10-10).
   Push after committing. History is published now: no rewriting, no force-push.
 
-**Wokwi (simulator in VS Code):** Community License activated. Each module folder has
-`wokwi.toml` (path to `.pio/build/<env>/firmware.bin|elf`) and `diagram.json` (the circuit = hardware, not code).
+**Wokwi (simulator in VS Code):** Community License activated. Each task folder has
+`wokwi.toml` (paths are relative to the toml itself) and `diagram.json` (the circuit = hardware, not code).
+▶ in a task's diagram editor uses the `wokwi.toml` next to it; otherwise use `Wokwi: Select Config File`.
 The visual editor only opens for `diagram.json` / `diagram.*.json`.
 Wokwi doesn't compile: change the code → **Build** → ▶. In Wokwi, the DevKitC-1 onboard RGB is on GPIO 38.
 
@@ -203,7 +217,8 @@ because `loop()` runs again and again; `int`, not `uint32_t`, because of underfl
 Key idea I **formulated myself**: current flows only where there is a voltage *difference*;
 the pin doesn't "decide" anything, it just becomes either plus or minus. Current flows through a diode only from + to −.
 I know that two outputs, one HIGH and one LOW, wired together make a short circuit (hence open-drain in I2C).
-Code and circuit versions: `module-1.3/archive/main_vN.cpp` + `diagram.vN.json`.
+Tasks: `module-1.3/tasks/00…05` — lecture demo, base, 4 extras; each with code, circuit and README.
+Tasks 01–03 were reconstructed from the session (they were only intermediate edits of main.cpp).
 
 ## Open threads
 
