@@ -12,7 +12,7 @@ The user experiments in an ordinary PlatformIO project with no rules: one `src/m
 folder per homework step, and **each step is an ordinary PlatformIO project**.
 The user must only ever see standard projects: never multiple environments, `src_dir` or `build_src_filter`.
 
-Talk to the user in Ukrainian. Everything written into the repo is English.
+Talk to the user in their language (see their CLAUDE.md). Everything written into the repo is English.
 Move the user's code as it is. Don't fix bugs in it: spotting them is the user's exercise.
 
 ## Inputs
@@ -63,7 +63,7 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
    git status --short   # no .pio/, .vscode/ or project .gitignore
    ```
    A compiler warning in the user's code is a learning point: explain it, but don't fix it unasked.
-6. **Report to the user** (Ukrainian):
+6. **Report to the user**:
    - a table "step → which version of your code it came from";
    - the choices you made yourself;
    - what went to the Trash, and where;

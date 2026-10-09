@@ -14,7 +14,7 @@ own words, and the result is committed and pushed. If the homework isn't saved y
 Steps 1–3 run right away and count as one step: report them in one message and stop.
 Step 4 onwards waits for the user's answers.
 
-Talk to the user in Ukrainian. Everything written into the repo is English.
+Talk to the user in their language (see their CLAUDE.md). Everything written into the repo is English.
 
 ## Steps
 
@@ -43,7 +43,7 @@ Talk to the user in Ukrainian. Everything written into the repo is English.
    A mismatch between code and README is a finding. Don't fix it silently. If the code is wrong, make it
    a practical task for the user (spotting mistakes in generated code is their role). If only the doc
    is wrong, list it for step 5.
-3. **Check questions** (CLAUDE.md rule), in Ukrainian: 3–5 questions to answer in their own words, plus
+3. **Check questions** (CLAUDE.md rule): 3–5 questions to answer in their own words, plus
    1–2 practical tasks. Take them from what this lesson's steps actually did. From the "what to catch"
    list in `module-N/CLAUDE.md`, use only the items this lesson touched. In the same message, show each
    command from steps 1–2 with a one-line explanation of what its output meant.

@@ -2,7 +2,6 @@
 
 Homework and projects from the [Beetroot Academy "Embedded Development"](https://beetroot.academy/courses/online/kurs-embedded-development)
 course, group EMB27 (started September 2026, 5 months).
-I'm a Ruby on Rails / TypeScript developer moving into embedded systems.
 
 **Board:** ESP32-S3-DevKitC-1 · **Language:** C++ (Arduino framework) · **Build:** PlatformIO · **Simulation:** Wokwi
 
