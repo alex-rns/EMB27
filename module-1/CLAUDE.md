@@ -54,19 +54,19 @@ because `loop()` runs again and again; `int`, not `uint32_t`, because of underfl
 Key idea I **formulated myself**: current flows only where there is a voltage *difference*;
 the pin doesn't "decide" anything, it just becomes either plus or minus. Current flows through a diode only from + to −.
 I know that two outputs, one HIGH and one LOW, wired together make a short circuit (hence open-drain in I2C).
-Tasks: `1.3-esp32-blink/tasks/00…05` — lecture demo, base, 4 extras; each with code, circuit and README.
+Steps: `1.3-esp32-blink/00…05` — lecture demo, base, 4 extras; each an ordinary PlatformIO project with circuit and README.
 Tasks 01–03 were reconstructed from the session (they were only intermediate edits of main.cpp).
 
 ## Open threads
 
 1. 1.3: refactor the police light into a bit-pattern table (e.g. `0b011`) — a bridge to the
    bits lesson and to `uint8_t`. Proposed, not done.
-2. 1.3: I'm publishing each task to my wokwi.com account. When I send the URLs, add a
-   "▶ Simulate in Wokwi" link to each task README and to the lesson's task table.
+2. 1.3: I'm publishing each step to my wokwi.com account. When I send the URLs, add a
+   "▶ Simulate in Wokwi" link to each step README and to the lesson's steps table.
    Decided 2026-10-10: links only, no static images.
 3. 1.4: the PlatformIO template still has `int result = myFunction(2, 3);`
    (`-Wunused-variable`). Replace it when the homework starts.
-4. 1.3 task 04: the README says the flash length moves "between 100 ms and 15 ms", but the code
+4. 1.3 step 04: the README says the flash length moves "between 100 ms and 15 ms", but the code
    reaches **10 ms**. The bound is checked after `flashMs += stepMs`, and 100 − 15 is not a multiple of 10,
    so the sequence is 100, 90, …, 20, 10 → flip. Found by the skill tests on 2026-10-10.
    Left as an exercise: the user traces it on paper and decides whether to fix the code or the README.

@@ -65,8 +65,14 @@ Don't revisit this agreement unless I explicitly ask.
 **Git — agreement (2026-10-10):**
 - **one repository** `~/embedded/EMB27` (it will be part of my portfolio). No separate git per module.
   History started fresh on 2026-10-10; the old one, with c-lessons, was deleted;
-- **repo layout (agreed 2026-10-10)** mirrors the course: module (0–7) → lesson/topic (N.M) →
-  homework tasks (base + optional extras):
+- **workflow (agreed 2026-10-10, "as simple as possible"):** my goal is to *understand* the topic,
+  not to produce folders. During and after class I work in a normal PlatformIO project created by
+  the wizard: one `src/main.cpp`, edits, copies, "archive" folders, a mess. No rules while experimenting.
+  When the homework is done I say "save the homework" (`/save-hw`) and paste the assignment.
+  Then **you** turn it into the saved structure below: steps from the assignment, code for each step,
+  Wokwi circuits, READMEs. The mess goes to the macOS Trash. Commit + push after my "yes".
+  Then `/finish-lesson`: check questions, so I understand the topic;
+- **repo layout** mirrors the course: module (0–7) → lesson (N.M) → homework steps:
   ```
   README.md                    ← public: course, board, table of modules (GitHub front page)
   CLAUDE.md                    ← this file: shared rules
@@ -74,40 +80,35 @@ Don't revisit this agreement unless I explicitly ask.
   ├── README.md                ← public: module topics + table of lessons with links
   ├── CLAUDE.md                ← context for this module only: lessons → folders → status,
   │                              hardware/pins, what to catch, lesson summaries, open threads
-  └── N.M-<topic-slug>/        ← one PlatformIO project per lesson that has homework
-      ├── README.md            ← assignment + table of tasks (type, what it shows)
-      ├── platformio.ini       ← src_dir = tasks; one [env:<task>] per task with
-      │                          build_src_filter = +<<task>/>; shared settings in [env]
-      └── tasks/NN-<type>-<slug>/   type = lecture | base | extra
-          ├── main.cpp, diagram.json, wokwi.toml (→ ../../.pio/build/<task>/firmware.bin)
-          └── README.md        ← what was done, wiring, what breaks on real hardware;
+  └── N.M-<topic-slug>/        ← one folder per lesson with homework (a container, not a project)
+      ├── README.md            ← assignment + table of steps (type, what it shows)
+      └── NN-<type>-<slug>/    ← one step = one ordinary PlatformIO project; type = lecture | base | extra
+          ├── platformio.ini   ← the wizard's 4 lines + build_src_flags = -Wall -Wextra
+          ├── src/main.cpp
+          ├── diagram.json, wokwi.toml (→ .pio/build/esp32-s3-devkitc-1/firmware.bin|elf)
+          └── README.md        ← what the step does, wiring, what breaks on real hardware;
                                  "▶ Simulate in Wokwi" link once published (no images)
   ```
-  Module 0 (self-study) is not in the repo. Lesson summaries go into `module-N/CLAUDE.md`, not here;
+  Module 0 (self-study) is not in the repo. Lesson summaries go into `module-N/CLAUDE.md`, not here.
+  Never use multiple environments, `src_dir` or `build_src_filter`: I find them confusing;
 - in VS Code, open **`EMB27.code-workspace`** (multi-root). PlatformIO only sees a project when
-  `platformio.ini` sits at the root of a workspace folder, so every lesson project is its own entry
-  in `folders` (`module-1/1.3-esp32-blink`, …). Finished lessons can be dropped from the list;
-- every lesson's `platformio.ini` has `build_src_flags = -Wall -Wextra`
-  (warnings for our own code only, not for the Arduino framework);
+  `platformio.ini` sits at the root of a workspace folder, so the workspace holds the repo root
+  plus the project I'm currently experimenting in. Saved steps are not in the workspace:
+  build them with `pio run -d <step-folder>`, or add the folder to the workspace when needed;
 - the root `.gitignore` is the only tracked one and covers `.pio/` and `.vscode/` everywhere.
-  PlatformIO re-creates a `.gitignore` in each lesson whenever it regenerates IntelliSense
+  PlatformIO re-creates a `.gitignore` in each project whenever it regenerates IntelliSense
   (`pio project init --ide vscode`), so deleting it is pointless: the root file ignores
-  `/module-*/*/.gitignore` and those copies stay local;
-- new lesson project: add it to the workspace, the module README and the module CLAUDE.md;
-- **project skills** (`.claude/skills/`, tracked, 2026-10-10) run the routine steps:
-  `/new-lesson N.M <topic>` creates and registers a lesson project, `/new-task <type> <slug>` adds a
-  homework step, `/finish-lesson` builds every task, checks consistency, asks the check questions,
-  then updates the docs and commits. Follow the skill when the user invokes it or describes that situation.
-  `default_envs` = the task being worked on. Without it, Upload flashes **every** task in turn.
-  With it, a plain `pio run` builds only that task, so to build everything list every `-e <env>` (CI too);
+  `/module-*/**/.gitignore` and those copies stay local;
+- **project skills** (`.claude/skills/`, tracked): `/save-hw` (above) and `/finish-lesson`.
+  Follow the skill when I invoke it or describe that situation;
 - commit after every step that works. Format: `<folder>: <what was done>`
   (`repo:` for root configs, `docs:` for CLAUDE.md/PLAN.md). No branches needed, everything on `main`;
 - remote `origin` = https://github.com/alex-rns/EMB27 (**public**, since 2026-10-10).
   Push after committing. History is published now: no rewriting, no force-push.
 
-**Wokwi (simulator in VS Code):** Community License activated. Each task folder has
+**Wokwi (simulator in VS Code):** Community License activated. Each step folder has
 `wokwi.toml` (paths are relative to the toml itself) and `diagram.json` (the circuit = hardware, not code).
-▶ in a task's diagram editor uses the `wokwi.toml` next to it; otherwise use `Wokwi: Select Config File`.
+▶ in a step's diagram editor uses the `wokwi.toml` next to it; otherwise use `Wokwi: Select Config File`.
 The visual editor only opens for `diagram.json` / `diagram.*.json`.
 Wokwi doesn't compile: change the code → **Build** → ▶. In Wokwi, the DevKitC-1 onboard RGB is on GPIO 38.
 
@@ -230,7 +231,7 @@ operator overloading, the `Money` class), the ETL library.
    set/clear bit 7, what number `reg & (1u<<7)` gives, why a 2-bit
    field takes two lines, what to check if a register reads back as zero.
 2. The course final project requires **GitHub + CI/CD + documentation**. Set up GitHub Actions
-   early (build every lesson's every env with `pio run -e …`), not in module 7.
+   early (build every step project: every folder with a `platformio.ini`), not in module 7.
 3. Module-specific threads live in `module-N/CLAUDE.md`.
 
 ## Next step
