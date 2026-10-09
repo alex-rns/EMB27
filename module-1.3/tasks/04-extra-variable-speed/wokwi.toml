@@ -1,0 +1,4 @@
+[wokwi]
+version = 1
+firmware = '../../.pio/build/04-extra-variable-speed/firmware.bin'
+elf = '../../.pio/build/04-extra-variable-speed/firmware.elf'

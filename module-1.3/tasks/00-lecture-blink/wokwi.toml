@@ -1,0 +1,4 @@
+[wokwi]
+version = 1
+firmware = '../../.pio/build/00-lecture-blink/firmware.bin'
+elf = '../../.pio/build/00-lecture-blink/firmware.elf'
