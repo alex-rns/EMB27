@@ -1,5 +1,4 @@
-# PlatformIO build output. Every module has its own .gitignore; this is a safety net
-# in case one of them forgets it
+# PlatformIO build output (the only .gitignore in the repo; it covers every module)
 .pio/
 
 # macOS

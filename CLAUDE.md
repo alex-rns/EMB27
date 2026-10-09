@@ -83,6 +83,8 @@ Don't revisit this agreement unless I explicitly ask.
       └── wokwi.png (+ optional demo.gif) ← screenshot / recording of the running Wokwi
                            simulation (not phone photos); resized, GIF made with ffmpeg
   ```
+  New module: delete the `.gitignore` PlatformIO generates; the root `.gitignore` is the only one
+  and covers `.pio/` and `.vscode/` everywhere.
   `default_envs` = the task being worked on. Without it, Upload flashes **every** task in turn.
   With it, a plain `pio run` builds only that task, so to build everything list every `-e <env>` (CI too);
 - commit after every step that works. Format: `<folder>: <what was done>`
