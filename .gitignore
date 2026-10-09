@@ -1,0 +1,9 @@
+# PlatformIO build output. Every module has its own .gitignore; this is a safety net
+# in case one of them forgets it
+.pio/
+
+# macOS
+.DS_Store
+
+# Editor settings (PlatformIO regenerates them; shared settings live in EMB27.code-workspace)
+.vscode/
