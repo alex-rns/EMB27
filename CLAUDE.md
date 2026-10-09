@@ -65,26 +65,32 @@ Don't revisit this agreement unless I explicitly ask.
 **Git — agreement (2026-10-10):**
 - **one repository** `~/embedded/EMB27` (it will be part of my portfolio). No separate git per module.
   History started fresh on 2026-10-10; the old one, with c-lessons, was deleted;
-- each course assignment = its own PlatformIO project folder at the repo root: `module-1.3`, `module-1.4`, …
-  In VS Code, open **`EMB27.code-workspace`** (multi-root: repo + modules).
-  PlatformIO only sees a project when `platformio.ini` sits at the root of a workspace folder,
-  so a new module = a new entry in this file's `folders`;
-- every module's `platformio.ini` has `build_src_flags = -Wall -Wextra`
+- **repo layout (agreed 2026-10-10)** mirrors the course: module (0–7) → lesson/topic (N.M) →
+  homework tasks (base + optional extras):
+  ```
+  README.md                    ← public: course, board, table of modules (GitHub front page)
+  CLAUDE.md                    ← this file: shared rules
+  module-N/
+  ├── README.md                ← public: module topics + table of lessons with links
+  ├── CLAUDE.md                ← context for this module only: lessons → folders → status,
+  │                              hardware/pins, what to catch, lesson summaries, open threads
+  └── N.M-<topic-slug>/        ← one PlatformIO project per lesson that has homework
+      ├── README.md            ← assignment + table of tasks (type, what it shows)
+      ├── platformio.ini       ← src_dir = tasks; one [env:<task>] per task with
+      │                          build_src_filter = +<<task>/>; shared settings in [env]
+      └── tasks/NN-<type>-<slug>/   type = lecture | base | extra
+          ├── main.cpp, diagram.json, wokwi.toml (→ ../../.pio/build/<task>/firmware.bin)
+          └── README.md        ← what was done, wiring, what breaks on real hardware;
+                                 "▶ Simulate in Wokwi" link once published (no images)
+  ```
+  Module 0 (self-study) is not in the repo. Lesson summaries go into `module-N/CLAUDE.md`, not here;
+- in VS Code, open **`EMB27.code-workspace`** (multi-root). PlatformIO only sees a project when
+  `platformio.ini` sits at the root of a workspace folder, so every lesson project is its own entry
+  in `folders` (`module-1/1.3-esp32-blink`, …). Finished lessons can be dropped from the list;
+- every lesson's `platformio.ini` has `build_src_flags = -Wall -Wextra`
   (warnings for our own code only, not for the Arduino framework);
-- **module layout (agreed 2026-10-10)** — a homework = base task + optional extras, so:
-  ```
-  module-X.Y/
-  ├── README.md            ← assignment + table of tasks (type, what it shows)
-  ├── platformio.ini       ← src_dir = tasks; one [env:<task>] per task with
-  │                          build_src_filter = +<<task>/>; shared settings in [env]
-  └── tasks/NN-<type>-<slug>/   type = lecture | base | extra
-      ├── main.cpp, diagram.json, wokwi.toml (→ ../../.pio/build/<task>/firmware.bin)
-      ├── README.md        ← what was done, wiring, what breaks on real hardware
-      └── wokwi.png (+ optional demo.gif) ← screenshot / recording of the running Wokwi
-                           simulation (not phone photos); resized, GIF made with ffmpeg
-  ```
-  New module: delete the `.gitignore` PlatformIO generates; the root `.gitignore` is the only one
-  and covers `.pio/` and `.vscode/` everywhere.
+- new lesson project: delete the `.gitignore` PlatformIO generates (the root `.gitignore` is the only one
+  and covers `.pio/` and `.vscode/` everywhere), add it to the workspace, the module README and module CLAUDE.md.
   `default_envs` = the task being worked on. Without it, Upload flashes **every** task in turn.
   With it, a plain `pio run` builds only that task, so to build everything list every `-e <env>` (CI too);
 - commit after every step that works. Format: `<folder>: <what was done>`
@@ -208,28 +214,17 @@ Diagnosis: wrote to a register, read back zero → **forgot to enable the clock*
 **masterclass-c++-Sep16** (`~/embedded`, outside the repo) — C++ masterclass (classes,
 operator overloading, the `Money` class), the ETL library.
 
-**module-1.3 (course, 2026-10-09) — first hardware + "police light".**
-Board connected, port and VID:PID explained, serial monitor (ESP-IDF factory demo).
-The preprocessor cuts code under `#if`, so all flags at `0u` give an empty `loop()`.
-`pinMode` after `ledcAttachPin` detaches PWM from the pin. Dangerous S3 pins:
-19/20 (USB), 0/3/45/46 (strapping), 26–37 (flash/PSRAM), 43/44 (UART0).
-220 Ω resistor: blue and white are dimmer (Vf ≈ 3 V at 3.3 V). Break-before-make.
-Police light: 3 LEDs, double flashes, variable speed (`#define` → variable, global
-because `loop()` runs again and again; `int`, not `uint32_t`, because of underflow → a 49-day `delay`).
-**Two LEDs on one pin:** 3V3→LED→pin (active-low) + pin→LED→GND. Source/sink, push-pull.
-Key idea I **formulated myself**: current flows only where there is a voltage *difference*;
-the pin doesn't "decide" anything, it just becomes either plus or minus. Current flows through a diode only from + to −.
-I know that two outputs, one HIGH and one LOW, wired together make a short circuit (hence open-drain in I2C).
-Tasks: `module-1.3/tasks/00…05` — lecture demo, base, 4 extras; each with code, circuit and README.
-Tasks 01–03 were reconstructed from the session (they were only intermediate edits of main.cpp).
+**Course lessons** — summaries live in each module's `CLAUDE.md`
+(`module-1/CLAUDE.md`: 1.3 Blink / police light, two LEDs on one pin, voltage difference).
 
 ## Open threads
 
 1. **I haven't answered the 5 questions from lesson03** (bits) — worth coming back to:
    set/clear bit 7, what number `reg & (1u<<7)` gives, why a 2-bit
    field takes two lines, what to check if a register reads back as zero.
-2. module-1.3: refactoring the police light (pattern as a bit table, e.g. `0b011`) was proposed
-   but not done. A good bridge to lesson03 and to the next lesson on `uint8_t`.
+2. The course final project requires **GitHub + CI/CD + documentation**. Set up GitHub Actions
+   early (build every lesson's every env with `pio run -e …`), not in module 7.
+3. Module-specific threads live in `module-N/CLAUDE.md`.
 
 ## Next step
 
