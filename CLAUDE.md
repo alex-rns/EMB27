@@ -89,8 +89,12 @@ Don't revisit this agreement unless I explicitly ask.
   in `folders` (`module-1/1.3-esp32-blink`, …). Finished lessons can be dropped from the list;
 - every lesson's `platformio.ini` has `build_src_flags = -Wall -Wextra`
   (warnings for our own code only, not for the Arduino framework);
-- new lesson project: delete the `.gitignore` PlatformIO generates (the root `.gitignore` is the only one
-  and covers `.pio/` and `.vscode/` everywhere), add it to the workspace, the module README and module CLAUDE.md.
+- the root `.gitignore` is the only tracked one and covers `.pio/` and `.vscode/` everywhere.
+  PlatformIO re-creates a `.gitignore` in each lesson whenever it regenerates IntelliSense
+  (`pio project init --ide vscode`), so deleting it is pointless: the root file ignores
+  `/module-*/*/.gitignore` and those copies stay local;
+- new lesson project: add it to the workspace, the module README and the module CLAUDE.md
+  (the `/new-lesson` skill does all of this).
   `default_envs` = the task being worked on. Without it, Upload flashes **every** task in turn.
   With it, a plain `pio run` builds only that task, so to build everything list every `-e <env>` (CI too);
 - commit after every step that works. Format: `<folder>: <what was done>`
