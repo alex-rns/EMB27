@@ -10,3 +10,6 @@
 # PlatformIO re-creates a .gitignore in every lesson project whenever it regenerates
 # IntelliSense (pio project init). Keep those copies local; this file is the only tracked one.
 /module-*/*/.gitignore
+
+# Local Claude Code settings (project skills in .claude/skills/ ARE tracked)
+.claude/settings.local.json
