@@ -1,4 +1,6 @@
-# Module 1.3 — GPIO: police light
+# Lesson 1.3 — ESP32: first program (Blink). Homework: police light
+
+[← Module 1](../)
 
 **Board:** ESP32-S3-DevKitC-1 · **Framework:** Arduino (PlatformIO) · **Simulator:** Wokwi
 
