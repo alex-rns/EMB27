@@ -80,7 +80,8 @@ Don't revisit this agreement unless I explicitly ask.
   └── tasks/NN-<type>-<slug>/   type = lecture | base | extra
       ├── main.cpp, diagram.json, wokwi.toml (→ ../../.pio/build/<task>/firmware.bin)
       ├── README.md        ← what was done, wiring, what breaks on real hardware
-      └── photo(s)         ← resized to ~1600 px, GPS/EXIF stripped (the repo is public)
+      └── wokwi.png (+ optional demo.gif) ← screenshot / recording of the running Wokwi
+                           simulation (not phone photos); resized, GIF made with ffmpeg
   ```
   `default_envs` = the task being worked on. Without it, Upload flashes **every** task in turn.
   With it, a plain `pio run` builds only that task, so to build everything list every `-e <env>` (CI too);
