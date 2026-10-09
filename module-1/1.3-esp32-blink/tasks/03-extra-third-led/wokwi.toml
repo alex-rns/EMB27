@@ -1,4 +1,0 @@
-[wokwi]
-version = 1
-firmware = '../../.pio/build/03-extra-third-led/firmware.bin'
-elf = '../../.pio/build/03-extra-third-led/firmware.elf'

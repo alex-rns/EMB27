@@ -25,23 +25,22 @@ Module 0 (self-study before the course) is not part of this repository.
 ```
 module-N/                     one folder per course module
 ├── README.md                 topics of the module and its lessons
-└── N.M-<topic>/              one PlatformIO project per lesson
-    ├── README.md             the assignment and a table of its tasks
-    ├── platformio.ini        one environment per task
-    └── tasks/NN-<type>-<slug>/
-        ├── main.cpp          the firmware
+└── N.M-<topic>/              one folder per lesson with homework
+    ├── README.md             the assignment and a table of its steps
+    └── NN-<type>-<slug>/     one homework step = one ordinary PlatformIO project
+        ├── platformio.ini
+        ├── src/main.cpp      the firmware
         ├── diagram.json      Wokwi circuit
-        ├── wokwi.toml        Wokwi config for this task
-        └── README.md         wiring and what the task shows
+        ├── wokwi.toml        Wokwi config
+        └── README.md         wiring and what the step shows
 ```
 
-Task types: `lecture` (demo from the class), `base` (required homework), `extra` (optional harder steps).
+Step types: `lecture` (demo from the class), `base` (required homework), `extra` (optional harder steps).
 
 ## Build and run
 
-1. Open `EMB27.code-workspace` in VS Code with the PlatformIO and Wokwi extensions.
-2. Pick a task's environment in the PlatformIO status bar, then **Build** or **Upload**.
-   From the terminal: `pio run -d module-1/1.3-esp32-blink -e 05-extra-one-gpio`.
-3. To simulate, build the task first, then open `tasks/<task>/diagram.json` and press ▶.
+1. Open a step's folder in VS Code with the PlatformIO and Wokwi extensions, then **Build** or **Upload**.
+   From the terminal: `pio run -d module-1/1.3-esp32-blink/05-extra-one-gpio`.
+2. To simulate, build the step first, then open its `diagram.json` and press ▶.
 
 Every project is built with `-Wall -Wextra` for its own sources.
