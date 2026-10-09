@@ -73,7 +73,8 @@ Don't revisit this agreement unless I explicitly ask.
   (warnings for our `src/` only, not for the Arduino framework);
 - commit after every step that works. Format: `<folder>: <what was done>`
   (`repo:` for root configs, `docs:` for CLAUDE.md/PLAN.md). No branches needed, everything on `main`;
-- no remote yet.
+- remote `origin` = https://github.com/alex-rns/EMB27 (**public**, since 2026-10-10).
+  Push after committing. History is published now: no rewriting, no force-push.
 
 **Wokwi (simulator in VS Code):** Community License activated. Each module folder has
 `wokwi.toml` (path to `.pio/build/<env>/firmware.bin|elf`) and `diagram.json` (the circuit = hardware, not code).
