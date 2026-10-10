@@ -4,6 +4,8 @@ Example code from the lecture. Three modes chosen at compile time with `#if` fla
 plain GPIO blink, LEDC PWM fade, or the onboard addressable RGB LED (`neopixelWrite`).
 The RGB mode is enabled.
 
+![Circuit in Wokwi](diagram.png)
+
 **Notes**
 - With every flag at `0u` the preprocessor removes all branches and `loop()` is empty.
 - `pinMode()` after `ledcAttachPin()` reconnects the pin to plain GPIO and silently stops PWM.

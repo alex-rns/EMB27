@@ -31,12 +31,12 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
 2. **Consistency checks:**
    - every step has `platformio.ini` (one `[env:esp32-s3-devkitc-1]`, `build_src_flags = -Wall -Wextra`),
      `src/main.cpp`, `diagram.json` (valid JSON), `wokwi.toml` (→ `.pio/build/esp32-s3-devkitc-1/…`), `README.md`;
-   - pins in each `diagram.json` match the pins in its `main.cpp`;
+   - pins in each `diagram.json` match the pins in its `main.cpp`, and its `diagram.png` shows that wiring;
    - every claim in the step READMEs (timings, ranges, pins) matches the code;
    - the lesson README steps table lists every step;
    - no Cyrillic in the repo (tracked + new files); this must print nothing:
      ```bash
-     git ls-files -co --exclude-standard -z | xargs -0 /usr/bin/perl -CSD -ne 'print "$ARGV:$.: $_" if /\p{Cyrillic}/; close ARGV if eof'
+     git ls-files -co --exclude-standard -z | xargs -0 /usr/bin/perl -CSD -ne 'BEGIN { @ARGV = grep { -T } @ARGV } print "$ARGV:$.: $_" if /\p{Cyrillic}/; close ARGV if eof'
      ```
    - `git status --short` shows no `.pio/`, `.vscode/` or project `.gitignore`.
 

@@ -4,15 +4,14 @@
   "editor": "wokwi",
   "parts": [
     { "type": "board-esp32-s3-devkitc-1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
-    { "type": "wokwi-neopixel", "id": "rgb48", "top": 120, "left": 220, "attrs": {} }
+    { "type": "wokwi-neopixel", "id": "rgb48", "top": 100, "left": 200, "attrs": {} }
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
     [ "esp:RX", "$serialMonitor:TX", "", [] ],
-
-    [ "esp:48", "rgb48:DIN", "green", [] ],
-    [ "esp:3V3.1", "rgb48:VDD", "red", [] ],
-    [ "esp:GND.1", "rgb48:VSS", "black", [] ]
+    [ "esp:48", "rgb48:DIN", "green", ["*", "h14"] ],
+    [ "esp:3V3.1", "rgb48:VDD", "red", ["h-15", "v-45", "*", "h-15"] ],
+    [ "esp:GND.2", "rgb48:VSS", "black", ["h18.57", "*", "v16"] ]
   ],
   "dependencies": {}
 }

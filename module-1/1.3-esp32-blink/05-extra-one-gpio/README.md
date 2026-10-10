@@ -13,6 +13,8 @@ GPIO 48 ── 220 Ω ── red (+ → −) ── GND
 | HIGH (3.3 V) | 3.3 V across → **on** | 0 V across → off |
 | LOW (0 V) | 0 V across → off | 3.3 V across → **on** |
 
+![Circuit in Wokwi](diagram.png)
+
 **Notes**
 - Current flows only where there is a voltage difference. The pin does not "choose" an LED;
   it is either the top or the bottom of each LED's path (push-pull output: source or sink).

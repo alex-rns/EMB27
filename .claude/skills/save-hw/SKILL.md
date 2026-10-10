@@ -41,9 +41,18 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
    `module-N/README.md`). For each step create `NN-<type>-<slug>/`:
    - `platformio.ini`, `wokwi.toml`: the templates below;
    - `src/main.cpp`: the mapped version, unchanged;
-   - `diagram.json`: a Wokwi circuit matching the pins used in that step's code;
+   - `diagram.json`: a Wokwi circuit matching the pins used in that step's code. Wokwi closes an
+     unrouted wire horizontally first, then vertically, so a wire with `[]` easily runs over a row of
+     pins or along another wire, and the picture shows connections that don't exist. Give wires
+     placement instructions (`"h-30"`, `"*"`; see the 1.3 steps) so that no wire crosses the board or
+     a pin, and wires of different nets never overlap. Wokwi's router (read in its editor code):
+     after `"*"` it closes the gap only when both x and y differ, otherwise it silently drops the last
+     segment to the target pin; after a `"v…"` instruction it closes the gap vertically first.
+     Check every wire's path by code with these rules before asking for screenshots;
+   - `diagram.png`: ask the user for a screenshot of the circuit from the Wokwi editor (`Cmd+Shift+4`),
+     check it shows the same wiring as `diagram.json`, and save it next to it;
    - `README.md`: `# NN — <Type>: <title>`, what the step does, a `| Part | GPIO |` wiring table,
-     and **Notes** on what breaks on real hardware.
+     `![Circuit in Wokwi](diagram.png)`, and **Notes** on what breaks on real hardware.
 
    Then add the lesson `README.md` in the shape of `module-1/1.3-esp32-blink/README.md`: the assignment
    in English, a steps table, and "Working with the steps".
@@ -59,7 +68,7 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
    for s in $L/*/; do echo "== $s"; ~/.platformio/penv/bin/pio run -d "$s" 2>&1 | grep -E 'warning:|error:|SUCCESS|FAILED'; done
    for s in $L/*/; do python3 -m json.tool "$s/diagram.json" > /dev/null || echo "BAD JSON $s"; done
    # Cyrillic in the repo (tracked + new files) — must print nothing:
-   git ls-files -co --exclude-standard -z | xargs -0 /usr/bin/perl -CSD -ne 'print "$ARGV:$.: $_" if /\p{Cyrillic}/; close ARGV if eof'
+   git ls-files -co --exclude-standard -z | xargs -0 /usr/bin/perl -CSD -ne 'BEGIN { @ARGV = grep { -T } @ARGV } print "$ARGV:$.: $_" if /\p{Cyrillic}/; close ARGV if eof'
    git status --short   # no .pio/, .vscode/ or project .gitignore
    ```
    A compiler warning in the user's code is a learning point: explain it, but don't fix it unasked.
@@ -118,5 +127,6 @@ elf = '.pio/build/esp32-s3-devkitc-1/firmware.elf'
 | `rm` instead of the Trash | The user's experiments are gone for good |
 | Fixing the user's code while moving it | The saved step isn't what they wrote, and they lose the exercise |
 | `diagram.json` pins differ from the code | Wokwi simulates a different circuit |
+| Wires left as `[]` | The picture shows wires over pins or merged: someone wiring from it makes a short |
 | Leaving the source project in the workspace | VS Code shows a missing folder |
 | Committing before the user's yes | Breaks the CLAUDE.md agreement on commits |

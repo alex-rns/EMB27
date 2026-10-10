@@ -30,6 +30,7 @@ module-N/                     one folder per course module
         ├── platformio.ini
         ├── src/main.cpp      the firmware
         ├── diagram.json      Wokwi circuit
+        ├── diagram.png       screenshot of the circuit
         ├── wokwi.toml        Wokwi config
         └── README.md         wiring and what the step shows
 ```

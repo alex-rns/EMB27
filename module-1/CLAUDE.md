@@ -57,7 +57,7 @@ Steps 01–03 were reconstructed afterwards (they were only intermediate edits o
 ## Known issues / open
 
 1. 1.3: add "▶ Simulate in Wokwi" links to each step README and the lesson's steps table once
-   the steps are published on wokwi.com (links only, no static images).
+   the steps are published on wokwi.com.
 2. 1.3 step 04: the README says the flash length moves "between 100 ms and 15 ms", but the code
    reaches 10 ms: the bound is checked after `flashMs += stepMs`, and 100 − 15 is not a multiple of 10
    (100, 90, …, 20, 10 → flip). Open: fix the code or the README.

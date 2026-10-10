@@ -35,8 +35,9 @@ module-N/
         ├── platformio.ini   ← the wizard's 4 lines + build_src_flags = -Wall -Wextra
         ├── src/main.cpp
         ├── diagram.json, wokwi.toml (→ .pio/build/esp32-s3-devkitc-1/firmware.bin|elf)
-        └── README.md        ← what the step does, wiring, what breaks on real hardware;
-                               "▶ Simulate in Wokwi" link once published (no images)
+        ├── diagram.png      ← screenshot of the circuit from the Wokwi editor (the author takes it)
+        └── README.md        ← what the step does, wiring, ![Circuit in Wokwi](diagram.png),
+                               what breaks on real hardware; "▶ Simulate in Wokwi" link once published
 ```
 Module 0 (self-study) is not in the repo.
 Keep every project standard: **never** multiple environments, `src_dir` or `build_src_filter`.
@@ -46,6 +47,9 @@ Keep every project standard: **never** multiple environments, `src_dir` or `buil
 - VS Code: open `EMB27.code-workspace` (multi-root). PlatformIO only sees a project when `platformio.ini`
   sits at the root of a workspace folder, so the workspace holds the repo root plus the project being
   experimented in. Saved steps are not in the workspace: build them with `pio run -d <step-folder>`.
+  IntelliSense for saved steps comes from a local root `.vscode/c_cpp_properties.json` (ignored by git):
+  `pio project init --ide vscode -d <any-step>`, then copy its `.vscode/c_cpp_properties.json` to the root.
+  Regenerate it when a step adds libraries (`lib_deps`) or another board.
 - `build_src_flags = -Wall -Wextra` in every project: warnings for our own code only, not for the framework.
 - The root `.gitignore` is the only tracked one and covers `.pio/` and `.vscode/` everywhere.
   PlatformIO re-creates a `.gitignore` in each project whenever it regenerates IntelliSense

@@ -5,6 +5,8 @@ the flash length moves between 100 ms and 15 ms by 10 ms per cycle.
 
 Wiring is the same as [03](../03-extra-third-led/).
 
+![Circuit in Wokwi](diagram.png)
+
 **Notes**
 - A `#define` is a compile-time text substitution and cannot change at runtime,
   so the speed is a variable.
