@@ -9,7 +9,7 @@
 |---|---|---|---|
 | 1.1 | Measuring current and voltage | — | lecture only |
 | 1.2 | Can you burn an LED? Resistance and voltage | — | lecture only |
-| 1.3 | ESP32: first program, Blink | `1.3-esp32-blink` | ✅ base + 4 extras saved |
+| 1.3 | ESP32: first program, Blink | `1.3-esp32-blink` | ✅ finished (base + 4 extras) |
 | 1.4 | GPIO and pinout, reading the datasheet | `1.4-gpio-pinout` | ⏳ experiment project (wizard template) |
 | 1.5 | Signals and a button (oscilloscope) | — | — |
 | 1.6 | Intro to the ADC: reading light | — | — |
@@ -44,12 +44,17 @@ Module 1 has no flexible slot (those are in modules 2–6).
 ## Lesson notes
 
 **1.3 — ESP32 Blink, homework "police light".**
-The preprocessor cuts code under `#if`, so all flags at `0u` give an empty `loop()`.
+The preprocessor cuts code under `#if`, so all flags at `0u` give an empty `loop()`; the cut code never
+reaches flash (a runtime `if` keeps both branches).
 `pinMode` after `ledcAttachPin` detaches PWM from the pin.
-220 Ω resistor: blue and white are dimmer (Vf ≈ 3 V at 3.3 V). Break-before-make.
+220 Ω at 3.3 V: red ≈ 5.9 mA, blue ≈ 1.4 mA. Blue and white are dimmer because they get less current
+(Vf ≈ 3 V leaves ~0.3 V across the resistor), not because they need more. With so little headroom the
+Vf spread between parts (≈ 2.8–3.2 V) changes the current a lot. Break-before-make.
 Variable speed: `#define` → variable, global because `loop()` runs again and again;
 `int`, not `uint32_t`, because an underflow would turn into a 49-day `delay`.
 Two LEDs on one pin: 3V3→LED→pin (active-low) + pin→LED→GND — source/sink, push-pull.
+`INPUT` is high-Z: the pin neither sources nor sinks current, it only senses the voltage. Step 05 then
+goes dark because the only path left (3V3 → blue → red → GND) needs ~5 V.
 Current flows only where there is a voltage difference; through a diode only from + to −.
 Two push-pull outputs driving opposite levels short each other (hence open-drain in I2C).
 Steps: `1.3-esp32-blink/00…05` — lecture demo, base, 4 extras; each an ordinary PlatformIO project.
