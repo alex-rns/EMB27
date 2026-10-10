@@ -31,7 +31,8 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
 2. **Consistency checks:**
    - every step has `platformio.ini` (one `[env:esp32-s3-devkitc-1]`, `build_src_flags = -Wall -Wextra`),
      `src/main.cpp`, `diagram.json` (valid JSON), `wokwi.toml` (→ `.pio/build/esp32-s3-devkitc-1/…`), `README.md`;
-   - pins in each `diagram.json` match the pins in its `main.cpp`, and its `diagram.png` shows that wiring;
+   - pins in each `diagram.json` match the pins in its `main.cpp`. Don't open the `diagram.png` screenshots:
+     viewing them is slow, and `/save-hw` already checked each one when it was taken;
    - every claim in the step READMEs (timings, ranges, pins) matches the code;
    - the lesson README steps table lists every step;
    - no Cyrillic in the repo (tracked + new files); this must print nothing:
@@ -54,8 +55,9 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
 5. **Update the docs** (English):
    - lesson `README.md`: fix the doc findings from step 2; add Wokwi links if the user published them;
    - `module-N/README.md`: the lesson row → `[<short name>](N.M-<topic>/) — base task + K extras`;
-   - `module-N/CLAUDE.md`: status ✅ and a lesson summary: concepts, ideas the user formulated himself,
-     mistakes made, what breaks on real hardware, how the check questions went. Update open threads;
+   - `module-N/CLAUDE.md`: status ✅ and a technical lesson summary: concepts and what breaks on real
+     hardware. Update open threads. The repo is public: how the user answered, their mistakes and their
+     learning progress never go into repo files;
    - root `README.md`: set the module status to `done` after its last lesson;
    - root `CLAUDE.md`: update "Next step" if it changed. Lesson summaries never go into the root file.
 6. **Commit and push.** Suggest `module-N/N.M-<topic>: finish lesson`; the user approves or rewrites it
