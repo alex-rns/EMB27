@@ -21,7 +21,8 @@ Module 1 has no flexible slot (those are in modules 2–6).
 
 ## Hardware in this module
 
-- ESP32-S3-DevKitC-1 (rev v1.1: onboard RGB on GPIO 38, GPIO 48 is free).
+- ESP32-S3 DevKitC-1 clone, N16R8 (see the root CLAUDE.md). Which GPIOs drive the onboard LEDs (47, 48) is still
+  to verify: 1.3 uses both for external LEDs.
 - LEDs (red, blue, white), 220 Ω resistors, breadboard. Coming: button (1.5),
   light sensor (1.6–1.7), multimeter (1.1), soldering iron (1.9).
 - Pins used so far: 47, 48, 21.
@@ -62,3 +63,5 @@ Steps 01–03 were reconstructed afterwards (they were only intermediate edits o
    reaches 10 ms: the bound is checked after `flashMs += stepMs`, and 100 − 15 is not a multiple of 10
    (100, 90, …, 20, 10 → flip). Open: fix the code or the README.
 3. 1.4: the PlatformIO template still has `int result = myFunction(2, 3);` (`-Wunused-variable`).
+4. 1.4: check on the board which GPIOs drive the onboard LEDs (course: 48 = blue SYS-LED, 47 = WS2812).
+   1.3 drives external LEDs on both pins, so the onboard LEDs may blink along.

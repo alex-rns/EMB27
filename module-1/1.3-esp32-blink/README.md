@@ -2,7 +2,7 @@
 
 [← Module 1](../)
 
-**Board:** ESP32-S3-DevKitC-1 · **Framework:** Arduino (PlatformIO) · **Simulator:** Wokwi
+**Board:** ESP32-S3 DevKitC-1 clone (N16R8) · **Framework:** Arduino (PlatformIO) · **Simulator:** Wokwi
 
 **Assignment:** drive a red and a blue LED from two GPIO pins through resistors
 and make them blink alternately in an endless loop, like a police light.

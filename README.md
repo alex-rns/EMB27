@@ -3,7 +3,7 @@
 Homework and projects from the [Beetroot Academy "Embedded Development"](https://beetroot.academy/courses/online/kurs-embedded-development)
 course, group EMB27 (started September 2026, 5 months).
 
-**Board:** ESP32-S3-DevKitC-1 · **Language:** C++ (Arduino framework) · **Build:** PlatformIO · **Simulation:** Wokwi
+**Board:** ESP32-S3 DevKitC-1 clone (N16R8) · **Language:** C++ (Arduino framework) · **Build:** PlatformIO · **Simulation:** Wokwi
 
 ## Modules
 
