@@ -54,7 +54,8 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
    Record anything still shaky as an open thread.
 5. **Update the docs** (English):
    - lesson `README.md`: fix the doc findings from step 2; add Wokwi links if the user published them;
-   - `module-N/README.md`: the lesson row → `[<short name>](N.M-<topic>/) — base task + K extras`;
+   - `module-N/README.md`: the lesson row → `[<short name>](N.M-<topic>/) — base task + K extras`,
+     plus ` + P practice` when the lesson has practice steps;
    - `module-N/CLAUDE.md`: status ✅ and a technical lesson summary: concepts and what breaks on real
      hardware. Update open threads. The repo is public: how the user answered, their mistakes and their
      learning progress never go into repo files;

@@ -10,10 +10,12 @@ Personal notes about the author never go into this repository; it is public.
 
 ## Workflow
 
-- Experiments happen in an ordinary PlatformIO project created by the wizard: one `src/main.cpp`,
-  edits, copies, "archive" folders. No rules while experimenting.
-- `/save-hw` + the assignment turns a finished homework into the saved structure below: steps from the
-  assignment, code for each step, Wokwi circuits, READMEs. The experiment project goes to the macOS Trash.
+- Each lesson is worked on in a draft: an ordinary PlatformIO project created by the wizard, one
+  `src/main.cpp`. A finished piece (practice before the lecture, the lecture demo, …) is copied to
+  `archive/<type>-<slug>.cpp` next to `src/`, never inside it: every `.cpp` in `src/` is compiled, and two
+  `setup()` don't link. Otherwise no rules while experimenting.
+- `/save-hw` + the assignment turns a finished homework into the saved structure below: steps from
+  `archive/` and the assignment, code for each step, Wokwi circuits, READMEs. The draft goes to the macOS Trash.
   Commit and push after the author confirms.
 - `/finish-lesson` builds every step, checks code against circuits and READMEs, asks check questions,
   then updates the docs and commits.
@@ -21,7 +23,7 @@ Personal notes about the author never go into this repository; it is public.
 
 ## Repository layout
 
-The layout mirrors the course: module (0–7) → lesson (N.M) → homework steps.
+The layout mirrors the course: module (0–7) → lesson (N.M) → steps (practice, lecture demo, homework).
 ```
 README.md                    ← course, board, table of modules (GitHub front page)
 CLAUDE.md                    ← this file
@@ -31,7 +33,8 @@ module-N/
 │                              hardware/pins, what to watch for, known issues
 └── N.M-<topic-slug>/        ← one folder per lesson with homework (a container, not a project)
     ├── README.md            ← assignment + table of steps (type, what it shows)
-    └── NN-<type>-<slug>/    ← one step = one ordinary PlatformIO project; type = lecture | base | extra
+    └── NN-<type>-<slug>/    ← one step = one ordinary PlatformIO project; type = practice | lecture | base | extra,
+        │                      numbered from 00 in the order of the work (practice is optional)
         ├── platformio.ini   ← the wizard's 4 lines + build_src_flags = -Wall -Wextra
         ├── src/main.cpp
         ├── diagram.json, wokwi.toml (→ .pio/build/esp32-s3-devkitc-1/firmware.bin|elf)

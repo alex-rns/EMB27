@@ -26,7 +26,7 @@ module-N/                     one folder per course module
 ├── README.md                 topics of the module and its lessons
 └── N.M-<topic>/              one folder per lesson with homework
     ├── README.md             the assignment and a table of its steps
-    └── NN-<type>-<slug>/     one homework step = one ordinary PlatformIO project
+    └── NN-<type>-<slug>/     one step = one ordinary PlatformIO project
         ├── platformio.ini
         ├── src/main.cpp      the firmware
         ├── diagram.json      Wokwi circuit
@@ -35,7 +35,8 @@ module-N/                     one folder per course module
         └── README.md         wiring and what the step shows
 ```
 
-Step types: `lecture` (demo from the class), `base` (required homework), `extra` (optional harder steps).
+Step types, numbered from `00` in the order of the work: `practice` (own practice before the class, optional),
+`lecture` (demo from the class), `base` (required homework), `extra` (optional harder steps).
 
 ## Build and run
 
