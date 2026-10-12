@@ -23,6 +23,7 @@ pull-up on GPIO 0).
 | 03 | [base-mode1-sync](03-base-mode1-sync/) | base | mode 1 while the button is held: both LEDs together, 200 ms |
 | 04 | [base-mode2-alternate](04-base-mode2-alternate/) | base | mode 2 while BOOT is held: the LEDs in turn, 1000 ms; BOOT as `INPUT` |
 | 05 | [base-combined](05-base-combined/) | base | the full homework: both modes, latched in a global `mode`, mode 1 at start |
+| 06 | [extra-interrupts](06-extra-interrupts/) | extra | buttons on interrupts: a single short press is never lost; `volatile`, `IRAM_ATTR` |
 
 ## Working with the steps
 
