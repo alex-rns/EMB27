@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "author": "Oleksandr Bielodubrovskyi",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-s3-devkitc-1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-pushbutton", "id": "btn", "top": 131.38, "left": 160, "attrs": { "color": "black" } },
+    { "type": "wokwi-resistor", "id": "r_pulldown", "top": 157.73, "left": 250, "attrs": { "value": "10000" } }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "esp:45", "btn:2.l", "red", [] ],
+    [ "esp:3V3.1", "btn:1.l", "white", ["h-20", "v-50", "*", "h-20"] ],
+    [ "btn:2.r", "r_pulldown:1", "red", [] ],
+    [ "r_pulldown:2", "esp:GND.4", "brown", ["h20", "v67.2"] ]
+  ],
+  "dependencies": {}
+}

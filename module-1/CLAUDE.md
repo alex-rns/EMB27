@@ -10,7 +10,7 @@
 | 1.1 | Measuring current and voltage | — | lecture only |
 | 1.2 | Can you burn an LED? Resistance and voltage | — | lecture only |
 | 1.3 | ESP32: first program, Blink | `1.3-esp32-blink` | ✅ finished (base + 4 extras) |
-| 1.4 | GPIO and pinout, reading the datasheet | `1.4-gpio-pinout` | ⏳ experiment project (wizard template) |
+| 1.4 | GPIO and pinout, reading the datasheet | `1.4-gpio-pinout` | ⏳ `00-lecture-pulldown` saved; the homework still lives in the draft (same folder, `archive/`) |
 | 1.5 | Signals and a button (oscilloscope) | — | — |
 | 1.6 | Intro to the ADC: reading light | — | — |
 | 1.7 | Mini project: light sensor controls an LED | — | — |
@@ -23,9 +23,11 @@ Module 1 has no flexible slot (those are in modules 2–6).
 
 - ESP32-S3 DevKitC-1 clone, N16R8 (see the root CLAUDE.md). Which GPIOs drive the onboard LEDs (47, 48) is still
   to verify: 1.3 uses both for external LEDs.
-- LEDs (red, blue, white), 220 Ω resistors, breadboard. Coming: button (1.5),
+- LEDs (red, blue, white, green), 220 Ω and 10 kΩ resistors, tactile button, breadboard. Coming:
   light sensor (1.6–1.7), multimeter (1.1), soldering iron (1.9).
-- Pins used so far: 47, 48, 21.
+- Pins used so far: 1.3: 47, 48, 21. 1.4: 45 (lecture, strapping pin on purpose), 15, 16, 21, 0 (homework).
+- GPIO 0 (BOOT) has an external pull-up on this board; Wokwi's DevKitC-1 model doesn't, so a Wokwi circuit
+  that reads BOOT with `INPUT` needs a 10 kΩ from GPIO 0 to 3V3 in `diagram.json`.
 - Avoid: 19/20 (native USB — the board drops off the port), 0/3/45/46 (strapping),
   26–37 (flash/PSRAM), 43/44 (UART0).
 
@@ -67,6 +69,5 @@ Steps 01–03 were reconstructed afterwards (they were only intermediate edits o
 2. 1.3 step 04: the README says the flash length moves "between 100 ms and 15 ms", but the code
    reaches 10 ms: the bound is checked after `flashMs += stepMs`, and 100 − 15 is not a multiple of 10
    (100, 90, …, 20, 10 → flip). Open: fix the code or the README.
-3. 1.4: the PlatformIO template still has `int result = myFunction(2, 3);` (`-Wunused-variable`).
-4. 1.4: check on the board which GPIOs drive the onboard LEDs (course: 48 = blue SYS-LED, 47 = WS2812).
+3. 1.4: check on the board which GPIOs drive the onboard LEDs (course: 48 = blue SYS-LED, 47 = WS2812).
    1.3 drives external LEDs on both pins, so the onboard LEDs may blink along.
