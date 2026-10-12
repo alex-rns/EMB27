@@ -11,6 +11,10 @@ printed to Serial: `1` while the button is released, `0` while it is held.
 
 ![Circuit in Wokwi](diagram.png)
 
+On the breadboard (the board lies upside down):
+
+![On the breadboard](photo.jpg)
+
 **Notes**
 - Inverted logic: pressed = LOW. The external button in the homework works the same way.
 - `INPUT_PULLUP` and the external 10 kΩ pull the same way, so together they act like ≈ 8.2 kΩ.

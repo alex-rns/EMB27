@@ -11,6 +11,10 @@ and a button connects it to 3V3. Every 100 ms the pin is read and printed to Ser
 
 ![Circuit in Wokwi](diagram.png)
 
+On the breadboard (the board lies upside down): white = 3V3, red = GPIO 45, brown = GND.
+
+![On the breadboard](photo.jpg)
+
 **Notes**
 - Pull-down mirrors the pull-up in the homework: idle = LOW, pressed = HIGH, because the button goes to 3V3, not to GND.
 - A tactile button across the breadboard gap: the legs in one row are always connected, a press joins the two rows.

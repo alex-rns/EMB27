@@ -14,6 +14,8 @@ middle of `delay()`, and that function only sets `mode`. `loop()` just blinks ac
 
 ![Circuit in Wokwi](diagram.png)
 
+[Demo on the real board (Google Photos)](https://photos.app.goo.gl/mzhqbWubczvtSgcn8)
+
 **Notes**
 - Edge instead of level: polling asks "is it pressed now?", the interrupt reacts to "it was just pressed".
   The press is never lost, but the new mode starts when the current `if` branch ends: up to 2 s in mode 2,
