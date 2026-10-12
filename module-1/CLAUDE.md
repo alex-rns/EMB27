@@ -10,7 +10,7 @@
 | 1.1 | Measuring current and voltage | — | lecture only |
 | 1.2 | Can you burn an LED? Resistance and voltage | — | lecture only |
 | 1.3 | ESP32: first program, Blink | `1.3-esp32-blink` | ✅ finished (base + 4 extras) |
-| 1.4 | GPIO and pinout, reading the datasheet | `1.4-gpio-pinout` | ✅ saved · ⏳ /finish-lesson: `00`, `01` (lecture), `03`–`05` (homework), `06` (extra: interrupts); `02` free |
+| 1.4 | GPIO and pinout, reading the datasheet | `1.4-gpio-pinout` | ✅ finished: `00`, `01` (lecture), `03`–`05` (homework), `06` (extra: interrupts); `02` unused |
 | 1.5 | Signals and a button (oscilloscope) | — | — |
 | 1.6 | Intro to the ADC: reading light | — | — |
 | 1.7 | Mini project: light sensor controls an LED | — | — |
@@ -61,6 +61,26 @@ Current flows only where there is a voltage difference; through a diode only fro
 Two push-pull outputs driving opposite levels short each other (hence open-drain in I2C).
 Steps: `1.3-esp32-blink/00…05` — lecture demo, base, 4 extras; each an ordinary PlatformIO project.
 Steps 01–03 were reconstructed afterwards (they were only intermediate edits of one `main.cpp`).
+
+**1.4 — GPIO and pinout, homework "two LEDs, a button and BOOT".**
+Pull-down: resistor to GND, button to 3V3, pressed = 1. Pull-up: resistor to 3V3, button to GND, pressed = 0.
+The resistor sets the idle level, the button pulls the pin to the other rail; a button to the same rail
+changes nothing. `INPUT_PULLUP`/`INPUT_PULLDOWN` switch on the chip's ~45 kΩ resistor; plain `INPUT` switches
+it off (Arduino 2.0.17 `pinMode`), so the pin floats unless something on the board holds it.
+GPIO 0 (BOOT) has an external pull-up on this board, so `INPUT` works; Wokwi's DevKitC-1 model lacks it and
+reads GPIO 0 as LOW. Wokwi also never shows a floating pin's noise: it reads 0.
+A Serial Monitor open on the UART port (CH343P) can hold GPIO 0 LOW through the DTR/RTS auto-download
+transistors; a program reading BOOT then acts as if it were held.
+Strapping pins: GPIO 0 picks the boot mode, GPIO 45 the flash voltage. Holding them at the wrong level
+during a reset can keep the board from booting; an external pull-up on 45 does that at every reset.
+Breadboard: a tactile button across the gap joins its rows only when pressed; legs in one row are always
+connected. A pin in the 3V3 row reads 1 all the time.
+`Serial` is UART0 (the UART USB-C port); `monitor_speed` must match `Serial.begin()` or the monitor shows garbage.
+`delay()` blocks: buttons read once per cycle miss short presses (up to 0.4 s / 2 s). Interrupts on `FALLING`
+react to the edge, not the level: the press is latched in hardware even during `delay()`. Handlers are
+`IRAM_ATTR` (flash may be off while it is written), short (no `delay`, no `Serial`), and share data through
+`volatile` variables. Bounce calls a handler several times; harmless while it sets a value, not when it toggles.
+Steps: `1.4-gpio-pinout/00, 01` lecture (pull-down, pull-up), `03–05` homework in stages, `06` extra (interrupts).
 
 ## Known issues / open
 
