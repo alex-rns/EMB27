@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "author": "Oleksandr Bielodubrovskyi",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-s3-devkitc-1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-resistor", "id": "r_green", "top": -60, "left": -115, "attrs": { "value": "220" } },
+    { "type": "wokwi-led", "id": "led_green", "top": -111, "left": -160, "attrs": { "color": "green" } },
+    { "type": "wokwi-resistor", "id": "r_blue", "top": 15, "left": -115, "attrs": { "value": "220" } },
+    { "type": "wokwi-led", "id": "led_blue", "top": -36, "left": -160, "attrs": { "color": "blue" } },
+    { "type": "wokwi-pushbutton", "id": "btn", "top": 179.18, "left": 160, "attrs": { "color": "green" } }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "esp:15", "r_green:2", "green", ["*", "h30"] ],
+    [ "r_green:1", "led_green:A", "green", [] ],
+    [ "esp:GND.1", "led_green:C", "black", ["*", "h-20"] ],
+    [ "esp:16", "r_blue:2", "blue", ["*", "h15"] ],
+    [ "r_blue:1", "led_blue:A", "blue", [] ],
+    [ "esp:GND.1", "led_blue:C", "black", ["*", "h-20"] ],
+    [ "esp:21", "btn:1.l", "orange", [] ],
+    [ "esp:GND.3", "btn:2.l", "black", ["*", "h-20"] ]
+  ],
+  "dependencies": {}
+}

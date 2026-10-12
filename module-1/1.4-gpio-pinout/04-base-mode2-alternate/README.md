@@ -23,4 +23,6 @@ go dark. Latching the mode comes in [05](../05-base-combined/).
   Adding a 10 kΩ from GPIO 0 to 3V3 to `diagram.json` makes the simulation match the board.
 - GPIO 0 is a strapping pin: holding BOOT while the program runs is fine, holding it during a reset or power-on
   starts the download mode instead of the program.
+- Test BOOT with the Serial Monitor closed or with the cable in the native USB port: a monitor open on the
+  UART port can hold GPIO 0 LOW, and the program acts as if BOOT were pressed.
 - One cycle takes 2000 ms and the button is read once per cycle, so the LEDs go dark up to 2 s after the release.

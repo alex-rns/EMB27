@@ -22,6 +22,7 @@ pull-up on GPIO 0).
 | 01 | [lecture-pullup](01-lecture-pullup/) | lecture demo | the same turned around: a pull-up, a button to GND, pressed = LOW |
 | 03 | [base-mode1-sync](03-base-mode1-sync/) | base | mode 1 while the button is held: both LEDs together, 200 ms |
 | 04 | [base-mode2-alternate](04-base-mode2-alternate/) | base | mode 2 while BOOT is held: the LEDs in turn, 1000 ms; BOOT as `INPUT` |
+| 05 | [base-combined](05-base-combined/) | base | the full homework: both modes, latched in a global `mode`, mode 1 at start |
 
 ## Working with the steps
 
