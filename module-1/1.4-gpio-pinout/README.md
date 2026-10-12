@@ -20,6 +20,7 @@ pull-up on GPIO 0).
 |---|---|---|---|
 | 00 | [lecture-pulldown](00-lecture-pulldown/) | lecture demo | input with a pull-down, a button to 3V3, values in Serial |
 | 01 | [lecture-pullup](01-lecture-pullup/) | lecture demo | the same turned around: a pull-up, a button to GND, pressed = LOW |
+| 03 | [base-mode1-sync](03-base-mode1-sync/) | base | mode 1 while the button is held: both LEDs together, 200 ms |
 
 ## Working with the steps
 
