@@ -10,7 +10,7 @@
 | 1.1 | Measuring current and voltage | — | lecture only |
 | 1.2 | Can you burn an LED? Resistance and voltage | — | lecture only |
 | 1.3 | ESP32: first program, Blink | `1.3-esp32-blink` | ✅ finished (base + 4 extras) |
-| 1.4 | GPIO and pinout, reading the datasheet | `1.4-gpio-pinout` | ⏳ `00-lecture-pulldown` saved; the homework still lives in the draft (same folder, `archive/`) |
+| 1.4 | GPIO and pinout, reading the datasheet | `1.4-gpio-pinout` | ⏳ `00-lecture-pulldown`, `01-lecture-pullup` saved; the homework still lives in the draft (same folder, `archive/`) |
 | 1.5 | Signals and a button (oscilloscope) | — | — |
 | 1.6 | Intro to the ADC: reading light | — | — |
 | 1.7 | Mini project: light sensor controls an LED | — | — |
