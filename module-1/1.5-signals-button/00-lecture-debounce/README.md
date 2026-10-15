@@ -29,9 +29,10 @@ Once a second it prints `RAW=<n> | DEBOUNCED=<n>`: presses counted with bounce, 
 **The idea.** It is the same idea as `debounce()` in JavaScript, which waits until the user stops typing
 before it sends a search request: here a button level counts only after the button has been still for 30 ms.
 The other half of the job is to let the analyzer see inside the firmware, so the internal state goes out on
-pins (the table above). That is debugging through pins: a `digitalWrite` takes microseconds, while a
-`Serial.print` line takes about a millisecond and shifts the very timing it is meant to show. Think metrics
-instead of logs: cheap enough to write all the time.
+pins (the table above). That is debugging through pins: a `digitalWrite` takes microseconds. A `Serial`
+line needs about 2 ms on the wire at 115200 baud. In Arduino core 2.0.17 the call returns once the text is in
+the UART's 128-byte hardware buffer, but printing more or more often waits for the wire, and either way it
+shifts the very timing it is meant to show. Think metrics instead of logs: cheap enough to write all the time.
 
 **Lines 1–14**
 

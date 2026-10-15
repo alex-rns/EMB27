@@ -11,7 +11,7 @@ buttons and signals, the ADC, and basic soldering.
 | 1.2 | Can you burn an LED? Experiments with resistance and voltage | — |
 | 1.3 | ESP32: the first program, Blink | [Police light](1.3-esp32-blink/) — base task + 4 extras |
 | 1.4 | GPIO and pinout: working with GPIO and reading the datasheet | [Two LEDs, a button and BOOT](1.4-gpio-pinout/) — base task + 1 extra |
-| 1.5 | Signals and a button: what an oscilloscope sees when you press a button | — |
+| 1.5 | Signals and a button: what an oscilloscope sees when you press a button | [Button bounce on a logic analyzer](1.5-signals-button/) — base task |
 | 1.6 | Intro to the ADC: "reading" light with an analog input | — |
 | 1.7 | Mini project: a light sensor controls an LED | — |
 | 1.8 | Debrief: typical mistakes (LEDs, polarity, wiring) | — |

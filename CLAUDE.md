@@ -70,7 +70,8 @@ Keep every project standard: **never** multiple environments, `src_dir` or `buil
   GPIO 47 = WS2812 RGB; YD-ESP32-S3 pages put the WS2812 on GPIO 48 behind an `RGB` solder jumper. Observed in 1.3:
   the RGB LED stayed dark while GPIO 48 toggled. Wokwi's DevKitC-1 has its RGB LED on GPIO 38.
 - PlatformIO's `esp32-s3-devkitc-1` assumes 8 MB flash and no PSRAM: fine until a project needs more.
-- Native USB: `/dev/cu.usbmodem*`, VID:PID `303A:xxxx` (Espressif).
+- Native USB: `/dev/cu.usbmodem*`, VID:PID `303A:xxxx` (Espressif). On macOS the CH343P UART bridge shows up as
+  `/dev/cu.usbmodem*` too (VID:PID `1A86:55D3`): tell the ports apart by the VID. `Serial` (UART0) is on the UART port.
 - Arduino core 2.0.17: `ledcSetup`/`ledcAttachPin`, not the 3.x API (`ledcAttach`).
   Check the version before trusting any documentation or generated code.
 - Pins to avoid: 19/20 (native USB), 0/3/45/46 (strapping), 26–37 (flash/PSRAM), 43/44 (UART0).

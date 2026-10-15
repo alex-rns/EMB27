@@ -23,7 +23,9 @@ middle of `delay()`, and that function only sets `mode`. `loop()` just blinks ac
 - `mode` is written in an interrupt and read in `loop()`, so it is `volatile`: the compiler doesn't know the
   interrupt exists and could otherwise keep a stale copy in a register (e.g. in `while (mode == 1) {}`).
 - `IRAM_ATTR` puts the handler in internal RAM. Code normally runs from flash through a cache, which is off
-  while the flash is being written; a handler left in flash would crash the board at that moment.
+  while the flash is being written. In Arduino core 2.0.17 `attachInterrupt` doesn't register the interrupt
+  as IRAM-safe, so it is held back while the cache is off, and a handler in flash works too (lesson 1.5 does
+  that). A handler left in flash would crash the board only if its interrupt were registered with the IRAM flag.
 - Contact bounce calls a handler several times per press. That is harmless here because each call sets the
   same value; a handler that toggles or counts would need debouncing.
 - Handlers stay short: no `delay()`, no `Serial.print()`.
