@@ -47,6 +47,12 @@ Bounce pulses = (transitions − 1) / 2. Duration = from the first to the last t
 
 Total: 6 bounce pulses, all on releases. Shortest pulse 2.87 µs (release 5).
 
+How to measure it in Logic 2: zoom in on one press or release and drag across its edges. Release 7 below:
+ΔT = 65.333 µs from the first edge to the last, 3 rising + 2 falling edges = 2 bounce pulses. Ignore the
+frequency fields: bounce is not a periodic signal.
+
+![Release 7 measured in Logic 2](release-7-measured.png)
+
 A bouncing release up close (from an earlier capture, 2026-10-13): HIGH, back to LOW for 51 µs, HIGH for 6 µs,
 LOW for 126 µs, then HIGH for good.
 
