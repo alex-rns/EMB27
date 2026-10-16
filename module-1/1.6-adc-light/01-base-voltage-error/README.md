@@ -20,10 +20,22 @@ RAW: 2659 | Ucalc: 2012.9 mV | Umeas: 2235 mV | error:  -9.94 %
 |---|---|
 | LDR (other leg → 3V3) and 10 kΩ (other end → GND), their midpoint | 4 |
 
+The circuit on the breadboard:
+
+```
+3V3 ── LDR ──┬── GPIO 4
+             │
+           10 kΩ
+             │
+            GND
+```
+
 ![Circuit in Wokwi](diagram.png)
 
-**Wokwi** has only a photoresistor module, wired the other way round (more light = lower voltage), and its ADC is
-ideal (3.3 V = 4095), so its numbers differ from the board's.
+**Wokwi** has no bare LDR, only a photoresistor module. The module carries its own 10 kΩ, which is why the Wokwi
+circuit shows no separate resistor, and it sits on the other side (10 kΩ to VCC, LDR to GND): more light gives a
+lower voltage. The real circuit can't be drawn in Wokwi either: it doesn't solve resistor dividers, and two 10 kΩ
+resistors in series read as 4095 there, not 2048. Use Wokwi to run the code, not for the numbers.
 
 ## Measured on the board
 
@@ -42,9 +54,17 @@ Room light, eight lines in a row:
 
 - With Uref = 3.1 V the formula reads about 10 % below the calibrated value. The Uref that would make the two
   agree at this point is 2235 / 2659 × 4095 ≈ 3440 mV; the lesson's 3.3 V would give about −4 %.
-  Either way it is a straight line, while the chip is calibrated with a curve, so the error changes with the voltage.
 - The error wanders between −9.74 and −10.21 %: RAW (2633–2667) and Umeas (2220–2246) are two separate
   conversions, so ADC noise goes straight into the error. The second decimal means nothing.
+
+A second run, the LDR covered by hand and then uncovered:
+
+![Serial Monitor: the LDR covered, then uncovered](serial-run.png)
+
+- Covered (Umeas 846–1000 mV) the error scatters from −4 to −19 %: the hand moves between the two conversions,
+  and the same few millivolts weigh more at a lower voltage. Uncovered (1671–2165 mV) it stays at −9.5…−11 %.
+- On average Ucalc / Umeas is 0.90 in both ranges, so the formula and the calibration differ by a scale factor
+  (the Uref), not by an offset: on this chip a Uref of about 3460 mV would fit from 0.9 V to 2.2 V.
 
 **Notes**
 - `raw / ADC_MAX` with two integers is an integer division: 0 for every RAW below 4095. One operand must be a

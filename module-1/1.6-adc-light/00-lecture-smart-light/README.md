@@ -17,13 +17,27 @@ smooths the reading with a moving average of the last 8 samples and switches the
 | LDR (other leg → 3V3) and 10 kΩ (other end → GND), their midpoint | 4 |
 | LED anode through 220 Ω (cathode → GND) | 7 |
 
+The circuit on the breadboard:
+
+```
+3V3 ── LDR ──┬── GPIO 4
+             │
+           10 kΩ
+             │
+            GND
+
+GPIO 7 ── 220 Ω ── LED ── GND
+```
+
 Bright light lowers the LDR's resistance, so the midpoint moves towards 3.3 V and the ADC code rises.
 
 ![Circuit in Wokwi](diagram.png)
 
-**Wokwi** has no bare LDR, only a photoresistor module, and the module's divider is the other way round
-(10 kΩ to VCC, LDR to GND): more light gives a lower voltage. In the simulator the LED therefore lights up in the
-light and goes off in the dark. The simulated ADC is ideal (3.3 V = 4095), unlike the real one.
+**Wokwi** has no bare LDR, only a photoresistor module. The module carries its own 10 kΩ, which is why the Wokwi
+circuit shows no separate resistor, and it sits on the other side (10 kΩ to VCC, LDR to GND): more light gives a
+lower voltage, so in the simulator the LED lights up in the light and goes off in the dark. The real circuit can't
+be drawn in Wokwi either: it doesn't solve resistor dividers, and two 10 kΩ resistors in series read as 4095
+there, not 2048.
 
 ## Measured on the board
 
