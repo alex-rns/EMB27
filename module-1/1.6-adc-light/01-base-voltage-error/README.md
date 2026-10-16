@@ -4,7 +4,8 @@ The assignment: an LDR in a voltage divider; every 100 ms read the raw ADC code 
 voltage as RAW / ADCmax × Uref with ADCmax = 4095 and Uref = 3.1 V, read the voltage with
 `analogReadMilliVolts()`, work out the relative error in percent and print all of it.
 
-The firmware sets the ADC to 12 bits and 11 dB on GPIO 4 and then, about every 100 ms (`delay(100)`), prints one line:
+The firmware sets the ADC to 12 bits and 11 dB on GPIO 4 and then, every 100 ms (a non-blocking `millis()`
+period, so the time the code itself takes doesn't stretch it), prints one line:
 
 ```
 RAW: 2659 | Ucalc: 2012.9 mV | Umeas: 2235 mV | error:  -9.94 %
@@ -12,7 +13,8 @@ RAW: 2659 | Ucalc: 2012.9 mV | Umeas: 2235 mV | error:  -9.94 %
 
 - `Ucalc` = RAW / 4095 × 3100 mV, the straight-line formula from the assignment.
 - `Umeas` = `analogReadMilliVolts()`, which applies the chip's own calibration. It is taken as the reference.
-- `error` = (Ucalc − Umeas) / Umeas × 100. Negative means the formula reads lower.
+- `error` = (Ucalc − Umeas) / Umeas × 100. Negative means the formula reads lower. When Umeas is 0 there is
+  nothing to compare against, and the line ends with `error: n/a` instead of a division by zero.
 
 | Part | GPIO |
 |---|---|
@@ -49,8 +51,9 @@ Room light, eight lines in a row:
   `float` before the division (`static_cast<float>(raw)`). The compiler gives no warning.
 - `uint32_t` can't hold the negative difference `Ucalc − Umeas`: in an unsigned type it wraps to about 4.29
   billion. The error is a `float`.
-- Near 0 V (a covered LDR) the relative error grows, because it divides by a small Umeas; at Umeas = 0 it is
-  infinite. Above about 3.1 V the ADC reads 4095 and the formula stops at 3100 mV.
-- `%u` matches `uint32_t` in Arduino core 2.0.17, where it is an `unsigned int`. In core 3.x it is an
-  `unsigned long`, and `%lu` with a cast is needed.
+- Near 0 V (a covered LDR) the relative error grows, because it divides by a small Umeas. At Umeas = 0 a `float`
+  division gives `inf`, and an integer division by zero crashes and resets the board: hence the check.
+  Above about 3.1 V the ADC reads 4095 and the formula stops at 3100 mV.
+- The print uses `%lu` with a cast to `unsigned long`: `uint32_t` is an `unsigned int` in Arduino core 2.0.17
+  and an `unsigned long` in core 3.x, so a plain `%u` fits only the first.
 - Only a multimeter on GPIO 4 tells which of the two voltages is closer to the truth.
