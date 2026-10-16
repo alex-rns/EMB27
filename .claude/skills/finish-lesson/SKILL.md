@@ -54,6 +54,8 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
    Record anything still shaky as an open thread.
 5. **Update the docs** (English):
    - lesson `README.md`: fix the doc findings from step 2; add Wokwi links if the user published them;
+   - the lesson's draft, if it is still there: move it to the Trash and put the lesson's last step in its place
+     in `EMB27.code-workspace`, so one PlatformIO project stays open (without one the buttons disappear);
    - `module-N/README.md`: the lesson row → `[<short name>](N.M-<topic>/) — base task + K extras`,
      plus ` + P practice` when the lesson has practice steps;
    - `module-N/CLAUDE.md`: status ✅ and a technical lesson summary: concepts and what breaks on real

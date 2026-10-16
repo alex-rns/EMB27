@@ -3,6 +3,10 @@
     {
       "path": ".",
       "name": "EMB27 (repo)"
+    },
+    {
+      "name": "1.6 / 01-base-voltage-error",
+      "path": "module-1/1.6-adc-light/01-base-voltage-error"
     }
   ],
   "settings": {

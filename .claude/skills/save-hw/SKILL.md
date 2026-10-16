@@ -67,7 +67,8 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
    Then add the lesson `README.md` in the shape of `module-1/1.3-esp32-blink/README.md`: the assignment
    in English, a steps table, and "Working with the steps".
 4. **Register:**
-   - `EMB27.code-workspace`: remove the source project's entry, because it's gone. Don't add the steps;
+   - `EMB27.code-workspace`: replace the source project's entry with the lesson's last step, so one
+     PlatformIO project stays open (without one the PlatformIO buttons disappear). Add no other steps;
    - `module-N/README.md`: the lesson row → `[<short name>](N.M-<topic>/) — base task + K extras`,
      plus ` + P practice` when the lesson has practice steps;
    - `module-N/CLAUDE.md`: lessons table → folder + `✅ saved · ⏳ /finish-lesson`; "Pins used so far";
@@ -141,4 +142,5 @@ elf = '.pio/build/esp32-s3-devkitc-1/firmware.elf'
 | `diagram.json` pins differ from the code | Wokwi simulates a different circuit |
 | Wires left as `[]` | The picture shows wires over pins or merged: someone wiring from it makes a short |
 | Leaving the source project in the workspace | VS Code shows a missing folder |
+| Removing it without putting the last step in its place | No PlatformIO project left: the buttons vanish after a reload |
 | Committing before the user's yes | Breaks the CLAUDE.md agreement on commits |

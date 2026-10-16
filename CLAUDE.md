@@ -48,8 +48,10 @@ Keep every project standard: **never** multiple environments, `src_dir` or `buil
 ## Tooling
 
 - VS Code: open `EMB27.code-workspace` (multi-root). PlatformIO only sees a project when `platformio.ini`
-  sits at the root of a workspace folder, so the workspace holds the repo root plus the project being
-  experimented in. Saved steps are not in the workspace: build them with `pio run -d <step-folder>`.
+  sits at the root of a workspace folder, so the workspace holds the repo root plus exactly one project:
+  the current lesson's draft or, between lessons, the last step of the lesson just finished (with no project
+  the PlatformIO buttons disappear). The next draft replaces that step. Build other saved steps with
+  `pio run -d <step-folder>`.
   IntelliSense for saved steps comes from a local root `.vscode/c_cpp_properties.json` (ignored by git):
   `pio project init --ide vscode -d <any-step>`, then copy its `.vscode/c_cpp_properties.json` to the root.
   Regenerate it when a step adds libraries (`lib_deps`) or another board.
