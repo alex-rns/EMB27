@@ -12,7 +12,7 @@
 | 1.3 | ESP32: first program, Blink | `1.3-esp32-blink` | ✅ finished (base + 4 extras) |
 | 1.4 | GPIO and pinout, reading the datasheet | `1.4-gpio-pinout` | ✅ finished: `00`, `01` (lecture), `03`–`05` (homework), `06` (extra: interrupts); `02` unused |
 | 1.5 | Signals and a button (oscilloscope) | `1.5-signals-button` | ✅ finished: `00` (lecture: debounce), `01` (homework: interrupt counter vs analyzer) |
-| 1.6 | Intro to the ADC: reading light | `1.6-adc-light` | ✅ saved: `00` (lecture: smart light), `01` (homework: formula vs `analogReadMilliVolts`) · ⏳ /finish-lesson |
+| 1.6 | Intro to the ADC: reading light | `1.6-adc-light` | ✅ finished: `00` (lecture: smart light), `01` (homework: formula vs `analogReadMilliVolts`) |
 | 1.7 | Mini project: light sensor controls an LED | — | — |
 | 1.8 | Debrief: typical mistakes (LED, polarity, wiring) | — | — |
 | 1.9 | Basic soldering | — | — |
@@ -23,8 +23,8 @@ Module 1 has no flexible slot (those are in modules 2–6).
 
 - ESP32-S3 DevKitC-1 clone, N16R8 (see the root CLAUDE.md). Which GPIOs drive the onboard LEDs (47, 48) is still
   to verify: 1.3 uses both for external LEDs.
-- LEDs (red, blue, white, green), 220 Ω and 10 kΩ resistors, tactile button, breadboard. Coming:
-  light sensor (1.6–1.7), multimeter (1.1), soldering iron (1.9).
+- LEDs (red, blue, white, green), 220 Ω and 10 kΩ resistors, tactile button, breadboard, LDR (1.6).
+  Coming: multimeter checks, soldering iron (1.9).
 - Logic analyzer (1.5): 8-channel 24 MHz Saleae Logic clone, digital only, fixed input threshold. The case labels
   the channels 1–8, Logic 2 and PulseView call them D0–D7. Its GND goes to the board's GND.
 - Pins used so far: 1.3: 47, 48, 21. 1.4: 45 (lecture, strapping pin on purpose), 15, 16, 21, 0 (homework).
@@ -42,8 +42,10 @@ Module 1 has no flexible slot (those are in modules 2–6).
   which reads random values. Contacts bounce on releases too, so a `FALLING` counter counts releases;
   a debounce must filter both directions.
 - **ADC (1.6–1.7):** ESP32 `analogRead()` is 12-bit (0–4095), not 10-bit (0–1023) like an Arduino Uno;
-  generated code often assumes 1023. The ESP32 ADC is non-linear near the rails, and attenuation sets the
-  input range. Check which ADC unit a pin belongs to: prefer ADC1, because ADC2 is shared with Wi-Fi.
+  generated code often assumes 1023. At 11 dB the ESP32-S3 measures up to ~3.1 V, not 3.3 V ("3.3 V = 4095" is
+  wrong); it is non-linear near the rails. `analogRead()` is the raw code, `analogReadMilliVolts()` is calibrated.
+  Check which ADC unit a pin belongs to: prefer ADC1 (GPIO 1–10), because ADC2 is shared with Wi-Fi.
+  Watch for `raw / 4095` in integers (always 0) and for a negative difference stored in an unsigned type.
 - **LEDs:** polarity, a resistor from Ohm's law, max current per pin (datasheet).
 - **Datasheet:** pin functions, strapping pins, electrical characteristics.
 
@@ -111,6 +113,32 @@ returns once the text is in the 128-byte UART FIFO.
 (lines arrive 29–39 ms after the edge).
 Steps: `1.5-signals-button/00` lecture (debounce on four channels), `01` homework (counter vs analyzer).
 
+**1.6 — Intro to the ADC, homework "an LDR voltage by formula vs calibration".**
+Divider 3V3 → LDR → GPIO 4 → 10 kΩ → GND: more light = lower LDR resistance = higher voltage. Dark (~580 kΩ)
+gives ~56 mV, near zero, where a relative error blows up; very bright (~500 Ω) gives ~3.14 V, above the ~3.1 V
+11 dB ceiling, so RAW saturates at 4095.
+On this board the homework formula RAW / 4095 × 3100 mV reads ~10 % below `analogReadMilliVolts()` from 0.9 to
+2.2 V: Ucalc / Umeas ≈ 0.90 in both ranges, a scale factor, not an offset (a "Uref" of ~3.46 V would fit).
+Which one is true needs a multimeter. RAW and mV are two separate conversions, so ADC noise (±5 codes) shows
+up in the error (±0.2 % in steady light, much more while the light changes).
+C traps met: `raw / ADC_MAX` with two integers is 0 (cast one operand to `float` before the division; the
+type of the target variable doesn't help, and the compiler doesn't warn); a negative difference in `uint32_t`
+wraps to ~4.29 billion; divide only after checking for zero (integer division by zero resets the board).
+`uint32_t` is `unsigned int` in core 2.0.17, `unsigned long` in 3.x: `%lu` + a cast prints it on both.
+Lecture code: modules split into `.h`/`.cpp` with namespaces; an anonymous namespace makes data file-private;
+`constexpr` + `static_assert` reject bad thresholds at build time; a ring-buffer moving average (running sum,
+no heap); hysteresis (on below 1600, off above 2200) is a software Schmitt trigger; a non-blocking period with
+`millis()`. A window of 8 samples at 1 Hz delayed the LED by 6.4 s (it switched on after the LDR was
+uncovered), and sampling once a second missed a half-second change of light.
+Logic analyzer: digital only, so it can't read the ADC voltage; it decoded the UART text instead (a 38-character
+line takes 3.3 ms at 115200). On the LDR node a slow threshold crossing gave thousands of edges, the ADC
+sampling dipped the node for ~150 ns once per loop (likely the sample capacitor), and spikes came every 20 ms
+while covered (source unknown). A 100 nF capacitor from the ADC pin to GND is the usual cure (not tried).
+Wokwi: no bare LDR, only a module with its own 10 kΩ on the other side (more light = lower voltage); resistor
+dividers aren't simulated (two 10 kΩ read 4095); the ADC is ideal (3.3 V = 4095) and `analogReadMilliVolts()`
+reads unrealistically high, so use Wokwi to run the code, not for the numbers.
+Steps: `1.6-adc-light/00` lecture (smart light, analyzer capture), `01` homework (formula vs calibration).
+
 ## Known issues / open
 
 1. 1.3: add "▶ Simulate in Wokwi" links to each step README and the lesson's steps table once
@@ -120,3 +148,6 @@ Steps: `1.5-signals-button/00` lecture (debounce on four channels), `01` homewor
    (100, 90, …, 20, 10 → flip). Open: fix the code or the README.
 3. 1.4: check on the board which GPIOs drive the onboard LEDs (course: 48 = blue SYS-LED, 47 = WS2812).
    1.3 drives external LEDs on both pins, so the onboard LEDs may blink along.
+4. 1.6 step 00: `diagram.png` is missing (the README links to it); take it from the Wokwi editor.
+5. 1.6: a multimeter on GPIO 4 should decide between the formula and `analogReadMilliVolts()` (~10 % apart),
+   and a 100 nF capacitor on the ADC pin should be tried against the noise and the ~150 ns dips.

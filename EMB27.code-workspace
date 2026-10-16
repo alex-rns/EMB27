@@ -3,10 +3,6 @@
     {
       "path": ".",
       "name": "EMB27 (repo)"
-    },
-    {
-      "name": "1.6-adc-light",
-      "path": "module-1/1.6-adc-light"
     }
   ],
   "settings": {
