@@ -12,7 +12,7 @@
 | 1.3 | ESP32: first program, Blink | `1.3-esp32-blink` | ✅ finished (base + 4 extras) |
 | 1.4 | GPIO and pinout, reading the datasheet | `1.4-gpio-pinout` | ✅ finished: `00`, `01` (lecture), `03`–`05` (homework), `06` (extra: interrupts); `02` unused |
 | 1.5 | Signals and a button (oscilloscope) | `1.5-signals-button` | ✅ finished: `00` (lecture: debounce), `01` (homework: interrupt counter vs analyzer) |
-| 1.6 | Intro to the ADC: reading light | — | — |
+| 1.6 | Intro to the ADC: reading light | `1.6-adc-light` | ✅ saved: `00` (lecture: smart light), `01` (homework: formula vs `analogReadMilliVolts`) · ⏳ /finish-lesson |
 | 1.7 | Mini project: light sensor controls an LED | — | — |
 | 1.8 | Debrief: typical mistakes (LED, polarity, wiring) | — | — |
 | 1.9 | Basic soldering | — | — |
@@ -28,7 +28,7 @@ Module 1 has no flexible slot (those are in modules 2–6).
 - Logic analyzer (1.5): 8-channel 24 MHz Saleae Logic clone, digital only, fixed input threshold. The case labels
   the channels 1–8, Logic 2 and PulseView call them D0–D7. Its GND goes to the board's GND.
 - Pins used so far: 1.3: 47, 48, 21. 1.4: 45 (lecture, strapping pin on purpose), 15, 16, 21, 0 (homework).
-  1.5: 4, 5, 6, 7 (lecture), 16 (homework).
+  1.5: 4, 5, 6, 7 (lecture), 16 (homework). 1.6: 4 (LDR, ADC1), 7 (lecture LED).
 - GPIO 0 (BOOT) has an external pull-up on this board; Wokwi's DevKitC-1 model doesn't, so a Wokwi circuit
   that reads BOOT with `INPUT` needs a 10 kΩ from GPIO 0 to 3V3 in `diagram.json`.
 - Avoid: 19/20 (native USB — the board drops off the port), 0/3/45/46 (strapping),

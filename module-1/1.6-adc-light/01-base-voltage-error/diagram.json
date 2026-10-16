@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "author": "Oleksandr Bielodubrovskyi",
+  "editor": "wokwi",
+  "parts": [
+    {"type": "board-esp32-s3-devkitc-1", "id": "esp", "top": 0, "left": 0, "attrs": {}},
+    {"type": "wokwi-photoresistor-sensor", "id": "ldr1", "top": 12.28, "left": -202, "attrs": {}}
+  ],
+  "connections": [
+    ["esp:TX", "$serialMonitor:RX", "", []],
+    ["esp:RX", "$serialMonitor:TX", "", []],
+    ["ldr1:VCC", "esp:3V3.1", "red", []],
+    ["ldr1:AO", "esp:4", "orange", []],
+    ["ldr1:GND", "esp:GND.1", "black", ["*", "h-20"]]
+  ],
+  "dependencies": {}
+}
