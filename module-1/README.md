@@ -13,6 +13,6 @@ buttons and signals, the ADC, and basic soldering.
 | 1.4 | GPIO and pinout: working with GPIO and reading the datasheet | [Two LEDs, a button and BOOT](1.4-gpio-pinout/) — base task + 1 extra |
 | 1.5 | Signals and a button: what an oscilloscope sees when you press a button | [Button bounce on a logic analyzer](1.5-signals-button/) — base task |
 | 1.6 | Intro to the ADC: "reading" light with an analog input | [LDR voltage: formula vs calibration](1.6-adc-light/) — base task |
-| 1.7 | Mini project: a light sensor controls an LED | — |
+| 1.7 | Mini project: a light sensor controls an LED | [Twilight switch → night light](1.7-twilight-switch/) — base task |
 | 1.8 | Debrief: typical mistakes (LEDs, polarity, wiring) | — |
 | 1.9 | Basic soldering | — |

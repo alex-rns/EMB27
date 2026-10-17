@@ -89,7 +89,7 @@ From the lesson 1.7 schematic, plus the PIR:
              │                                                  E ── GND
            10 kΩ                           5V ── 10 kΩ ──┬── C
              │                                           └── relay module IN
-            GND                            relay module VCC = 5V (board 5V pin), GND common
+            GND                            relay module VCC = 5V (breadboard supply: the 5V pin has no USB power), GND common
 
 PIR HC-SR501: VCC = 5V, GND, OUT (3.3 V logic) → a GPIO input
 Load: a plain LED strip (5 V or 12 V, see its marking) on the relay module's COM / NO screw terminals,

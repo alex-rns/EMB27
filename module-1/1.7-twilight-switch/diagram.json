@@ -12,16 +12,16 @@
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
     [ "esp:RX", "$serialMonitor:TX", "", [] ],
-    [ "pot1:VCC", "esp:3V3.1", "red", [ "v19.2", "h28.8" ] ],
-    [ "pot1:SIG", "esp:4", "orange", [ "v38.4", "h57.6" ] ],
-    [ "pot1:GND", "esp:GND.1", "black", [ "v19.2", "h-38.4", "v278.4" ] ],
-    [ "relay1:IN", "esp:7", "green", [ "h48", "v-48" ] ],
-    [ "relay1:VCC", "esp:5V", "red", [ "h28.8", "v86.4" ] ],
-    [ "relay1:GND", "esp:GND.1", "black", [ "h19.2", "v96" ] ],
-    [ "relay1:COM", "esp:3V3.2", "red", [ "h-19.2", "v-124.8", "h268.8" ] ],
-    [ "relay1:NO", "r1:1", "green", [ "h-28.8", "v76.8" ] ],
+    [ "pot1:VCC", "esp:3V3.1", "red", [ "v66.18" ] ],
+    [ "pot1:SIG", "esp:4", "orange", [ "v94.98" ] ],
+    [ "pot1:GND", "esp:GND.1", "black", [ "v267.78" ] ],
+    [ "relay1:IN", "esp:7", "green", [ "h67", "v-48" ] ],
+    [ "relay1:VCC", "esp:5V", "red", [ "h9.6", "v66.7" ] ],
+    [ "relay1:GND", "esp:GND.1", "black", [ "h21.6", "v86.2" ] ],
+    [ "relay1:COM", "esp:5V", "red", [ "h-16.5", "v77.7" ] ],
+    [ "relay1:NO", "r1:1", "green", [ "h-32.1" ] ],
     [ "r1:2", "led1:A", "green", [ "v0" ] ],
-    [ "led1:C", "esp:GND.1", "black", [ "v19.2", "h345.6", "v-134.4" ] ]
+    [ "led1:C", "esp:GND.1", "black", [ "v19.2", "h293.8", "v-166.22" ] ]
   ],
   "dependencies": {}
 }

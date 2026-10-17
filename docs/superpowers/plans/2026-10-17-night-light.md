@@ -170,7 +170,7 @@ the lesson folder and in the workspace until `/finish-lesson` (no Trash in betwe
   its voltage (5 or 12 V, printed on it) and a supply of that voltage that gives enough current (the strip's
   marking, or its length × watts per metre); never the board's 5V pin or the MB-102.
 - [ ] **Step 2: Wiring**, one block at a time, each checked before the next: the divider on GPIO 4; GPIO 7 →
-  10 kΩ → B, E → GND, 5V → 10 kΩ → C, C → relay IN; relay VCC → 5V, GND → GND; load: the strip's supply + → COM,
+  10 kΩ → B, E → GND, 5V → 10 kΩ → C, C → relay IN; relay VCC → 5V (the breadboard supply: on this clone the board's 5V pin has no USB power), GND → GND; load: the strip's supply + → COM,
   NO → strip +, strip − → supply −, straight into the module's screw terminals, not through the breadboard
   (its contacts are not made for amps). Before USB: the multimeter shows no short 5V–GND and 3V3–GND.
 - [ ] **Step 3: Upload, open the Serial Monitor.** Expected: a status line per second; covering the LDR → a click,
@@ -239,7 +239,7 @@ the lesson folder and in the workspace until `/finish-lesson` (no Trash in betwe
 **Interfaces:** Consumes Task 3.
 
 - [ ] **Step 1: PIR setup** (the author): hold-time potentiometer to the minimum, retrigger jumper on H
-  (repeatable), sensitivity in the middle. Power it (VCC → 5V, GND) **without** OUT connected; the multimeter on
+  (repeatable), sensitivity in the middle. Power it (VCC → the breadboard supply's 5 V, GND) **without** OUT connected; the multimeter on
   OUT shows HIGH ≈ 3.3 V (never 5 V) when a hand waves. Only then OUT → GPIO 5.
 - [ ] **Step 2: Upload, wait 60 s** (PIR warm-up), Serial Monitor. Expected: `motion: now` while waving.
 - [ ] **Step 3: Timeout capture.** Logic 2: timed 45 s, ≥ 1 MS/s, D0, D1, D2. In the dark the author waves once,
