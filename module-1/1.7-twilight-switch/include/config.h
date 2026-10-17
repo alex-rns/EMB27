@@ -6,6 +6,10 @@ namespace Config {
 // ESP32-S3 pins. GPIO 4 is on ADC1, which keeps working while Wi-Fi is on.
 constexpr uint8_t LDR_GPIO = 4;    // midpoint of the LDR + 10 kOhm divider
 constexpr uint8_t RELAY_GPIO = 7;  // "GPIO Out": 10 kOhm -> BC547 base -> relay module IN
+constexpr uint8_t PIR_GPIO = 5;    // PIR OUT (3.3 V logic), HIGH while it sees motion
+
+// The lamp goes off this long after the last motion (counted from the PIR OUT falling edge).
+constexpr uint32_t MOTION_TIMEOUT_MS = 15000;
 
 constexpr uint32_t BAUD = 115200;
 constexpr uint32_t SAMPLE_PERIOD_MS = 100;
