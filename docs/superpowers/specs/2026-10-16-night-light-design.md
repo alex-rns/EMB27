@@ -1,6 +1,7 @@
 # Night light with motion sensing and a Wi-Fi page — design
 
-Lesson 1.7 mini project, Module 1, EMB27 course. Status: approved by the author 2026-10-16; next step: an implementation plan.
+Lesson 1.7 mini project, Module 1, EMB27 course. Status: approved by the author 2026-10-16;
+2026-10-17: phone control reduced to the mode (no boost), motion timeout 15 s, the load is an LED strip. Plan: `docs/superpowers/plans/2026-10-17-night-light.md`.
 
 ## Intent
 
@@ -39,12 +40,11 @@ on the native USB port), it can become its own step.
 1. **Base (homework 1.7, as given):** read the ADC (0…4095) from the LDR divider; ADC < `THRESHOLD_DARK` →
    GPIO Out HIGH (relay on); ADC > `THRESHOLD_LIGHT` → LOW (relay off); in between → no change.
 2. **Motion:** the lamp turns on only when it is dark **and** a PIR sensor sees motion; it turns off when no motion
-   has been seen for a timeout (default 30 s); every new motion restarts the timeout.
+   has been seen for a timeout (default 15 s); every new motion restarts the timeout.
 3. **Wi-Fi page, read-only ("variant A"):** a page served by the board on the home network shows the light level,
    how long ago motion was seen, the lamp state with the time left, a live chart of the light level and the last
    10 events.
-4. **Wi-Fi page, control ("variant B"):** the page also switches the mode (auto / always on / always off) and has a
-   "turn on for N minutes" button (boost).
+4. **Wi-Fi page, control ("variant B"):** the page also switches the mode (auto / always on / always off).
 
 ## Non-goals (later, not now)
 
@@ -92,8 +92,8 @@ From the lesson 1.7 schematic, plus the PIR:
             GND                            relay module VCC = 5V (board 5V pin), GND common
 
 PIR HC-SR501: VCC = 5V, GND, OUT (3.3 V logic) → a GPIO input
-Load: an LED with a series resistor on the relay's COM / NO contacts, powered separately
-      (e.g. the MB-102 breadboard supply)
+Load: a plain LED strip (5 V or 12 V, see its marking) on the relay module's COM / NO screw terminals,
+      powered by its own supply (never the board's 5V pin or the MB-102: a strip draws far more current)
 ```
 
 - LDR on GPIO 4: ADC1 keeps working with Wi-Fi on (ADC2 is shared with Wi-Fi).
@@ -104,7 +104,7 @@ Load: an LED with a series resistor on the relay's COM / NO contacts, powered se
   straight on IN of a 5 V module doesn't release a PNP input.
 - Optional: 100 kΩ from the BC547 base to GND, so the relay doesn't click while GPIO Out floats during boot.
 - Available parts: the course kit (relay module, BC547B, LDR, resistors, LEDs, breadboard supply, multimeter)
-  and a second kit with a 5 V 2-channel relay module and an HC-SR501 PIR.
+  a second kit with a 5 V 2-channel relay module and an HC-SR501 PIR, and an LED strip with its own supply.
 
 ### Check before wiring (unknown facts; record the results in the step README)
 
@@ -122,8 +122,9 @@ Load: an LED with a series resistor on the relay's COM / NO contacts, powered se
 **Light.** Sample the ADC every 100 ms. Dark/light uses the two thresholds with hysteresis: dark below
 `THRESHOLD_DARK`, light above `THRESHOLD_LIGHT`, no change in between; `static_assert(THRESHOLD_DARK <
 THRESHOLD_LIGHT)`. Start from the lesson 1.6 values (1600 / 2200) and set the real ones from Serial readings on
-this breadboard. The base step compares the raw reading as the assignment says; the motion step may smooth it
-with the moving average from the 1.6 lecture code (builder's call).
+this breadboard. Every step compares the raw reading, as the assignment says: the hysteresis already covers the
+ADC noise. A moving average (the 1.6 lecture code) is added only if a passing shadow switches the lamp on in the
+board test (decided 2026-10-17).
 
 **Lamp, auto mode** (decided with the author):
 - switches on when it is dark and motion is seen;
@@ -133,11 +134,12 @@ with the moving average from the 1.6 lecture code (builder's call).
   relay chatter). In practice the light reading matters only while the lamp is off, as in commercial motion
   night lights. Motion seen while it is light and the lamp is off does nothing.
 
-**Modes (variant B):** `auto` (above), `on` (always on), `off` (always off). Boost turns the lamp on for N minutes
-(1…60) whatever the mode, then returns to the mode that was active (my call).
+**Modes (variant B):** `auto` (above), `on` (always on), `off` (always off). In `on` and `off` the sensors don't
+matter; switching back to `auto` applies the auto rule at once. The mode starts as `auto` after a reset. A
+"turn on for N minutes" boost was considered and dropped (2026-10-17).
 
-**Events:** the last 10 changes, e.g. "lamp on (dark + motion)", "lamp off (no motion 30 s)", "mode → on",
-"boost 5 min", "Wi-Fi connected". Timestamps as uptime by default; real clock time via SNTP is the builder's option
+**Events:** the last 10 changes, e.g. "lamp on (dark + motion)", "lamp off (no motion 15 s)", "mode → on",
+"Wi-Fi connected". Timestamps as uptime by default; real clock time via SNTP is the builder's option
 in the Wi-Fi steps.
 
 **Serial:** one status line per second (light, dark/light, motion age, lamp, mode) plus one line per event, so a
@@ -152,7 +154,7 @@ Modules split into `.h` / `.cpp` with namespaces, as in the lesson 1.6 lecture c
 | `include/config.h` | pins, thresholds, timeouts, `static_assert`s | constants |
 | `light_sensor` | ADC sampling, dark/light hysteresis | `begin()`, `sample(now)`, `isDark()`, `raw()` |
 | `motion` | PIR input, time of the last motion | `begin()`, `read(now)`, `msSinceMotion(now)` |
-| `lamp` | modes, timeout, boost; **the only code that writes the relay pin** | `begin()`, `update(now)`, `setMode()`, `boost(min)`, state getters |
+| `lamp` | modes, timeout; **the only code that writes the relay pin** | `begin()`, `update(now)`, `setMode()`, state getters |
 | `event_log` | ring buffer of the last 10 events | `add()`, `list()` |
 | `web` | Wi-Fi, reconnect, mDNS, routes; reads state, sends commands to `lamp`, never touches pins | `begin()`, `handle()` |
 | `page.h` | the page (HTML + JS) as a raw string literal | constant |
@@ -168,15 +170,14 @@ Modules split into `.h` / `.cpp` with namespaces, as in the lesson 1.6 lecture c
 - Routes:
   - `GET /` → the page;
   - `GET /api/state` → JSON built with `snprintf`, e.g.
-    `{"raw":1180,"dark":true,"motionAgoMs":12000,"lamp":true,"leftS":18,"mode":"auto","boostLeftS":0,"events":[…]}`;
-  - `POST /api/mode?m=auto|on|off` (variant B);
-  - `POST /api/boost?min=N`, N 1…60 (variant B).
-  Anything else, or a value out of range → HTTP 400 and no change.
+    `{"raw":1180,"dark":true,"motionAgoMs":12000,"lamp":true,"leftS":18,"mode":"auto","events":[…]}`;
+  - `POST /api/mode?m=auto|on|off` (variant B).
+  Any other value of `m`, or no `m` → HTTP 400 and no change.
 - The page is self-contained (no CDN): it polls `/api/state` once a second and keeps the chart history itself
   (the board stores no history beyond the 10 events). UI text in English.
 
 **Left to the builder:** the remaining pin choices, file names beyond the table, the exact JSON field names, the
-page layout and chart technique (canvas or SVG), the moving-average window, SNTP or uptime, the mDNS fallback if
+page layout and chart technique (canvas or SVG), SNTP or uptime, the mDNS fallback if
 `.local` doesn't resolve on the phone.
 
 ## Steps
@@ -192,9 +193,9 @@ takes the next free number.
 | Step | What | Done when |
 |---|---|---|
 | `base-twilight-switch` | the assignment as given: LDR, thresholds with hysteresis, relay through BC547 | covering the LDR switches the relay on, light switches it off, no chatter at the thresholds |
-| `extra-motion` | PIR + timeout in auto mode | lamp on only in the dark with motion, off 30 s after the last motion, motion restarts the countdown; the lamp's LED shining on the LDR doesn't switch it off |
+| `extra-motion` | PIR + timeout in auto mode | lamp on only in the dark with motion, off 15 s after the last motion, motion restarts the countdown; the strip shining on the LDR doesn't switch it off |
 | `extra-web-status` | Wi-Fi + read-only page (variant A) | the phone shows live values, chart and events; the lamp still works with Wi-Fi off |
-| `extra-web-control` | modes + boost (variant B) | mode and boost work from the phone; bad parameters get 400; boost returns to the previous mode |
+| `extra-web-control` | modes (variant B) | the mode works from the phone; a bad `m` gets 400 |
 
 ## Verification per step
 
@@ -204,7 +205,7 @@ takes the next free number.
   known, so its relay may be driven straight from the GPIO with a README note. Wokwi also simulates Wi-Fi.
 - On the board: Serial status lines; a multimeter on GPIO 4 for the light levels used as thresholds.
 - Logic analyzer captures (channels: relay IN, PIR OUT, GPIO Out, UART TX): no relay chatter, the timeout
-  measured from the last PIR edge to the relay edge (30 s), the reaction time from "dark + motion" to the relay.
+  measured from the last PIR edge to the relay edge (15 s), the reaction time from "dark + motion" to the relay.
 - Wi-Fi steps: page from the phone; Wi-Fi drop (router off/on or a wrong password) → the lamp keeps working and the
   board reconnects; invalid commands are rejected.
 - Each step README: what it does, wiring table, the text schematic, Wokwi notes, measured results, what breaks on
