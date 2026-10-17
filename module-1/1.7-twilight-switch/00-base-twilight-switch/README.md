@@ -38,6 +38,8 @@ Load, on its own supply: supply + ── COM, NO ── load +, load − ── 
 One ground: the board's GND, the breadboard supply's GND, the relay module's GND, the BC547B emitter.
 ```
 
+![Schematic: the LDR divider, the BC547B stage, the relay module inside and the strip on K1](schematic.svg)
+
 ![Circuit in Wokwi](diagram.png)
 
 **Wokwi** can't draw this circuit as it is. It doesn't solve resistor dividers and its photoresistor module runs the
