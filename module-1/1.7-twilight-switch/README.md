@@ -50,4 +50,5 @@ and `archive/`).
 - **Serial:** 115200 baud on the board's UART USB-C port; `monitor_filters = time` puts the wall-clock time on
   every line, which matches the lines to a logic analyzer capture.
 - **Capture:** `00` has a Logic 2 capture (`capture.sal`) with GPIO 7 and the decoded UART.
+- **Falstad:** `00` also has `falstad.txt`, a model of the circuit's electrics (the link is in its README).
 - **Safety:** low voltage only. The load has its own supply, never the board's 5V pin or the breadboard supply.

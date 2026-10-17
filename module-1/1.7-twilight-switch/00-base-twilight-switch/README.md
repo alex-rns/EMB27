@@ -46,6 +46,16 @@ There is no transistor in the Wokwi circuit: its relay module sits straight on G
 pin, which only works in the simulator. A 220 Ω resistor and an LED on NO (COM on 5V) show the lamp: it lights
 in the dark and goes off in the light, so Wokwi's relay module switches on at IN = HIGH, as on the board.
 
+**Falstad** simulates the electrics that Wokwi skips: [open the circuit in Falstad](https://www.falstad.com/circuit/circuitjs.html?ctz=CQAgjCAMB0l5AmcMFwQdnQZkgDgQGwCcR6IArJBRVeQKYC0YYAUAEogEAsnP3IWJFSpcqWaFihSY5FlnR9FvcOgLTopSBAAyASwDmACwAuAHQDOACgBOAe1sBbC6QA0FgCYBDawGsL5cgBKFmtlMFVlDCFkeBZ9SPQkfhweYRYAdzCIsC4ecLVIDPBclTUwAip8qBYAeWK87JKEUXBq1DJ+KvLSkB4AcQAFAEkarhYwXElyyoiEcjKI4WhycAlcVdw1cUlCzLmFtQRcdarCuqOT2ePwI9bC9pALnqeEZt6QQZH0EMfrqqxcA0CjE4CxjAJAT0uN1TncpDgqO46AAzTwAVwANsYitCykQkLjHi1CvFCc0RN0otJ2L1uvxCYJpL1aNA3sIoMsfoT6TCKlIwPBdrSynzcic+UKxeBRVxLgUcbKobgZvKAMoUW7TXrK6XsqiojHmOhSBAsB6yyolKU5Hj9YY1b4PciavnO9aodY8IYAOVqGvFtE1YCQEEKoTdus4eEjlVi4IqAd4lQlICYTNQiJR6KxRW4lsUVCI8o4eZARaTynZLXIrNS6lkmVLVVL5OqjZarYIiSJaUb3db6EgPFbhXC60Hw+jqnd0byHOiMEgKwFgsFHKXPEH68gZEXS7bIGnPcPBHd3ZJJ7PSCPKWp7k4-euXaQraQSNRmOx8Wfv3WP8Eeo-C2LSlresaguUSQtLeoGnkyoZxBWWBwaWoiARwE49JhNpMi0wZMjIRTYREmEegeR6vDwkwvmyPzUY8bz0U8IiDuMBBIEx1z0Vgzr8q0rDxNxvHcZCaQAB7Sqm3R6pJ2h0OY5i2AAdqsZDGOkugYgYJggOYGnGAAxoYICWAAoqqAyCAwqpYIEABcIDuNYnjxMYhjGnoRjguYWlIqEykgG5xrWNp2ISd0PELvySAAIIOdoAAiHCeEp94CiAPg1IYDipgAfB89rvJYMUJQAwsE4WoAIQ4ETcIDIro1gOOk3jGgAvCAqpGQ4ujGOCxghfo+h0NYDkAEZ0BitiZGAawgAAanlIAABJDH0y0uCAnhjbYABuxqzZsC1LdoNQAOosBJWDIQIvEyfhABCDkPaV5BcGQ5jGC5dCbdsx0MPlKyLQFPqXb0HbEvBSA+rpthotYBnGnpvVGWDEZSvdSDWJNngAJ4gA4tjuJidAOWAPibQM3oDJtBm2Jph5UFlDibe4uhEz9IDaKZCVg6oFLAuy+FTZ47jxTzukDboAAOm3TSp+HzSwQA)
+(or File → Import From Text with [`falstad.txt`](falstad.txt)). The firmware is replaced by an inverting Schmitt
+trigger with the thresholds in volts (1.38 / 1.86 V). Drag the "Light" slider: 97 is room light (LDR ≈ 4 kΩ,
+GPIO 4 = 2.36 V, the same as the multimeter), the relay switches on at 86 and off again at 94, and in between it
+keeps its state. The switch next to IN feeds IN straight from GPIO 7: then the relay stays on in the light and in
+the dark. Model values: default transistors (β 300 and 200), a 70 Ω coil that pulls in at 54 mA and drops out at
+7 mA; Falstad's LDR is a linear model, not a real light curve.
+
+![The circuit in Falstad](falstad.svg)
+
 ## Measured on the board
 
 **Before wiring.**
