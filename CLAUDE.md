@@ -85,5 +85,8 @@ Keep every project standard: **never** multiple environments, `src_dir` or `buil
   Format: `<folder>: <what was done>` (`repo:` for root configs, `docs:` for documentation).
 - Remote `origin` = https://github.com/alex-rns/EMB27, public. Push after committing.
   The history is published: no rewriting and no force-push unless the author explicitly asks.
-- CI is planned: the course final project requires GitHub + CI/CD. Build every step project
-  (every folder with a `platformio.ini`).
+- CI (GitHub Actions, `.github/workflows/build.yml`) runs on every push to `main`: `.github/scripts/checks.sh`
+  (no Cyrillic, valid `diagram.json`, no `secrets.h`) and `.github/scripts/build-all.sh` (builds every folder with a
+  `platformio.ini`; a compiler warning in our code fails it). PlatformIO 6.2.0 and espressif32 7.1.3 are pinned there;
+  change them together with the local install. Both scripts run locally too
+  (`PIO=~/.platformio/penv/bin/pio bash .github/scripts/build-all.sh`).

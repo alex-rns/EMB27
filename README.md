@@ -1,5 +1,7 @@
 # EMB27 — Embedded Development course
 
+[![build](https://github.com/alex-rns/EMB27/actions/workflows/build.yml/badge.svg)](https://github.com/alex-rns/EMB27/actions/workflows/build.yml)
+
 Homework and projects from the [Beetroot Academy "Embedded Development"](https://beetroot.academy/courses/online/kurs-embedded-development)
 course, group EMB27 (started September 2026, 5 months).
 

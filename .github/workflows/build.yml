@@ -1,0 +1,40 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: English only, valid Wokwi circuits, no Wi-Fi secrets
+        run: bash .github/scripts/checks.sh
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.platformio/.cache
+            ~/.platformio/packages
+            ~/.platformio/platforms
+          key: pio-${{ runner.os }}-espressif32-7.1.3-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: pio-${{ runner.os }}-espressif32-7.1.3-
+      # The same versions as on the author's machine. The projects say only `platform = espressif32`,
+      # and PlatformIO uses an installed platform as is, so this pins Arduino core 2.0.17 for every step.
+      - name: Install PlatformIO 6.2.0 and espressif32 7.1.3
+        run: |
+          pip install platformio==6.2.0
+          pio pkg install --global --platform "platformio/espressif32@7.1.3"
+      - name: Build every project (fails on an error or a warning in our code)
+        run: bash .github/scripts/build-all.sh
