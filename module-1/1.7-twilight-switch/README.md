@@ -51,4 +51,6 @@ and `archive/`).
   every line, which matches the lines to a logic analyzer capture.
 - **Capture:** `00` has a Logic 2 capture (`capture.sal`) with GPIO 7 and the decoded UART.
 - **Falstad:** `00` also has `falstad.txt`, a model of the circuit's electrics (the link is in its README).
+- **Test:** `00` has `wokwi-scenario.yaml` (light → dark → dead zone → light → dead zone, checking GPIO 7);
+  run it from the step folder with `wokwi-cli . --scenario wokwi-scenario.yaml` (about 4 s of simulation).
 - **Safety:** low voltage only. The load has its own supply, never the board's 5V pin or the breadboard supply.

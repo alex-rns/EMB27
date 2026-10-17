@@ -1,0 +1,55 @@
+# Wokwi CI test: the two thresholds with hysteresis switch GPIO 7 (relay IN in the simulator).
+# pot1 stands in for the light: 0.7 -> raw 2867 (light), 0.45 -> 1843 (dead zone), 0.2 -> 819 (dark).
+name: 'Twilight switch: hysteresis'
+version: 1
+author: 'Oleksandr Bielodubrovskyi'
+steps:
+  - set-control:
+      part-id: pot1
+      control: position
+      value: 0.7
+  - wait-serial: 'light | relay: off'
+  - expect-pin:
+      part-id: esp
+      pin: 7
+      value: 0
+  # dark: below THRESHOLD_DARK -> relay on
+  - set-control:
+      part-id: pot1
+      control: position
+      value: 0.2
+  - wait-serial: 'relay on (dark)'
+  - expect-pin:
+      part-id: esp
+      pin: 7
+      value: 1
+  # dead zone after dark: no change
+  - set-control:
+      part-id: pot1
+      control: position
+      value: 0.45
+  - delay: 1500ms
+  - expect-pin:
+      part-id: esp
+      pin: 7
+      value: 1
+  # light: above THRESHOLD_LIGHT -> relay off
+  - set-control:
+      part-id: pot1
+      control: position
+      value: 0.7
+  - wait-serial: 'relay off (light)'
+  - expect-pin:
+      part-id: esp
+      pin: 7
+      value: 0
+  # dead zone after light: no change
+  - set-control:
+      part-id: pot1
+      control: position
+      value: 0.45
+  - delay: 1500ms
+  - expect-pin:
+      part-id: esp
+      pin: 7
+      value: 0

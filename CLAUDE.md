@@ -90,3 +90,5 @@ Keep every project standard: **never** multiple environments, `src_dir` or `buil
   `platformio.ini`; a compiler warning in our code fails it). PlatformIO 6.2.0 and espressif32 7.1.3 are pinned there;
   change them together with the local install. Both scripts run locally too
   (`PIO=~/.platformio/penv/bin/pio bash .github/scripts/build-all.sh`).
+  A step's `wokwi-scenario.yaml` runs locally only (`wokwi-cli . --scenario wokwi-scenario.yaml` in the step folder),
+  not in CI: the free Wokwi plan has 50 minutes per rolling 30 days, shared with the Wokwi MCP.

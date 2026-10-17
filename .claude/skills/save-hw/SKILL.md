@@ -63,6 +63,10 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
    - `schematic.svg`: the step's real circuit (not the Wokwi stand-ins) as a schematic drawn with schemdraw
      (the script stays outside the repo). Render it to PNG and look at it before saving: no label on a line or
      a part, every part and net as in the code and the README. A step with only LEDs on GPIOs may skip it;
+   - `wokwi-scenario.yaml` (when Wokwi can show the behaviour): a short Wokwi CI scenario (`set-control`,
+     `wait-serial`, `expect-pin` on GPIO-driven pins only; pins behind relay contacts read randomly). Run it
+     locally from the step folder with `wokwi-cli . --scenario wokwi-scenario.yaml` and once with a wrong expectation to see it fail.
+     Keep it to a few seconds of simulation: Wokwi minutes are limited, so it is not run in CI;
    - `README.md`: `# NN — <Type>: <title>`, what the step does, a `| Part | GPIO |` wiring table,
      `![Schematic](schematic.svg)`, `![Circuit in Wokwi](diagram.png)`, and **Notes** on what breaks on real hardware. A `practice` step
      also says what was checked and the result (e.g. which GPIO drives which onboard LED).
