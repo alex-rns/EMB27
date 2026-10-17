@@ -39,7 +39,8 @@ module-N/
         ├── src/main.cpp
         ├── diagram.json, wokwi.toml (→ .pio/build/esp32-s3-devkitc-1/firmware.bin|elf)
         ├── diagram.png      ← screenshot of the circuit from the Wokwi editor (the author takes it)
-        └── README.md        ← what the step does, wiring, ![Circuit in Wokwi](diagram.png),
+        ├── schematic.svg    ← the real circuit as a schematic (schemdraw; the script lives outside the repo)
+        └── README.md        ← what the step does, wiring, ![Schematic](schematic.svg), ![Circuit in Wokwi](diagram.png),
                                what breaks on real hardware; "▶ Simulate in Wokwi" link once published
 ```
 Module 0 (self-study) is not in the repo.

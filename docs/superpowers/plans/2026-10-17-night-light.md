@@ -76,7 +76,7 @@ the lesson folder and in the workspace until `/finish-lesson` (no Trash in betwe
    first takes the next number): `platformio.ini` (the constraint lines, no wizard comments), `wokwi.toml`
    (`/save-hw` template), `include/` + `src/` from the archive copy, `diagram.json` from the draft, a step
    `README.md`: `# NN — <Type>: <title>`, what the step does, a `| Part | GPIO |` table, the text schematic,
-   `![Circuit in Wokwi](diagram.png)`, Wokwi notes, **Measured on the board** (this task's results), **Notes**
+   `![Schematic](schematic.svg)` (schemdraw, as in `/save-hw`), `![Circuit in Wokwi](diagram.png)`, Wokwi notes, **Measured on the board** (this task's results), **Notes**
    (what breaks on real hardware). A Logic 2 capture goes next to it as `capture.sal`.
 3. Ask the author for `diagram.png` (a screenshot from the Wokwi editor); check it shows the `diagram.json` wiring.
 4. Register: the lesson `README.md` steps table; the `module-1/README.md` row →

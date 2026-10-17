@@ -33,6 +33,8 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
      `src/main.cpp`, `diagram.json` (valid JSON), `wokwi.toml` (→ `.pio/build/esp32-s3-devkitc-1/…`), `README.md`;
    - pins in each `diagram.json` match the pins in its `main.cpp`. Don't open the `diagram.png` screenshots:
      viewing them is slow, and `/save-hw` already checked each one when it was taken;
+   - each `schematic.svg` (where a step has one) shows the parts and GPIOs of its README and `main.cpp`: read
+     its `<text>` labels, don't render it;
    - every claim in the step READMEs (timings, ranges, pins) matches the code;
    - the lesson README steps table lists every step;
    - no Cyrillic in the repo (tracked + new files); this must print nothing:

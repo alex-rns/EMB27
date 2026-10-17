@@ -60,8 +60,11 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
      Check every wire's path by code with these rules before asking for screenshots;
    - `diagram.png`: ask the user for a screenshot of the circuit from the Wokwi editor (`Cmd+Shift+4`),
      check it shows the same wiring as `diagram.json`, and save it next to it;
+   - `schematic.svg`: the step's real circuit (not the Wokwi stand-ins) as a schematic drawn with schemdraw
+     (the script stays outside the repo). Render it to PNG and look at it before saving: no label on a line or
+     a part, every part and net as in the code and the README. A step with only LEDs on GPIOs may skip it;
    - `README.md`: `# NN — <Type>: <title>`, what the step does, a `| Part | GPIO |` wiring table,
-     `![Circuit in Wokwi](diagram.png)`, and **Notes** on what breaks on real hardware. A `practice` step
+     `![Schematic](schematic.svg)`, `![Circuit in Wokwi](diagram.png)`, and **Notes** on what breaks on real hardware. A `practice` step
      also says what was checked and the result (e.g. which GPIO drives which onboard LED).
 
    Then add the lesson `README.md` in the shape of `module-1/1.3-esp32-blink/README.md`: the assignment
