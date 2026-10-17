@@ -5,8 +5,8 @@
       "name": "EMB27 (repo)"
     },
     {
-      "name": "1.6 / 01-base-voltage-error",
-      "path": "module-1/1.6-adc-light/01-base-voltage-error"
+      "name": "1.7 (draft)",
+      "path": "module-1/1.7-twilight-switch"
     }
   ],
   "settings": {
