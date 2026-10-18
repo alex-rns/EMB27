@@ -6,67 +6,109 @@ static const char PAGE[] = R"HTML(<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>Night light</title>
 <style>
-:root{--bg:#fff;--fg:#1c1c1e;--mute:#6b6b70;--card:#f2f2f4;--on:#e8a400;--bar:#d6d6da;--line:#c0392b;--line2:#2a7a3b;--plot:#2c5fb3}
-@media (prefers-color-scheme:dark){:root{--bg:#121214;--fg:#ececf0;--mute:#9a9aa2;--card:#1e1e22;--on:#f2b705;--bar:#34343a;--line:#ff6b5b;--line2:#5ccf74;--plot:#6fa0ff}}
+:root{--bg:#f2f2f6;--card:#fff;--sel:#fff;--fg:#17171c;--mute:#666672;--track:#e7e7ed;--acc:#2a78d6;--on:#eda100;--off:#c8c8d0;--vio:#6250d6;--bad:#c62f2f}
+@media (prefers-color-scheme:dark){:root{--bg:#0d0d10;--card:#1a1a1f;--sel:#3b3b45;--fg:#ececf1;--mute:#9d9daa;--track:#2a2a31;--acc:#4f94ea;--on:#f5b316;--off:#4b4b55;--vio:#9085e9;--bad:#ff7b72}}
 *{box-sizing:border-box}
-body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,sans-serif;max-width:560px;margin-inline:auto}
-h1{font-size:1.1rem;margin:0 0 12px;display:flex;justify-content:space-between;gap:8px}
-#offline{display:none;color:#fff;background:#c0392b;border-radius:6px;padding:0 8px;font-size:.9rem}
-.card{background:var(--card);border-radius:10px;padding:12px 14px;margin-bottom:12px}
-.big{font-size:2rem;font-weight:700}
-.mute{color:var(--mute);font-size:.9rem}
-.row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-#bar{height:8px;border-radius:4px;background:var(--bar);margin-top:8px;overflow:hidden}
-#fill{height:100%;width:0;background:var(--on)}
-canvas{width:100%;height:160px;display:block}
+body{margin:0 auto;max-width:560px;padding:16px;background:var(--bg);color:var(--fg);font:15px/1.4 system-ui,sans-serif}
+header,.hero,.cap,li{display:flex;align-items:center;gap:8px}
+header{justify-content:space-between;margin:0 2px 12px}
+h1{font-size:1.3rem;margin:0}
+#offline{display:none;background:#c62f2f;color:#fff;font-weight:700;padding:2px 12px;border-radius:99px}
+.off #offline{display:block}
+.off main{opacity:.5}
+main,.hero,.glass,.glow,#ring{transition:.3s}
+.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px}
+.cap,#reason,.det,#modeDesc,li span{color:var(--mute)}
+.cap{font-size:.82rem;font-weight:600;margin-bottom:8px}
+.hero{gap:18px}
+.on .hero{background:color-mix(in srgb,var(--on) 12%,var(--card))}
+#bulb{width:104px;flex:none}
+.s{stop-color:var(--on)}
+.glow,#ring{opacity:0}
+.trk,#ring{fill:none;stroke:var(--track);stroke-width:6}
+#ring{stroke:var(--on);stroke-linecap:round}
+.glass{fill:var(--off)}
+.on .glow{opacity:1}
+.on .glass{fill:var(--on)}
+#bulb path+path{fill:none;stroke:var(--mute);stroke-width:3.5;stroke-linecap:round}
+#lamp{font-size:2.7rem;font-weight:800;line-height:1.1}
+.tiles,.seg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tiles{margin-bottom:12px}
+.tiles .card{margin:0;min-width:0}
+.cap svg{width:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+#lt svg{color:var(--acc)}
+#mt svg{color:var(--vio)}
+.moon,.dk .sun{display:none}
+.dk .moon{display:inline}
+.val{font-size:1.5rem;line-height:2.1rem;font-weight:700;white-space:nowrap}
+.sm{font-size:1.1rem}
+.det{font-size:.8rem;min-height:2.8em}
+.seg{grid-template-columns:1fr 1fr 1fr;gap:4px;padding:4px;border-radius:13px;background:var(--track)}
+[aria-busy=true]{opacity:.6}
+button{font:inherit;font-weight:600;border:0;border-radius:9px;padding:9px 0;background:none;color:var(--mute)}
+[aria-pressed=true]{background:var(--sel);color:var(--fg);box-shadow:0 1px 3px #0003}
+#modeDesc,#modeErr{margin-top:8px;font-size:.88rem;min-height:1.4em}
+#modeErr{color:var(--bad);font-weight:600}
+#modeErr:empty{display:none}
+canvas{display:block;width:100%;height:180px}
 ul{list-style:none;margin:0;padding:0}
-li{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
-li span:last-child{color:var(--mute);white-space:nowrap}
-.modes{display:flex;gap:8px;margin-top:8px}
-.modes button{flex:1;padding:10px 0;font:inherit;border:2px solid var(--bar);border-radius:8px;background:var(--bg);color:var(--fg)}
-.modes button[aria-pressed=true]{border-color:var(--on);background:var(--on);color:#1c1c1e;font-weight:700}
-#modeErr{color:var(--line)}
+li{gap:10px;padding:8px 0;border-top:1px solid var(--track)}
+li:first-child{border:0}
+li i{width:8px;height:8px;border-radius:50%;flex:none}
+li span{margin-left:auto;white-space:nowrap}
+ul:empty:after{content:"no events yet";color:var(--mute)}
 </style>
 </head>
 <body>
-<h1><span>Night light</span><span id="offline">offline</span></h1>
-<div class="card">
-<div class="big" id="lamp">-</div>
-<div id="reason" class="mute">waiting for data</div>
-<div id="bar"><div id="fill"></div></div>
+<header><h1>Night light</h1><span id="offline">offline</span></header>
+<main id="main">
+<section class="card hero" id="hero">
+<svg id="bulb" viewBox="0 0 100 100" aria-hidden="true">
+<radialGradient id="gl"><stop class="s" stop-opacity=".6"/><stop class="s" offset="1" stop-opacity="0"/></radialGradient>
+<circle class="glow" cx="50" cy="46" r="42" fill="url(#gl)"/>
+<circle class="trk" cx="50" cy="50" r="45"/>
+<circle id="ring" cx="50" cy="50" r="45" transform="rotate(-90 50 50)"/>
+<path class="glass" d="M42 62c0-5-9-8-9-19a17 17 0 0 1 34 0c0 11-9 14-9 19z"/>
+<path d="M42 67h16M44 72h12"/>
+</svg>
+<div><div class="cap">Lamp</div><div id="lamp">-</div><div id="reason">waiting for data</div></div>
+</section>
+<div class="tiles">
+<section class="card" id="lt">
+<div class="cap"><svg viewBox="0 0 24 24"><g class="sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></g><path class="moon" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Light sensor</div>
+<div class="val" id="light">-</div><div class="det" id="raw"></div>
+</section>
+<section class="card" id="mt">
+<div class="cap"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M8.5 8.5a5 5 0 0 0 0 7m7-7a5 5 0 0 1 0 7m-10-10a9 9 0 0 0 0 13m13-13a9 9 0 0 1 0 13"/></svg>Motion</div>
+<div class="val" id="motion">-</div>
+</section>
 </div>
-<div class="card row">
-<div><div class="mute">Light</div><div class="big" id="light">-</div><div class="mute" id="raw"></div></div>
-<div><div class="mute">Motion</div><div class="big" id="motion">-</div></div>
+<section class="card">
+<div class="cap">Mode</div>
+<div class="seg" id="seg" role="group" aria-label="Mode">
+<button id="m-auto" onclick="setMode('auto')">Auto</button>
+<button id="m-on" onclick="setMode('on')">On</button>
+<button id="m-off" onclick="setMode('off')">Off</button>
 </div>
-<div class="card">
-<div class="mute">Mode</div>
-<div class="modes">
-<button id="m-auto" aria-pressed="false" onclick="setMode('auto')">Auto</button>
-<button id="m-on" aria-pressed="false" onclick="setMode('on')">On</button>
-<button id="m-off" aria-pressed="false" onclick="setMode('off')">Off</button>
-</div>
-<div id="modeDesc" class="mute"></div>
-<div id="modeErr" class="mute"></div>
-</div>
-<div class="card">
-<div class="mute">Light, last 5 min</div>
-<canvas id="chart"></canvas>
-</div>
-<div class="card">
-<div class="mute">Events, newest first</div>
-<ul id="events"></ul>
-</div>
+<div id="modeDesc"></div>
+<div id="modeErr" role="alert"></div>
+</section>
+<section class="card"><div class="cap" id="ct"></div><canvas id="chart"></canvas></section>
+<section class="card"><div class="cap">Events, newest first</div><ul id="events"></ul></section>
+</main>
 <script>
-var TIMEOUT_S = 15, MAX_POINTS = 300;
-var hist = [], th = {dark: 1600, light: 2200};
-var $ = function (id) { return document.getElementById(id); };
+const TIMEOUT_S = 15, WINDOW_S = 60, RING = 2 * Math.PI * 45;
+let hist = [], th = {dark: 1600, light: 2200}, busy = false, posting = false, errTimer;
+const $ = id => document.getElementById(id);
+const put = (id, t) => { $(id).textContent = t; };
+const el = (tag, t = "") => { const e = document.createElement(tag); e.textContent = t; return e; };
+const ring = $("ring").style;
+const seconds = ms => Math.round(ms / 1000) + " s";
 
-function seconds(ms) { return Math.round(ms / 1000) + " s"; }
-
-var MODE_DESC = {
+const MODE_DESC = {
   auto: "auto: light and motion decide",
   on: "on: always on, sensors ignored",
   off: "off: always off, sensors ignored"
@@ -81,97 +123,117 @@ function reasonText(s) {
 }
 
 function lightDetail(s) {
-  if (s.raw < s.darkBelow) return "raw " + s.raw + " \u00b7 below " + s.darkBelow;
-  if (s.raw > s.lightAbove) return "raw " + s.raw + " \u00b7 above " + s.lightAbove;
-  return "raw " + s.raw + " \u00b7 between: keeps state";
+  return "raw " + s.raw + " \u00b7 " + (s.raw < s.darkBelow ? "below " + s.darkBelow :
+    s.raw > s.lightAbove ? "above " + s.lightAbove : "between: keeps state");
 }
 
 function motionText(ms) {
-  if (ms === null) return "none yet";
-  if (ms === 0) return "now";
-  return seconds(ms) + " ago";
+  return ms === null ? "none yet" : ms === 0 ? "now" : seconds(ms) + " ago";
+}
+
+function eventColor(t) {
+  return "var(--" + (/^lamp on/.test(t) ? "on" : /^Wi-Fi/.test(t) ? "acc" : /^mode/.test(t) ? "vio" : "mute") + ")";
 }
 
 function drawChart() {
-  var c = $("chart"), r = window.devicePixelRatio || 1;
-  var w = c.clientWidth, h = c.clientHeight;
+  const c = $("chart"), r = devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight, g = c.getContext("2d");
+  const css = getComputedStyle(document.body), col = n => css.getPropertyValue("--" + n);
+  const n = hist.length, pw = w - 38, y = v => 8 + (h - 28) * (1 - v / 4095), x = i => pw * (1 - (n - 1 - i) / WINDOW_S);
   c.width = w * r; c.height = h * r;
-  var g = c.getContext("2d");
   g.scale(r, r);
-  g.clearRect(0, 0, w, h);
-  var css = getComputedStyle(document.body);
-  var y = function (v) { return h - 4 - (h - 8) * v / 4095; };
-  g.font = "11px system-ui,sans-serif";
-  g.lineWidth = 1;
-  g.setLineDash([4, 3]);
-  g.strokeStyle = css.getPropertyValue("--line"); g.fillStyle = g.strokeStyle;
-  g.beginPath(); g.moveTo(0, y(th.dark)); g.lineTo(w, y(th.dark)); g.stroke();
-  g.fillText("dark below " + th.dark, 4, y(th.dark) - 3);
-  g.strokeStyle = css.getPropertyValue("--line2"); g.fillStyle = g.strokeStyle;
-  g.beginPath(); g.moveTo(0, y(th.light)); g.lineTo(w, y(th.light)); g.stroke();
-  g.fillText("light above " + th.light, 4, y(th.light) - 3);
-  g.setLineDash([]);
-  if (hist.length < 2) return;
-  g.strokeStyle = css.getPropertyValue("--plot"); g.lineWidth = 2;
-  g.beginPath();
-  for (var i = 0; i < hist.length; i++) {
-    var x = w - (hist.length - 1 - i) * w / (MAX_POINTS - 1);
-    if (i === 0) g.moveTo(x, y(hist[i])); else g.lineTo(x, y(hist[i]));
+  g.fillStyle = col("track");
+  g.fillRect(0, y(th.light), pw, y(th.dark) - y(th.light));
+  g.font = "11px system-ui";
+  g.fillStyle = g.strokeStyle = col("mute");
+  g.setLineDash([3, 3]);
+  for (const [v, word, dir] of [[th.light, "light", -1], [th.dark, "dark", 1]]) {
+    const ly = y(v);
+    g.beginPath(); g.moveTo(0, ly); g.lineTo(pw, ly); g.stroke();
+    g.fillText(v, pw + 8, ly + dir * 8 + 4);
+    g.fillText(word, pw + 8, ly + dir * 21 + 4);
   }
-  g.stroke();
+  g.fillText("-" + WINDOW_S + " s", 0, h - 4);
+  g.textAlign = "right";
+  g.fillText("now", pw, h - 4);
+  if (!n) return;
+  const line = new Path2D();
+  hist.forEach((v, i) => line.lineTo(x(i), y(v)));
+  const area = new Path2D(line);
+  area.lineTo(pw, y(0)); area.lineTo(x(0), y(0));
+  g.setLineDash([]);
+  g.fillStyle = g.strokeStyle = col("acc");
+  g.globalAlpha = .15; g.fill(area); g.globalAlpha = 1;
+  g.lineWidth = 2; g.lineJoin = "round"; g.stroke(line);
+  g.beginPath(); g.arc(pw, y(hist[n - 1]), 4.5, 0, 7); g.fill();
 }
 
-function render(s) {
-  $("lamp").textContent = s.lamp ? "Lamp ON" : "Lamp OFF";
-  $("reason").textContent = reasonText(s);
-  ["auto", "on", "off"].forEach(function (m) { $("m-" + m).setAttribute("aria-pressed", String(s.mode === m)); });
-  $("modeDesc").textContent = MODE_DESC[s.mode] || "";
-  $("fill").style.width = s.lamp ? Math.min(100, s.leftS * 100 / TIMEOUT_S) + "%" : "0";
-  $("light").textContent = s.dark ? "DARK" : "LIGHT";
-  $("raw").textContent = lightDetail(s);
-  $("motion").textContent = motionText(s.motionAgoMs);
-  th.dark = s.darkBelow; th.light = s.lightAbove;
-  hist.push(s.raw);
-  if (hist.length > MAX_POINTS) hist.shift();
+// addPoint: only a poll adds a chart point, a mode reply does not
+function render(s, addPoint) {
+  const p = s.lamp && s.mode === "auto" ? Math.min(1, s.leftS / TIMEOUT_S) : 0, mt = motionText(s.motionAgoMs);
+  $("main").className = (s.lamp ? "on " : "") + (s.dark ? "dk" : "");
+  put("lamp", s.lamp ? "ON" : "OFF");
+  put("reason", reasonText(s));
+  ring.strokeDashoffset = RING * (1 - p);
+  ring.opacity = p ? 1 : 0;
+  put("light", s.dark ? "DARK" : "LIGHT");
+  put("raw", lightDetail(s));
+  put("motion", mt);
+  $("motion").className = "val" + (mt.length > 10 ? " sm" : "");
+  for (const m of ["auto", "on", "off"]) $("m-" + m).setAttribute("aria-pressed", s.mode === m);
+  put("modeDesc", MODE_DESC[s.mode] || "");
+  th = {dark: s.darkBelow, light: s.lightAbove};
+  if (addPoint && hist.push(s.raw) > WINDOW_S) hist.shift();
   drawChart();
-  var ul = $("events");
-  ul.textContent = "";
-  for (var i = s.events.length - 1; i >= 0; i--) {
-    var li = document.createElement("li"), a = document.createElement("span"), b = document.createElement("span");
-    a.textContent = s.events[i].text;
-    b.textContent = seconds(s.uptimeMs - s.events[i].atMs) + " ago";
-    li.appendChild(a); li.appendChild(b); ul.appendChild(li);
-  }
+  $("events").replaceChildren(...s.events.slice().reverse().map(e => {
+    const li = el("li"), dot = el("i");
+    dot.style.background = eventColor(e.text);
+    li.append(dot, e.text, el("span", seconds(s.uptimeMs - e.atMs) + " ago"));
+    return li;
+  }));
+}
+
+// a hung board is cut off after 3 s, so polling goes on
+function call(url, opt) {
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 3000);
+  opt.signal = ctl.signal;
+  return fetch(url, opt)
+    .then(r => r.ok ? r.json() : r.text().then(t => { throw new Error(t || "HTTP " + r.status); }))
+    .finally(() => clearTimeout(timer));
+}
+
+// an error stays readable: until the next press or for 5 s, polls leave it alone
+function showErr(t) {
+  put("modeErr", t);
+  clearTimeout(errTimer);
+  errTimer = setTimeout(() => put("modeErr", ""), 5000);
 }
 
 function setMode(m) {
-  var ctl = new AbortController();
-  var timer = setTimeout(function () { ctl.abort(); }, 3000);
-  fetch("/api/mode?m=" + m, {method: "POST", signal: ctl.signal})
-    .then(function (r) {
-      if (!r.ok) return r.text().then(function (t) { throw new Error(t || r.status); });
-      return r.json();
-    })
-    .then(function (s) { $("modeErr").textContent = ""; render(s); })
-    .catch(function (e) { $("modeErr").textContent = e.message; })
-    .then(function () { clearTimeout(timer); });
+  if (posting) return;
+  posting = true;
+  $("seg").setAttribute("aria-busy", true);
+  showErr("");
+  call("/api/mode?m=" + m, {method: "POST"})
+    .then(s => render(s, false))
+    .catch(e => showErr(e.name === "Error" ? e.message : "no answer from the board"))
+    .finally(() => { posting = false; $("seg").setAttribute("aria-busy", false); });
 }
 
-var busy = false;
 function poll() {
   if (busy) return;
   busy = true;
-  var ctl = new AbortController();
-  var timer = setTimeout(function () { ctl.abort(); }, 3000);  // a hung board must not stop the polling
-  fetch("/api/state", {cache: "no-store", signal: ctl.signal})
-    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-    .then(function (s) { render(s); $("offline").style.display = "none"; })
-    .catch(function () { $("offline").style.display = "inline"; })
-    .then(function () { clearTimeout(timer); busy = false; });
+  call("/api/state", {cache: "no-store"})
+    .then(s => { render(s, true); document.body.classList.remove("off"); })
+    .catch(() => document.body.classList.add("off"))
+    .finally(() => { busy = false; });
 }
+
+ring.strokeDasharray = ring.strokeDashoffset = RING;
+put("ct", "Light, last " + WINDOW_S + " s");
+drawChart();
 setInterval(poll, 1000);
 poll();
-window.addEventListener("resize", drawChart);
+addEventListener("resize", drawChart);
 </script>
 </body>
 </html>

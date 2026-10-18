@@ -291,11 +291,11 @@ the lesson folder and in the workspace until `/finish-lesson` (no Trash in betwe
   `{"uptimeMs":123456,"raw":812,"dark":true,"darkBelow":1600,"lightAbove":2200,"motionAgoMs":4200,"lamp":true,"leftS":11,"events":[{"atMs":1000,"text":"lamp on (dark + motion)"}]}`;
   `motionAgoMs` is `null` before the first motion. Built with `snprintf` into a 1024-byte buffer, every return
   value checked; an overflow → 500 `json overflow`.
-- `PAGE` (`page.h`): a raw string literal `R"HTML(…)HTML"`, under 8 KB, no external URLs, English text. On top, the
+- `PAGE` (`page.h`): a raw string literal `R"HTML(…)HTML"`, under 12 KB, no external URLs, English text. On top, the
   lamp ON/OFF with a one-line reason derived from the JSON (`it is light, stays off`, `dark, waiting for motion`,
   `motion keeps it on`, `no motion, off in N s`) and a 15 s timer bar. Then the light as DARK/LIGHT with
   `raw N · below 1600` / `above 2200` / `between: keeps state`; motion as `now` / `N s ago` / `none yet`; a canvas
-  chart "Light, last 5 min" of the last 300 `raw` values with both threshold lines labelled dark and light; the
+  chart "Light, last 60 s" of the last 60 `raw` values with both threshold lines labelled dark and light; the
   events newest first as "N s ago" (`uptimeMs − atMs`). It fetches `/api/state` every 1000 ms; a failed fetch shows "offline" and keeps the chart,
   the next success clears it.
 
