@@ -55,6 +55,8 @@ and `archive/`).
 - **Capture:** `00` has a Logic 2 capture (`capture.sal`) with GPIO 7 and the decoded UART.
 - **Capture:** `01` has `capture.sal` too: GPIO 7, the PIR's OUT on GPIO 5 and the decoded UART around one 15 s timeout.
 - **Falstad:** `00` also has `falstad.txt`, a model of the circuit's electrics (the link is in its README).
+- **Falstad:** `01` has one too, with the PIR as a push button and the firmware's rule and 15 s timer as gates and a
+  capacitor.
 - **Test:** `00` has `wokwi-scenario.yaml` (light → dark → dead zone → light → dead zone, checking GPIO 7);
   run it from the step folder with `wokwi-cli . --scenario wokwi-scenario.yaml` (about 4 s of simulation).
 - **Test:** `01` has `wokwi-scenario.yaml` (dark and light without motion: the lamp stays off); the Wokwi PIR part

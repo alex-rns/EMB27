@@ -68,6 +68,27 @@ in the VS Code editor: in the dark, Simulate motion switched the lamp LED on, an
 light → `light | motion: never | lamp: off`. It runs locally only (a few seconds of simulation). In Wokwi GPIO 7 reads
 HIGH for the first 76.6 ms after reset (undriven until `Lamp::begin()`), so a test must not look at it before then.
 
+**Falstad** simulates the electrics that Wokwi skips, now with the PIR: [open the circuit in Falstad](https://www.falstad.com/circuit/circuitjs.html?ctz=CQAgjCAMB0lwrOGAmOyDs6DMkAcyA2ATiPRHknPMvgFMBaMMAKACUQCAWD7rkLZFCGdKWaFiGUY8ZlnS8FPcOgKTo8ChAAyASwDmACwAuAHQDOACgBOAexsBbc6QA05gCYBDKwGtzGgJTMVkpgKkoYgpRgcHDMeuHognw43FLMAO4hYWCc3KGqkBngucqqYARRYYUA8sV52SXIIuBQzKhkfPngZWHcAOIACgCS1ZzMYLgS5ZWqyPA9BVDq4OK4K7iqYhKFmXMLIMi4a107B0el5IcXhe1nx2GHxyXcACIAgqwA0mxKuWt8nHKkhAzS2wOkzDMv04-248DAkRaRisAFdaG1IB04QjuuQcf1htUZME+PCkrw8MIKLF4nwKrCeFJWplSTiwERBGTmeAOXjBDCaDjTgK+SDcJRUGtheKDpT4FdJdz2Zy2bz4CVCuxpuQKuArvMmZRQeJwepxvAiAcmjqorqDUIINEYs64CsCDIAMZWuG65DW92zJYxCBpeJ+3jzb0cc5pXbW+2PG2tYKJhPnAMOvY0u4cSOJggx7mp3VYLCqe2nUvlkvypM1fhlpNVxktG6Y-i1+1YTuN7gAFSGAFkAKKscaTDuc3V-OtLRBgWAHRdg4UwpPytYVoob9dq3WnC1Tmi87uRbcn2sZ0+tW47+133n9ofD6oAVT75poV2VHGtP4lQhbEUBB-ryGb-uaEgZoq6C1oqAGiOIkG5psjawYIzYIfwSGZOhDaqCoayYUUhH4SApERNyFGJC2lGnFwEo0QxUb0c04YoSxJFwZS6C4Nw8EkXxsprLx-ExoJYn-Naib0dJ6bWgIsa-twikcappykc2RyiI29baWR+mJiGGJkPpWkylgQkEiM6BBCAZmNqQqGLE6sRGCATlkU6RG6a2gGum4tAAGYeCiAA2RhFN5k5IJSIihrFazxYlIICJIPzRex0X-sINDQNahpmsEmV-nARGoA6zpRWV-AVUwFXqSZ4AIqIdUtfwBYgiAQwAHLMLU9WtVE7WUcZxXtapLVDZVbl6q6k3IGl6kgIwwKoJQgUheFkWZAiS2QHki2CHsrRakdByRntx0Fbl5D5akagyLt53NldIKuqcb3JQiAIfVFhDcN9yBEKoyWFKExzA5snVgGWoidXkSyIjAkDzi6zpBuq5FSLA7Yo6jSpw+9URE5waWFPEsPTmlVNGnwaRuHqAJrj9gOuoIm2hRFcRM4DLMA2Khp2V9rpffTsXgyBeppZwnTnTuTLGZT8vfvL+6nXqINeVD-AHcCzSIIVT2a85JsdVKUVE5ZeScApQmFMVtsqUJOTWjORroJLgiu3zTzxkKLSOjzPuiiH6oPYUAAeuKMIsiuqFotBmGYNgAHYrGQZhGLQAAOUAQKn+jGCAYVF+5FjDgAygMAj0JXWD+AAXCARgGLQIC6IY7lmKXgXBGnLdtyAVhl84IAGDYYWM637fDOwABGKJGEYafMNHQKYcCOJvM3WgvOwHip4z0QgN41QGPYK0AHwgIMIxdRYbwvAAwoE68VTJW+CEFOhWPY6ReFoM3TwPgQDz1oGFGwu1VggAAGpj1Ll3EAHh542AAG7twXBsOBa97JJRooaPUIA54gDfH2ZuE8p4gAALwgHsDYIwOhV7RxlIkQhURBADGbpweA3gaHdR6gMd8AB9IRWg97VAAOo9RADodOM8QBVxrsgXBrDayEJxD-P+ACrDt0YfYWgVhm7pAMDoMK7cyGyKhAACSGH0axg925mHSDoIwHoDCn1oLnKEToQAogAGIgCCuFMKIALBhQ8FnQcDCmGp0HFCWhqcoH+AANyqMoKRDRggPBBWzsESxIUwphShAo3RZgdBZxsMENwVgPByKhK4seC5KCwKscPWgHh3G0EZjkvJ4BEBQnoDfAcI4yG4JnFrLJQTf7-0AcPcKQCQAD1oSAvhbweovDoTEtOY8bBBSCvwkZL53zjJZgHRWggFE9WqOwCJbiPEVMcSAAA5GnZ5IA0FeB0Cg8xzdEHFw8JA1O7dgUYOCM41xXSGnuT2UFXBHJNznMzCAAAQs3FFz91SZyMB4PQtAx5glaUMqgrSB69VwdESMIEI7It0REgAnlstwCzm5gG8GPAYgix4ehsGY7GpCL5jzcEwwKY8tDDheBSrAOJ4BVC-iXGwHg3C7wlSALOI8c5SplbyKZUD06vkriiklzAgA)
+(or File → Import From Text with [`falstad.txt`](falstad.txt)). The firmware is replaced by parts that do its job:
+
+- dark or light: step 00's inverting Schmitt trigger (1.38 / 1.86 V), its output is `DARK`;
+- the PIR: a push button from 3.3 V to GPIO 5 (held = OUT HIGH) and 45 kΩ to GND, the typical `INPUT_PULLDOWN`
+  resistor from the ESP32-S3 datasheet;
+- the 15 s: while GPIO 5 is HIGH a switch keeps a 100 µF capacitor at 3.3 V (`lastMotionMs = nowMs`); once OUT falls,
+  125.6 kΩ drains it, and a Schmitt trigger raises `TIMEOUT` at 1.0 V: 125.6 kΩ × 100 µF × ln(3.3 / 1.0) = 15.0 s;
+- `Lamp::update()`: an AND gate (`DARK` and GPIO 5) sets a latch of two NOR gates and `TIMEOUT` resets it. The latch
+  is the `on` variable: it changes only when set or reset, so light alone never switches the lamp off.
+
+It opens in the dark (Light slider at 55). Hold the button: the relay switches on; release it, and 15 s of simulated
+time later (shown at the bottom right) it switches off. Checked in headless Chrome with real mouse presses: the lamp
+went on 1.5 ms after the press and off 14.998 s after the release; with the slider moved to room light (97) while
+the lamp was on, it stayed on; the button in room light left it off; a 1 s pulse every 10 s in place of the button
+kept it on (every pulse refills the capacitor). The BC547 stage, the relay module and their values are step 00's;
+the load is the LED strip on its own USB 5 V. The gates and the capacitor only stand in for the code: the real
+timing is in the captures below.
+
+![The circuit in Falstad](falstad.svg)
+
 ## The PIR module
 
 An HC-SR501 clone (AliExpress starter kit), the PCB marked **HW-416-B**.
