@@ -25,8 +25,8 @@ void printStatus(uint32_t nowMs) {
         snprintf(lamp, sizeof lamp, "off");
     }
 
-    Serial.printf("raw: %u | %s | motion: %s | lamp: %s\n", static_cast<unsigned>(LightSensor::raw()),
-                  LightSensor::isDark() ? "dark" : "light", motion, lamp);
+    Serial.printf("raw: %u | %s | motion: %s | lamp: %s | mode: %s\n", static_cast<unsigned>(LightSensor::raw()),
+                  LightSensor::isDark() ? "dark" : "light", motion, lamp, Lamp::modeName(Lamp::mode()));
 }
 }  // namespace
 

@@ -1,6 +1,6 @@
 #pragma once
 
-// The whole page lives in flash as one string. It polls /api/state once a second and only reads.
+// The whole page lives in flash as one string. It polls /api/state once a second; the mode buttons POST /api/mode.
 static const char PAGE[] = R"HTML(<!doctype html>
 <html lang="en">
 <head>
@@ -24,6 +24,10 @@ canvas{width:100%;height:160px;display:block}
 ul{list-style:none;margin:0;padding:0}
 li{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
 li span:last-child{color:var(--mute);white-space:nowrap}
+.modes{display:flex;gap:8px;margin-top:8px}
+.modes button{flex:1;padding:10px 0;font:inherit;border:2px solid var(--bar);border-radius:8px;background:var(--bg);color:var(--fg)}
+.modes button[aria-pressed=true]{border-color:var(--on);background:var(--on);color:#1c1c1e;font-weight:700}
+#modeErr{color:var(--line)}
 </style>
 </head>
 <body>
@@ -36,6 +40,16 @@ li span:last-child{color:var(--mute);white-space:nowrap}
 <div class="card row">
 <div><div class="mute">Light</div><div class="big" id="light">-</div><div class="mute" id="raw"></div></div>
 <div><div class="mute">Motion</div><div class="big" id="motion">-</div></div>
+</div>
+<div class="card">
+<div class="mute">Mode</div>
+<div class="modes">
+<button id="m-auto" aria-pressed="false" onclick="setMode('auto')">Auto</button>
+<button id="m-on" aria-pressed="false" onclick="setMode('on')">On</button>
+<button id="m-off" aria-pressed="false" onclick="setMode('off')">Off</button>
+</div>
+<div id="modeDesc" class="mute"></div>
+<div id="modeErr" class="mute"></div>
 </div>
 <div class="card">
 <div class="mute">Light, last 5 min</div>
@@ -52,7 +66,15 @@ var $ = function (id) { return document.getElementById(id); };
 
 function seconds(ms) { return Math.round(ms / 1000) + " s"; }
 
+var MODE_DESC = {
+  auto: "auto: light and motion decide",
+  on: "on: always on, sensors ignored",
+  off: "off: always off, sensors ignored"
+};
+
 function reasonText(s) {
+  if (s.mode === "on") return "mode on: always on";
+  if (s.mode === "off") return "mode off: always off";
   if (!s.lamp) return s.dark ? "dark, waiting for motion" : "it is light, stays off";
   if (s.motionAgoMs === 0) return "motion keeps it on";
   return "no motion, off in " + s.leftS + " s";
@@ -102,6 +124,8 @@ function drawChart() {
 function render(s) {
   $("lamp").textContent = s.lamp ? "Lamp ON" : "Lamp OFF";
   $("reason").textContent = reasonText(s);
+  ["auto", "on", "off"].forEach(function (m) { $("m-" + m).setAttribute("aria-pressed", String(s.mode === m)); });
+  $("modeDesc").textContent = MODE_DESC[s.mode] || "";
   $("fill").style.width = s.lamp ? Math.min(100, s.leftS * 100 / TIMEOUT_S) + "%" : "0";
   $("light").textContent = s.dark ? "DARK" : "LIGHT";
   $("raw").textContent = lightDetail(s);
@@ -118,6 +142,19 @@ function render(s) {
     b.textContent = seconds(s.uptimeMs - s.events[i].atMs) + " ago";
     li.appendChild(a); li.appendChild(b); ul.appendChild(li);
   }
+}
+
+function setMode(m) {
+  var ctl = new AbortController();
+  var timer = setTimeout(function () { ctl.abort(); }, 3000);
+  fetch("/api/mode?m=" + m, {method: "POST", signal: ctl.signal})
+    .then(function (r) {
+      if (!r.ok) return r.text().then(function (t) { throw new Error(t || r.status); });
+      return r.json();
+    })
+    .then(function (s) { $("modeErr").textContent = ""; render(s); })
+    .catch(function (e) { $("modeErr").textContent = e.message; })
+    .then(function () { clearTimeout(timer); });
 }
 
 var busy = false;

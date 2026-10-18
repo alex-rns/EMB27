@@ -36,11 +36,11 @@ bool buildStateJson(char* out, size_t size, uint32_t nowMs) {
 
     int n = snprintf(out, size,
                      "{\"uptimeMs\":%lu,\"raw\":%u,\"dark\":%s,\"darkBelow\":%u,\"lightAbove\":%u,"
-                     "\"motionAgoMs\":%s,\"lamp\":%s,\"leftS\":%lu,\"events\":[",
+                     "\"motionAgoMs\":%s,\"lamp\":%s,\"leftS\":%lu,\"mode\":\"%s\",\"events\":[",
                      static_cast<unsigned long>(nowMs), static_cast<unsigned>(LightSensor::raw()),
                      LightSensor::isDark() ? "true" : "false", static_cast<unsigned>(Config::THRESHOLD_DARK),
                      static_cast<unsigned>(Config::THRESHOLD_LIGHT), motionAgo, Lamp::isOn() ? "true" : "false",
-                     static_cast<unsigned long>(Lamp::secondsLeft(nowMs)));
+                     static_cast<unsigned long>(Lamp::secondsLeft(nowMs)), Lamp::modeName(Lamp::mode()));
     if (n < 0 || static_cast<size_t>(n) >= size) return false;
     size_t len = static_cast<size_t>(n);
 
@@ -65,6 +65,25 @@ void handleState() {
         return;
     }
     server.send(200, "application/json", json);
+}
+
+// POST /api/mode?m=auto|on|off. 2.0.17 parses query args on a POST too and url-decodes them (so "auto%20" and
+// "auto+" arrive as "auto "), hence the exact, case-sensitive comparison. A missing "m" gives "".
+void handleMode() {
+    const String m = server.arg("m");
+    Mode wanted;
+    if (m == "auto") {
+        wanted = Mode::Auto;
+    } else if (m == "on") {
+        wanted = Mode::On;
+    } else if (m == "off") {
+        wanted = Mode::Off;
+    } else {
+        server.send(400, "text/plain", "bad m: expected auto|on|off");
+        return;
+    }
+    Lamp::setMode(wanted, millis());
+    handleState();
 }
 
 void handleNotFound() { server.send(404, "text/plain", "not found"); }
@@ -95,6 +114,7 @@ void begin() {
 
     server.on("/", HTTP_GET, handleRoot);
     server.on("/api/state", HTTP_GET, handleState);
+    server.on("/api/mode", HTTP_POST, handleMode);
     server.onNotFound(handleNotFound);
 }
 

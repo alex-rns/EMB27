@@ -6,6 +6,7 @@
 
 namespace {
 bool on = false;
+Mode currentMode = Mode::Auto;
 
 uint8_t levelFor(bool lampOn) {
     return lampOn == Config::RELAY_ON_IS_HIGH ? HIGH : LOW;
@@ -26,7 +27,22 @@ void begin() {
 }
 
 void update(uint32_t nowMs) {
-    // Light also switches the lamp off (the room light came on); "light" is reported before "no motion".
+    if (currentMode == Mode::On) {
+        if (!on) {
+            switchTo(true);
+            EventLog::add(nowMs, "lamp on (mode on)");
+        }
+        return;
+    }
+    if (currentMode == Mode::Off) {
+        if (on) {
+            switchTo(false);
+            EventLog::add(nowMs, "lamp off (mode off)");
+        }
+        return;
+    }
+
+    // Auto. Light also switches the lamp off (the room light came on); "light" is reported before "no motion".
     // Risk: if the strip's own light reaches the LDR, on -> light -> off -> dark -> motion -> on can loop.
     if (!on) {
         if (LightSensor::isDark() && Motion::active()) {
@@ -48,9 +64,29 @@ void update(uint32_t nowMs) {
 bool isOn() { return on; }
 
 uint32_t secondsLeft(uint32_t nowMs) {
-    if (!on) return 0;
+    if (currentMode != Mode::Auto || !on) return 0;
     const uint32_t since = Motion::msSinceMotion(nowMs);
     if (since >= Config::MOTION_TIMEOUT_MS) return 0;
     return (Config::MOTION_TIMEOUT_MS - since + 999) / 1000;
+}
+
+void setMode(Mode m, uint32_t nowMs) {
+    if (m == currentMode) return;
+    currentMode = m;
+    char text[sizeof(Event::text)];
+    snprintf(text, sizeof text, "mode -> %s", modeName(m));
+    EventLog::add(nowMs, text);
+    update(nowMs);  // applies at once: back in Auto the Auto rule decides right now
+}
+
+Mode mode() { return currentMode; }
+
+const char* modeName(Mode m) {
+    switch (m) {
+        case Mode::On: return "on";
+        case Mode::Off: return "off";
+        case Mode::Auto: break;
+    }
+    return "auto";
 }
 }  // namespace Lamp

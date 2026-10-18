@@ -96,7 +96,7 @@ the lesson folder and in the workspace until `/finish-lesson` (no Trash in betwe
    change: only an exact, case-sensitive match counts. Test: Task 8 Step 2.
 4. **The page loses the board** (board reset, phone leaves the Wi-Fi) → the page says "offline" within 3 s, keeps
    its chart and recovers by itself. Test: Task 6 Step 5.
-5. **Switching back to auto** → the auto rule applies at once: from `on` with no motion for 15 s the lamp goes off,
+5. **Switching back to auto** → the auto rule applies at once: from `on` with no motion for 15 s (or at once when it is light) the lamp goes off,
    from `off` in the dark with motion it goes on (nobody expects to wait for the next change). Test: Task 8 Step 3.
 
 ---
