@@ -209,7 +209,7 @@ the lesson folder and in the workspace until `/finish-lesson` (no Trash in betwe
   if (!on) { if (LightSensor::isDark() && Motion::active()) switchOn("dark + motion"); }
   else if (Motion::msSinceMotion(now) >= Config::MOTION_TIMEOUT_MS) switchOff("no motion 15 s");
   ```
-  Light never switches the lamp off. The "15" in the event comes from `MOTION_TIMEOUT_MS / 1000`.
+  (Amended 2026-10-18: the draft now also switches off when `!LightSensor::isDark()`, event `lamp off (light)`; see the spec.) The "15" in the event comes from `MOTION_TIMEOUT_MS / 1000`.
 - Serial: status `raw: 812 | dark | motion: 4.2 s ago | lamp: on, 11 s left` (`motion: never`,
   `motion: now`); events `lamp on (dark + motion)`, `lamp off (no motion 15 s)`.
 
@@ -332,6 +332,10 @@ the lesson folder and in the workspace until `/finish-lesson` (no Trash in betwe
 - [ ] **Step 2: Upload, Serial Monitor.** Expected: `Wi-Fi connected, IP …` within 15 s.
 - [ ] **Step 3: Phone** at `http://nightlight.local`, and at the IP if `.local` doesn't resolve (record which one
   works). Expected: the values follow a hand over the LDR, the chart moves, events are listed, "s left" counts down.
+- [ ] **Step 3a: Own-light loop check** (amendment 2026-10-18). In the dark, lamp on (wave), strip lit. Expected:
+  the raw reading stays below 2200 (`THRESHOLD_LIGHT`) for 15 s of Serial lines; no `lamp off (light)`. If raw
+  climbs above 2200 the strip reaches the LDR: shield the LDR and repeat. Then switch the room light on while the
+  lamp is on: `lamp off (light)`; room light off, wave: `lamp on (dark + motion)`.
 - [ ] **Step 4: Responsiveness capture.** Logic 2 as in Task 4 Step 3, with the page open and polling. Expected:
   D1↑ → D0↑ under 50 ms (compare with Task 4).
 - [ ] **Step 5: Page loses the board** (Review Focus 4): RST with the page open. Expected: "offline" within 3 s,
@@ -342,7 +346,8 @@ the lesson folder and in the workspace until `/finish-lesson` (no Trash in betwe
 - [ ] **Step 7: Wrong password** (Review Focus 2): a wrong password in `secrets.h`, upload. Expected: dark + wave
   → lamp on within the first 10 s after boot; status lines without a gap. Then restore the password.
 - [ ] **Step 8: SAVE as `02-extra-web-status`** (type extra). README notes: ADC1 vs ADC2 with Wi-Fi, `.local` on
-  phones, `handleClient()` serving one request at a time, Wi-Fi current peaks on a weak USB cable (brownout).
+  phones, `handleClient()` serving one request at a time, Wi-Fi current peaks on a weak USB cable (brownout), the light-off rule (room light switches the lamp off) and its
+  own-light loop risk with the result of Step 3a, brief flashes (car headlights) as an open question.
 
 ### Task 7: Mode switch on the page (variant B)
 

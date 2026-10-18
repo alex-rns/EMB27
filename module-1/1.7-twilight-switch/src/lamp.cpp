@@ -26,12 +26,16 @@ void begin() {
 }
 
 void update(uint32_t nowMs) {
-    // Light only prevents switching on: the lamp's own light on the LDR must not switch it off.
+    // Light also switches the lamp off (the room light came on); "light" is reported before "no motion".
+    // Risk: if the strip's own light reaches the LDR, on -> light -> off -> dark -> motion -> on can loop.
     if (!on) {
         if (LightSensor::isDark() && Motion::active()) {
             switchTo(true);
             EventLog::add(nowMs, "lamp on (dark + motion)");
         }
+    } else if (!LightSensor::isDark()) {
+        switchTo(false);
+        EventLog::add(nowMs, "lamp off (light)");
     } else if (Motion::msSinceMotion(nowMs) >= Config::MOTION_TIMEOUT_MS) {
         switchTo(false);
         char text[sizeof(Event::text)];

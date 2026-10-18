@@ -129,10 +129,16 @@ board test (decided 2026-10-17).
 **Lamp, auto mode** (decided with the author):
 - switches on when it is dark and motion is seen;
 - switches off when the timeout runs out without motion; every motion while on restarts the timeout;
-- **light only prevents switching on.** While the lamp is on, the light level is not a reason to switch off: the
-  lamp's own light reaching the LDR must not turn it off (that would loop on → light → off → dark → on, which is
-  relay chatter). In practice the light reading matters only while the lamp is off, as in commercial motion
-  night lights. Motion seen while it is light and the lamp is off does nothing.
+- **light switches it off too** (amended 2026-10-18, see the note below): it became light (`!isDark()`, raw above
+  `THRESHOLD_LIGHT` from the dark state) → off at once, event `lamp off (light)`, reported before `no motion` when
+  both hold. It comes back only through the on rule (dark again + motion). Motion seen while it is light and the
+  lamp is off does nothing. Risk: if the strip's own light reaches the LDR, the lamp loops on → light → off → dark →
+  motion → on; the board test must show raw staying below `THRESHOLD_LIGHT` with the strip on in the dark. Brief
+  light flashes (car headlights) switching it off are an open question, parked by the author.
+
+*2026-10-18: the rule changed from "light only prevents switching on" (decided 2026-10-16) to the above, because in
+the author's setup the strip does not shine on the LDR, and when the room's main light is switched on the strip
+must go off instead of staying on while people move. Saved step `01-extra-motion` keeps the old rule.*
 
 **Modes (variant B):** `auto` (above), `on` (always on), `off` (always off). In `on` and `off` the sensors don't
 matter; switching back to `auto` applies the auto rule at once. The mode starts as `auto` after a reset. A
@@ -193,7 +199,7 @@ takes the next free number.
 | Step | What | Done when |
 |---|---|---|
 | `base-twilight-switch` | the assignment as given: LDR, thresholds with hysteresis, relay through BC547 | covering the LDR switches the relay on, light switches it off, no chatter at the thresholds |
-| `extra-motion` | PIR + timeout in auto mode | lamp on only in the dark with motion, off 15 s after the last motion, motion restarts the countdown; the strip shining on the LDR doesn't switch it off |
+| `extra-motion` | PIR + timeout in auto mode | lamp on only in the dark with motion, off 15 s after the last motion, motion restarts the countdown; the strip shining on the LDR doesn't switch it off (step 01's own rule; the draft after 2026-10-18 switches off on light, see above) |
 | `extra-web-status` | Wi-Fi + read-only page (variant A) | the phone shows live values, chart and events; the lamp still works with Wi-Fi off |
 | `extra-web-control` | modes (variant B) | the mode works from the phone; a bad `m` gets 400 |
 

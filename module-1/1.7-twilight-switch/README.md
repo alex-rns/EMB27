@@ -37,6 +37,8 @@ Load, on its own supply: supply + ── COM, NO ── load +, load − ── 
 | 00 | [base-twilight-switch](00-base-twilight-switch/) | base | the homework: two thresholds with hysteresis switch the relay; calibrated on the board, no chatter on the logic analyzer |
 | 01 | [extra-motion](01-extra-motion/) | extra | a PIR on GPIO 5: the lamp switches on only in the dark with motion, off 15 s after the last motion; the timeout and its restart measured on the logic analyzer |
 
+The working draft (after step 01) also switches the lamp off when the room light comes on (`lamp off (light)`); steps 00 and 01 keep their own rules.
+
 ## Working with the steps
 
 Every step is an ordinary PlatformIO project: `platformio.ini`, `include/` + `src/`, and a Wokwi circuit. Until
