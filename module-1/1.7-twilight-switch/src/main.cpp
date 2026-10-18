@@ -3,6 +3,7 @@
 #include "lamp.h"
 #include "light_sensor.h"
 #include "motion.h"
+#include "web.h"
 
 namespace {
 void printStatus(uint32_t nowMs) {
@@ -34,6 +35,7 @@ void setup() {
     Lamp::begin();  // the relay pin is defined (off) before anything else
     LightSensor::begin();
     Motion::begin();
+    Web::begin();  // last: starts connecting in the background, never waits
 }
 
 void loop() {
@@ -48,4 +50,6 @@ void loop() {
         lastStatusMs = nowMs;
         printStatus(nowMs);
     }
+
+    Web::handle(nowMs);  // last: the lamp logic above has already run
 }

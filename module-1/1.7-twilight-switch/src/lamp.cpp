@@ -1,5 +1,6 @@
 #include "lamp.h"
 #include "config.h"
+#include "event_log.h"
 #include "light_sensor.h"
 #include "motion.h"
 
@@ -10,11 +11,9 @@ uint8_t levelFor(bool lampOn) {
     return lampOn == Config::RELAY_ON_IS_HIGH ? HIGH : LOW;
 }
 
-void switchTo(bool lampOn, uint32_t nowMs) {
+void switchTo(bool lampOn) {
     on = lampOn;
     digitalWrite(Config::RELAY_GPIO, levelFor(on));
-    Serial.printf("[%5lu.%lu s] lamp %s ", static_cast<unsigned long>(nowMs / 1000),
-                  static_cast<unsigned long>(nowMs % 1000 / 100), on ? "on" : "off");
 }
 }  // namespace
 
@@ -30,12 +29,15 @@ void update(uint32_t nowMs) {
     // Light only prevents switching on: the lamp's own light on the LDR must not switch it off.
     if (!on) {
         if (LightSensor::isDark() && Motion::active()) {
-            switchTo(true, nowMs);
-            Serial.println("(dark + motion)");
+            switchTo(true);
+            EventLog::add(nowMs, "lamp on (dark + motion)");
         }
     } else if (Motion::msSinceMotion(nowMs) >= Config::MOTION_TIMEOUT_MS) {
-        switchTo(false, nowMs);
-        Serial.printf("(no motion %lu s)\n", static_cast<unsigned long>(Config::MOTION_TIMEOUT_MS / 1000));
+        switchTo(false);
+        char text[sizeof(Event::text)];
+        snprintf(text, sizeof text, "lamp off (no motion %lu s)",
+                 static_cast<unsigned long>(Config::MOTION_TIMEOUT_MS / 1000));
+        EventLog::add(nowMs, text);
     }
 }
 

@@ -15,6 +15,11 @@ constexpr uint32_t BAUD = 115200;
 constexpr uint32_t SAMPLE_PERIOD_MS = 100;
 constexpr uint32_t STATUS_PERIOD_MS = 1000;
 
+// Wi-Fi page. The lamp never waits for it.
+constexpr const char* HOSTNAME = "nightlight";  // http://nightlight.local/ (mDNS)
+constexpr uint32_t WIFI_CHECK_MS = 5000;
+constexpr size_t EVENT_COUNT = 10;  // events kept for the page
+
 // Start values from lesson 1.6; set the real ones from Serial readings on this breadboard.
 // 3V3 -> LDR -> GPIO 4 -> 10 kOhm -> GND: dark => low code, bright => high code.
 constexpr uint16_t THRESHOLD_DARK = 1600;   // below: dark
