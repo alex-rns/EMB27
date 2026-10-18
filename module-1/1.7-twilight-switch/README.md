@@ -35,6 +35,7 @@ Load, on its own supply: supply + ── COM, NO ── load +, load − ── 
 | # | Step | Type | What it shows |
 |---|---|---|---|
 | 00 | [base-twilight-switch](00-base-twilight-switch/) | base | the homework: two thresholds with hysteresis switch the relay; calibrated on the board, no chatter on the logic analyzer |
+| 01 | [extra-motion](01-extra-motion/) | extra | a PIR on GPIO 5: the lamp switches on only in the dark with motion, off 15 s after the last motion; the timeout and its restart measured on the logic analyzer |
 
 ## Working with the steps
 
@@ -50,7 +51,10 @@ and `archive/`).
 - **Serial:** 115200 baud on the board's UART USB-C port; `monitor_filters = time` puts the wall-clock time on
   every line, which matches the lines to a logic analyzer capture.
 - **Capture:** `00` has a Logic 2 capture (`capture.sal`) with GPIO 7 and the decoded UART.
+- **Capture:** `01` has `capture.sal` too: GPIO 7, the PIR's OUT on GPIO 5 and the decoded UART around one 15 s timeout.
 - **Falstad:** `00` also has `falstad.txt`, a model of the circuit's electrics (the link is in its README).
 - **Test:** `00` has `wokwi-scenario.yaml` (light → dark → dead zone → light → dead zone, checking GPIO 7);
   run it from the step folder with `wokwi-cli . --scenario wokwi-scenario.yaml` (about 4 s of simulation).
+- **Test:** `01` has `wokwi-scenario.yaml` (dark and light without motion: the lamp stays off); the Wokwi PIR part
+  can't be triggered from a scenario. Run it the same way, local only.
 - **Safety:** low voltage only. The load has its own supply, never the board's 5V pin or the breadboard supply.

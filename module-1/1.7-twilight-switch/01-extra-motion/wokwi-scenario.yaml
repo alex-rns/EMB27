@@ -1,0 +1,25 @@
+# Wokwi test, local only. The simulator's PIR part can't be triggered from a scenario, so this checks what can be
+# checked without motion: darkness alone never switches the lamp on (GPIO 7 stays LOW, motion: never).
+# pot1 stands in for the light: 0.2 -> raw 819 (dark), 0.7 -> raw 2867 (light).
+name: 'Night light: dark without motion'
+version: 1
+author: 'Oleksandr Bielodubrovskyi'
+steps:
+  - set-control:
+      part-id: pot1
+      control: position
+      value: 0.2
+  - wait-serial: 'dark | motion: never | lamp: off'
+  - expect-pin:
+      part-id: esp
+      pin: 7
+      value: 0
+  - set-control:
+      part-id: pot1
+      control: position
+      value: 0.7
+  - wait-serial: 'light | motion: never | lamp: off'
+  - expect-pin:
+      part-id: esp
+      pin: 7
+      value: 0
