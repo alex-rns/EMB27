@@ -13,7 +13,7 @@
 | 1.4 | GPIO and pinout, reading the datasheet | `1.4-gpio-pinout` | ✅ finished: `00`, `01` (lecture), `03`–`05` (homework), `06` (extra: interrupts); `02` unused |
 | 1.5 | Signals and a button (oscilloscope) | `1.5-signals-button` | ✅ finished: `00` (lecture: debounce), `01` (homework: interrupt counter vs analyzer) |
 | 1.6 | Intro to the ADC: reading light | `1.6-adc-light` | ✅ finished: `00` (lecture: smart light), `01` (homework: formula vs `analogReadMilliVolts`) |
-| 1.7 | Mini project: light sensor controls an LED | `1.7-twilight-switch` | ✅ saved 00, 01, 02 · ⏳ /finish-lesson |
+| 1.7 | Mini project: light sensor controls an LED | `1.7-twilight-switch` | ✅ finished: `00` (base: twilight switch), `01` (extra: PIR, 15 s), `02` (extra: Wi-Fi page, modes) |
 | 1.8 | Debrief: typical mistakes (LED, polarity, wiring) | — | — |
 | 1.9 | Basic soldering | — | — |
 
@@ -24,6 +24,8 @@ Module 1 has no flexible slot (those are in modules 2–6).
 - ESP32-S3 DevKitC-1 clone, N16R8 (see the root CLAUDE.md). Which GPIOs drive the onboard LEDs (47, 48) is still
   to verify: 1.3 uses both for external LEDs.
 - LEDs (red, blue, white, green), 220 Ω and 10 kΩ resistors, tactile button, breadboard, LDR (1.6).
+  1.7: BC547B, a 5 V JQC-3F relay module (low-level trigger), HC-SR501 PIR, MB-102 breadboard supply, a USB 5 V
+  LED strip on its own charger.
   Coming: multimeter checks, soldering iron (1.9).
 - Logic analyzer (1.5): 8-channel 24 MHz Saleae Logic clone, digital only, fixed input threshold. The case labels
   the channels 1–8, Logic 2 and PulseView call them D0–D7. Its GND goes to the board's GND.
@@ -149,6 +151,27 @@ dividers aren't simulated (two 10 kΩ read 4095); the ADC is ideal (3.3 V = 4095
 reads unrealistically high, so use Wokwi to run the code, not for the numbers.
 Steps: `1.6-adc-light/00` lecture (smart light, analyzer capture), `01` homework (formula vs calibration).
 
+**1.7 — Mini project, homework "twilight switch", grown into a motion night light with a Wi-Fi page.**
+Hysteresis 1600 / 2200 on the raw ADC code (a software Schmitt trigger, no averaging): every measured case sat at
+least 700 codes from the threshold that would flip it, noise ±5. The relay module's input is a PNP with its emitter
+on 5 V: a 3.3 V HIGH never turns it off. A BC547B stage (10 kΩ to the base, 10 kΩ pull-up to 5 V on IN) gives a
+full 0 / 5 V swing; two inversions make HIGH = relay on. GPIO 7 floats at reset until `Lamp::begin()`, and the
+analyzer's probe alone clicked the relay at boot: write the off level before `pinMode(OUTPUT)`. Relay contacts last
+~100 000 switchings under load, so chatter at the 10 Hz sample rate would wear them out in under 3 hours.
+PIR: `INPUT_PULLDOWN`, so a loose wire reads "no motion"; the 15 s count from OUT's falling edge, so the PIR's
+own hold adds to it. Analyzer: PIR OUT ↑ → relay pin ↑ in 3.5 µs, timeout 14.99989 s.
+A "light switches the lamp off" rule (step 02) makes the lamp's own light a loop: the unshielded strip lifted the
+LDR to 2247–2336 (above 2200) and the lamp switched itself off 2–7 s after it came on; shielded, 1011–1055.
+Measure raw with the load on in the dark before trusting a light-off rule.
+Wi-Fi: keep analog inputs on ADC1 (ADC2 can't be used with Wi-Fi, S3 datasheet 4.2.2.1). `WiFi.begin()` returns
+at once, the lamp rules run before `Web::handle()` in `loop()`, and the lamp never waits for the network.
+`WebServer` serves one client at a time inside `loop()` and sleeps 1 ms on every idle `handleClient()` call.
+Secrets live in a git-ignored `secrets.h`; `secrets.example.h` keeps CI building. On macOS `curl` to a `.local`
+name waits 5 s for an IPv6 answer the board never gives: `curl -4`. Falstad simulates the electrics Wokwi skips
+(the divider, the transistor stage, the relay); Wokwi's PIR part can't be triggered from a scenario.
+Steps: `1.7-twilight-switch/00` base, `01` extra (PIR, 15 s), `02` extra (Wi-Fi page, modes); design and plan in
+`1.7-twilight-switch/docs/`.
+
 ## Known issues / open
 
 1. 1.3: add "▶ Simulate in Wokwi" links to each step README and the lesson's steps table once
@@ -161,3 +184,6 @@ Steps: `1.6-adc-light/00` lecture (smart light, analyzer capture), `01` homework
 4. 1.6 step 00: `diagram.png` is missing (the README links to it); take it from the Wokwi editor.
 5. 1.6: a multimeter on GPIO 4 should decide between the formula and `analogReadMilliVolts()` (~10 % apart),
    and a 100 nF capacitor on the ADC pin should be tried against the noise and the ~150 ns dips.
+6. 1.7: brief flashes (car headlights) above 2200 switch the lamp off until the next motion: untested. Not run on
+   the board either: a Wi-Fi drop, a wrong password, PIR false triggers from Wi-Fi, the reaction time with the page
+   open.

@@ -60,10 +60,10 @@ Load, on its own supply: supply + ── COM, NO ── load +, load − ── 
 ![Circuit in Wokwi](diagram.png)
 
 **Wokwi** has the same stand-ins as step 00 (a potentiometer for the light, the relay module straight on GPIO 7 with
-an LED on NO), plus a `wokwi-pir-motion-sensor` (OUT → GPIO 5, VCC on the board's 5V pin, hold time set to 3 s;
-Wokwi has no shorter one). The PIR part can't be triggered from a scenario or from the Wokwi MCP, only by clicking it
-in the VS Code editor: in the dark, Simulate motion switched the lamp LED on, and it went off after the hold plus
-15 s. [`wokwi-scenario.yaml`](wokwi-scenario.yaml) tests what can be tested without motion: potentiometer to dark →
+an LED on NO), plus a `wokwi-pir-motion-sensor` (OUT → GPIO 5, VCC on the board's 5V pin, hold time set to 3 s,
+the usual HC-SR501 minimum; this module measured about 1.0 s). The PIR part can't be triggered from a scenario or
+from the Wokwi MCP, only by clicking it in the VS Code editor: in the dark, Simulate motion switched the lamp LED
+on, and it went off after the hold plus 15 s. [`wokwi-scenario.yaml`](wokwi-scenario.yaml) tests what can be tested without motion: potentiometer to dark →
 `dark | motion: never | lamp: off` with GPIO 7 LOW (darkness alone never switches the lamp on), potentiometer to
 light → `light | motion: never | lamp: off`. It runs locally only (a few seconds of simulation). In Wokwi GPIO 7 reads
 HIGH for the first 76.6 ms after reset (undriven until `Lamp::begin()`), so a test must not look at it before then.
@@ -154,8 +154,9 @@ the lamp stays off. Without the pull-down an open input floats and can read HIGH
 **Not run on the board.**
 - *The lamp's own light on the LDR.* The LED strip hadn't arrived, so this stayed open (the open item from step
   00). By construction light can't switch the lamp off: `Lamp::update()` switches it off only on the timeout. Wokwi
-  showed it too: pot to light while the lamp was on → the countdown went on. The real placement check waits for the
-  strip.
+  showed it too: pot to light while the lamp was on → the countdown went on. With the strip (step 02) the
+  unshielded LDR read 2247–2336: harmless under this step's rule, which never switches off on light, but step 02's
+  light-off rule needed the LDR shielded.
 - *A passing shadow.* A hand passing over the LDR in room light was not run on the board. Step 00 measured a hand
   about 10 cm above the LDR at raw 2317–2343, at least 700 codes above `THRESHOLD_DARK` = 1600. Only a direct
   cover (a finger, raw ≈ 1000) goes below it, so a realistic shadow can't make the sensor read dark. If a close

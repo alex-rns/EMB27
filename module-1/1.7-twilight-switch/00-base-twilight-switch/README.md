@@ -78,8 +78,8 @@ the dark. Model values: default transistors (β 300 and 200), a 70 Ω coil that 
 | the LDR covered by a finger | 969–1041 | dark, on |
 | the room light switched off | 716 → 635 over about 3 s | dark, on |
 
-Every case sits at least 700 codes from the nearest threshold, and the noise is about ±5 codes, so the starting
-thresholds 1600 / 2200 stay. The LDR goes dark slowly (seconds) and comes back to the light almost at once.
+Every case sits at least 700 codes from the threshold that would flip its state, and the noise is about ±5 codes,
+so the starting thresholds 1600 / 2200 stay. The LDR goes dark slowly (seconds) and comes back to the light almost at once.
 
 **The thresholds in volts.** A multimeter across the 10 kΩ (GPIO 4 to GND) read 2.36 V at raw 2824 and 1.42 V at
 raw 1655. A straight line through the two points gives:
@@ -107,7 +107,7 @@ Async Serial at 115200 baud. The LDR was covered and uncovered slowly three time
 | 26.845 ↑ | `relay on (dark)` | 2297 |
 | 29.245 ↓ | `relay off (light)` | 1389, 1512, 1639 |
 
-- Exactly 6 edges, one per change. Each event line starts 32–36 µs after its edge: `Lamp::update()` prints
+- Exactly 6 edges, one per change. Each event line starts within 1 ms of its edge: `Lamp::update()` prints
   right after `digitalWrite()`.
 - Inside the dead zone the state held: 1812 and 2183 stayed dark/on, 1639 stayed dark/on, 2164 and 1928 stayed
   light/off. With a single threshold each of these would have been a burst of clicks.

@@ -1,7 +1,13 @@
 # Night light with motion sensing and a Wi-Fi page — design
 
 Lesson 1.7 mini project, Module 1, EMB27 course. Status: approved by the author 2026-10-16;
-2026-10-17: phone control reduced to the mode (no boost), motion timeout 15 s, the load is an LED strip. Plan: `docs/superpowers/plans/2026-10-17-night-light.md`.
+2026-10-17: phone control reduced to the mode (no boost), motion timeout 15 s, the load is an LED strip. Plan: [`night-light-plan.md`](night-light-plan.md).
+
+> **As built (2026-10-19).** The lesson was finished as steps `00-base-twilight-switch`, `01-extra-motion` and one
+> web step `02-extra-web` (the read-only page and the mode switch were merged into it, instead of the separate
+> `extra-web-status` and `extra-web-control` below). The note of 2026-10-18 assumed the strip doesn't shine on the
+> LDR; on the board it did (raw 2247–2336 in the dark, above `THRESHOLD_LIGHT`) until the LDR was shielded
+> (1011–1055). Measurements and what was not run are in the step READMEs.
 
 ## Intent
 
@@ -144,7 +150,7 @@ must go off instead of staying on while people move. Saved step `01-extra-motion
 matter; switching back to `auto` applies the auto rule at once. The mode starts as `auto` after a reset. A
 "turn on for N minutes" boost was considered and dropped (2026-10-17).
 
-**Events:** the last 10 changes, e.g. "lamp on (dark + motion)", "lamp off (no motion 15 s)", "mode → on",
+**Events:** the last 10 changes, e.g. "lamp on (dark + motion)", "lamp off (no motion 15 s)", "lamp off (light)", "mode → on",
 "Wi-Fi connected". Timestamps as uptime by default; real clock time via SNTP is the builder's option
 in the Wi-Fi steps.
 

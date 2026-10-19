@@ -44,7 +44,8 @@ any of it.
 | any other path, `GET /api/mode` too | 404 `not found` |
 
 The page asks for `/api/state` once a second. An answer that takes more than 3 s is dropped, and a red "offline"
-badge shows until the next answer; the chart keeps its points. The mode buttons POST, and a 400 text stays under
+badge shows until the next answer; the chart keeps its points. Each answer adds one chart point, so the chart's x
+axis counts answers, not seconds: a gap while offline doesn't show. The mode buttons POST, and a 400 text stays under
 them until the next press or for 5 s.
 
 A real answer from the board, shortened (3 of its 9 events, the IP hidden):
@@ -138,7 +139,8 @@ switches itself off. Raw in a dark room, the strip switched on through mode `on`
 
 The first placement made the loop. The board's event list showed it twice in a dark room: `lamp on (dark + motion)`,
 then `lamp off (light)` 4.9 s and 6.6 s later. An earlier run on the board did the same: raw 621 → lamp on → 2186,
-2197 → `lamp off (light)` 1.9 s later.
+2197 → `lamp off (light)` 1.9 s later (the status lines show one reading a second; a reading between them crossed
+2200).
 
 With the shield, a 180 s recording (a request a second) held the lamp on in the dark for about 150 s at raw
 1064–1739, with no `lamp off (light)`. When the lamp went off there, raw fell from 1557 to 1048: in that position the
@@ -155,13 +157,17 @@ In the same 180 s, one request got no answer within 1 s, without a reset; the ne
 waits 3 s and wouldn't notice.
 
 **Not run on the board.**
-- *Wi-Fi drop* (router or hotspot off): the code logs `Wi-Fi lost` and keeps calling `WiFi.reconnect()`; the lamp
-  rules don't depend on it. Not tried.
+- *Wi-Fi drop* (router or hotspot off): the code logs `Wi-Fi lost` and calls `WiFi.reconnect()` every 5 s; the lamp
+  rules don't depend on it. Not tried. Each `reconnect()` restarts the attempt in progress, so a network that needs
+  more than 5 s to join may never come back.
 - *A wrong password.* Wokwi shows that the lamp doesn't wait for the connection: status lines from the first
   second, Wi-Fi at 5.0 s (the scenario); in a scratch copy with a button in place of the PIR the lamp went on 1.5 s
   after reset, before Wi-Fi.
 - *Timing with the page open.* Step 01 measured 3.5 µs from PIR OUT to the relay pin. Serving a request runs in the
-  same `loop()` (below), so a request in progress delays the lamp; not measured with the analyzer.
+  same `loop()` (below), so a request in progress delays the lamp. Even with no request, `handleClient()` sleeps
+  1 ms on every call (WebServer 2.0.17, `enableDelay` is on by default), so once Wi-Fi is up `loop()` runs about once
+  a millisecond and the reaction becomes up to about 1 ms. `server.enableDelay(false)` would remove that sleep. Not
+  measured with the analyzer.
 - *`off` → `auto` in the dark while waving* (above).
 
 **Notes**
@@ -186,6 +192,11 @@ waits 3 s and wouldn't notice.
   Not seen here; use a short, good cable.
 - **Keep the strip's light off the LDR.** Shield the LDR, then read raw with the strip on in the dark: it must stay
   well below 2200 (above).
+- **After 49.7 days.** `millis()` wraps to 0 after 49.7 days of uptime. The lamp rules are wrap-safe
+  (`now - last >= interval`), but the page computes an event's age as `uptimeMs - atMs` in JavaScript, which goes
+  negative after the wrap: old events then show a wrong age.
+- **PIR and Wi-Fi.** HC-SR501 modules are often reported to trigger falsely from Wi-Fi transmissions close to them.
+  Not checked here: if the lamp switches on in a dark, empty room, move the PIR away from the board's antenna.
 - **Open question: brief flashes.** A flash bright enough to read above 2200 (car headlights on the ceiling)
   switches the lamp off at once, and it stays off until the next motion. Not tested. A short delay or a moving
   average before the light rule would filter it, at the cost of a slower reaction to the room light.

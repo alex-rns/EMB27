@@ -6,6 +6,10 @@
 motion-activated night light with a read-only page on the home Wi-Fi and then a mode switch (auto / on / off) on
 that page.
 
+> **As built (2026-10-19).** Tasks 6 and 8 were saved together as one step `02-extra-web` (not `02-extra-web-status`
+> and `03-extra-web-control`); some board checks of Tasks 6 and 8 were not run, and the light-off rule was added on
+> 2026-10-18. The step READMEs say what was measured and what was not.
+
 **Architecture:** One lesson draft (an ordinary PlatformIO project at the root of `module-1/1.7-twilight-switch/`,
 as in lesson 1.6) grows in four stages. Each stage that works on the board is copied into a numbered step project
 and committed. Modules are split into `.h`/`.cpp` with namespaces (lesson 1.6 lecture style), `loop()` is a
@@ -16,7 +20,7 @@ and sends commands to `Lamp`.
 (`framework-arduinoespressif32` 4.20017), built-in `WiFi` / `WebServer` / `ESPmDNS`; Wokwi (VS Code and MCP),
 Logic 2 (MCP), a multimeter.
 
-**Spec:** `docs/superpowers/specs/2026-10-16-night-light-design.md`
+**Spec:** [`night-light-design.md`](night-light-design.md)
 
 ## Global Constraints
 

@@ -42,9 +42,8 @@ Step 02 also switches the lamp off when the room light comes on (`lamp off (ligh
 
 ## Working with the steps
 
-Every step is an ordinary PlatformIO project: `platformio.ini`, `include/` + `src/`, and a Wokwi circuit. Until
-the lesson is finished, the lesson folder itself is also the working draft (its own `platformio.ini`, `src/`
-and `archive/`).
+Every step is an ordinary PlatformIO project: `platformio.ini`, `include/` + `src/`, and a Wokwi circuit. The
+design and the plan the steps were built from are in [`docs/`](docs/) (each with an "as built" note).
 
 - **Build / Upload:** open the step's folder in VS Code (or add it to the workspace) and use the PlatformIO
   buttons, or from the terminal: `pio run -d 00-base-twilight-switch`.
