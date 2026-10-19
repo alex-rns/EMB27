@@ -13,7 +13,7 @@
 | 1.4 | GPIO and pinout, reading the datasheet | `1.4-gpio-pinout` | ✅ finished: `00`, `01` (lecture), `03`–`05` (homework), `06` (extra: interrupts); `02` unused |
 | 1.5 | Signals and a button (oscilloscope) | `1.5-signals-button` | ✅ finished: `00` (lecture: debounce), `01` (homework: interrupt counter vs analyzer) |
 | 1.6 | Intro to the ADC: reading light | `1.6-adc-light` | ✅ finished: `00` (lecture: smart light), `01` (homework: formula vs `analogReadMilliVolts`) |
-| 1.7 | Mini project: light sensor controls an LED | `1.7-twilight-switch` | ✅ saved 00, 01 · ⏳ /finish-lesson |
+| 1.7 | Mini project: light sensor controls an LED | `1.7-twilight-switch` | ✅ saved 00, 01, 02 · ⏳ /finish-lesson |
 | 1.8 | Debrief: typical mistakes (LED, polarity, wiring) | — | — |
 | 1.9 | Basic soldering | — | — |
 
@@ -51,6 +51,11 @@ Module 1 has no flexible slot (those are in modules 2–6).
   (repeatable; measured by pulse widths, not by the label). Hold ≈ 1.0 s and a ≈ 2.5–2.8 s blocked gap after every
   fall at the minimum trimmers; the PIR hold adds to the firmware's 15 s. Read OUT with `INPUT_PULLDOWN` so a loose
   wire reads "no motion". A person at the desk triggers it even at minimum range.
+- **Wi-Fi page (1.7 step 02):** `secrets.h` is git-ignored, `secrets.example.h` (Wokwi-GUEST) keeps CI and Wokwi
+  building. On macOS `curl http://nightlight.local/` loses 5 s on an IPv6 lookup the board never answers: use
+  `curl -4` or the IP. A light-off rule needs the LDR shielded from the lamp: the strip read 2247–2336 unshielded
+  (above the 2200 threshold, the lamp switched itself off), 1011–1055 shielded. `WebServer` serves one client at a
+  time inside `loop()`.
 - **LEDs:** polarity, a resistor from Ohm's law, max current per pin (datasheet).
 - **Datasheet:** pin functions, strapping pins, electrical characteristics.
 

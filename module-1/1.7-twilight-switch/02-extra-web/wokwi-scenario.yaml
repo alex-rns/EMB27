@@ -1,0 +1,22 @@
+# Wokwi test, local only. Wi-Fi must never hold up the lamp: the status line runs from the first second, the board
+# joins Wokwi-GUEST (secrets.example.h) in the background, and the status lines go on after it, still in mode auto.
+# pot1 stands in for the light: 0.2 -> raw 819 (dark). The PIR part can't be triggered from a scenario.
+name: 'Night light with Wi-Fi: the lamp logic runs before and after joining'
+version: 1
+author: 'Oleksandr Bielodubrovskyi'
+steps:
+  - set-control:
+      part-id: pot1
+      control: position
+      value: 0.2
+  - wait-serial: 'dark | motion: never | lamp: off | mode: auto'
+  - expect-pin:
+      part-id: esp
+      pin: 7
+      value: 0
+  - wait-serial: 'Wi-Fi connected, IP'
+  - wait-serial: 'dark | motion: never | lamp: off | mode: auto'
+  - expect-pin:
+      part-id: esp
+      pin: 7
+      value: 0

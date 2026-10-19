@@ -36,8 +36,9 @@ Load, on its own supply: supply + ── COM, NO ── load +, load − ── 
 |---|---|---|---|
 | 00 | [base-twilight-switch](00-base-twilight-switch/) | base | the homework: two thresholds with hysteresis switch the relay; calibrated on the board, no chatter on the logic analyzer |
 | 01 | [extra-motion](01-extra-motion/) | extra | a PIR on GPIO 5: the lamp switches on only in the dark with motion, off 15 s after the last motion; the timeout and its restart measured on the logic analyzer |
+| 02 | [extra-web](02-extra-web/) | extra | the home Wi-Fi: a page at `nightlight.local` (light chart, events, countdown) and an auto / on / off switch; room light now switches the lamp off; the API and the strip's own light measured on the board |
 
-The working draft (after step 01) also switches the lamp off when the room light comes on (`lamp off (light)`); steps 00 and 01 keep their own rules.
+Step 02 also switches the lamp off when the room light comes on (`lamp off (light)`); steps 00 and 01 keep their own rules.
 
 ## Working with the steps
 
@@ -61,4 +62,8 @@ and `archive/`).
   run it from the step folder with `wokwi-cli . --scenario wokwi-scenario.yaml` (about 4 s of simulation).
 - **Test:** `01` has `wokwi-scenario.yaml` (dark and light without motion: the lamp stays off); the Wokwi PIR part
   can't be triggered from a scenario. Run it the same way, local only.
+- **Test:** `02` has `wokwi-scenario.yaml` (the status line runs before and after the board joins Wi-Fi). Run it the
+  same way.
+- **Wi-Fi:** `02` needs `include/secrets.h` with your network: copy `include/secrets.example.h` and fill it in (git
+  ignores it). Without it the step builds for Wokwi's open network. The page is at `http://nightlight.local/`.
 - **Safety:** low voltage only. The load has its own supply, never the board's 5V pin or the breadboard supply.
