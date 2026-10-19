@@ -25,7 +25,7 @@ Module 1 has no flexible slot (those are in modules 2–6).
   to verify: 1.3 uses both for external LEDs.
 - LEDs (red, blue, white, green), 220 Ω and 10 kΩ resistors, tactile button, breadboard, LDR (1.6).
   1.7: BC547B, a 5 V JQC-3F relay module (low-level trigger), HC-SR501 PIR, MB-102 breadboard supply, a USB 5 V
-  LED strip on its own charger.
+  LED strip on its own USB supply.
   Coming: multimeter checks, soldering iron (1.9).
 - Logic analyzer (1.5): 8-channel 24 MHz Saleae Logic clone, digital only, fixed input threshold. The case labels
   the channels 1–8, Logic 2 and PulseView call them D0–D7. Its GND goes to the board's GND.

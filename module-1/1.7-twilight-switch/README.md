@@ -18,6 +18,38 @@ to control an external load through a transistor switch (GPIO).
 
 The extra steps that follow grow it into a motion-activated night light with a page on the home Wi-Fi.
 
+## Result
+
+The homework is step [`00`](00-base-twilight-switch/), built as assigned and checked on the board. Steps
+[`01`](01-extra-motion/) and [`02`](02-extra-web/) are extras on the same circuit.
+
+**Video** (88 s): the circuit, a wave switching the strip on in the dark, the page on the laptop:
+[the night light working](https://photos.app.goo.gl/2JDyznYFtzUbMdvv6) (Google Photos).
+
+![The real circuit on the breadboard, room light on, lamp off](photo-circuit.jpg)
+
+![At night: the strip lit through the relay, the page at nightlight.local shows the lamp ON](photo-night.jpg)
+
+| Assignment | Where to see it |
+|---|---|
+| LDR + 10 kΩ divider on an ADC pin | GPIO 4 (ADC1); [schematic](00-base-twilight-switch/schematic.svg), wiring table in [`00`](00-base-twilight-switch/) |
+| 3.3 V → 5 V switch: R3, BC547B, R4 → relay IN | the same schematic; why IN can't take 3.3 V straight: "Why not 3.3 V straight on IN" in [`00`](00-base-twilight-switch/) |
+| A safe low-voltage load on NO | a USB 5 V LED strip on its own USB supply, through COM / NO |
+| Read the ADC, two thresholds, change nothing in between | [`light_sensor.cpp`](00-base-twilight-switch/src/light_sensor.cpp), thresholds in [`config.h`](00-base-twilight-switch/include/config.h) |
+| Thresholds that fit the real circuit | "Light levels" in [`00`](00-base-twilight-switch/): 1600 / 2200 kept, every case at least 700 codes from the threshold that would flip it |
+| No relay chatter | the logic analyzer: exactly one relay edge per change of light ([capture](00-base-twilight-switch/capture.png)) |
+
+Measured on the board in the extras:
+- PIR OUT → relay pin in 3.5 µs; the lamp goes off 14.99989 s after the last motion (`01`, logic analyzer);
+- the lamp's own light: the unshielded strip lifted the LDR to 2247–2336, above the 2200 threshold, so the lamp
+  switched itself off; a shield brought it to 1011–1055 (`02`);
+- the page: 20 mode requests answered in 17–174 ms, wrong input → 400 and nothing changes, "offline" on a reset
+  and back by itself (`02`).
+
+**How it was debugged.** Serial lines with timestamps, the logic analyzer (Logic 2, captures saved in `00` and
+`01`), Wokwi simulations with test scenarios, a Falstad model of the electrics Wokwi can't simulate (`00`, `01`),
+and a multimeter. The ESP32-S3's built-in USB JTAG debugger was not used.
+
 The circuit (GPIO In = GPIO 4, GPIO Out = GPIO 7; +5 V from a breadboard power supply, one common ground):
 
 ```

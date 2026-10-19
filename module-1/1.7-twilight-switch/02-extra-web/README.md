@@ -43,6 +43,8 @@ any of it.
 | `POST /api/mode` with any other `m` (`ON`, empty, `auto ` with a space) or without `m` | 400 `text/plain` `bad m: expected auto\|on\|off`, nothing changes |
 | any other path, `GET /api/mode` too | 404 `not found` |
 
+<img src="page-phone.jpg" alt="The page on a phone: the lamp ON in the dark, off in 12 s, the light chart over the last 60 s" width="300">
+
 The page asks for `/api/state` once a second. An answer that takes more than 3 s is dropped, and a red "offline"
 badge shows until the next answer; the chart keeps its points. Each answer adds one chart point, so the chart's x
 axis counts answers, not seconds: a gap while offline doesn't show. The mode buttons POST, and a 400 text stays under
