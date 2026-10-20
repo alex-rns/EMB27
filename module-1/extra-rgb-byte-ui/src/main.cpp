@@ -51,10 +51,9 @@ void loop()
         uint8_t btn_level = digitalRead(BTN_CHANGE_PIN);
         if ( btn_prev_level == HIGH && btn_level == LOW) {
             btn_press_count = btn_press_count + 1;
-            Serial.println(btn_press_count);
             x = x << 1;
             if (x == 0) { x = 1; }
-            Serial.printf("press %u: x = %u\n", btn_press_count, x);
+            Serial.printf( "press %u: x = %u\n", btn_press_count, x);
         }
         btn_prev_level = btn_level;
     };
