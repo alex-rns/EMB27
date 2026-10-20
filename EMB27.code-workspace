@@ -5,8 +5,8 @@
       "name": "EMB27 (repo)"
     },
     {
-      "name": "1.7 / 02-extra-web",
-      "path": "module-1/1.7-twilight-switch/02-extra-web"
+      "name": "RGB byte UI",
+      "path": "module-1/extra-rgb-byte-ui"
     }
   ],
   "settings": {

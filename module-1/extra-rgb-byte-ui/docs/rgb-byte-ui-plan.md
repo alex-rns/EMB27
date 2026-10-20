@@ -5,14 +5,16 @@
 > step must do, what to wire, which functions or notes to look at and in what order. They never prescribe the code's
 > structure (variables, data structures, functions). Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the RGB byte UI from the design in eight small steps, each a working program on the real board.
+**Goal:** Build the RGB byte UI from the design in eight small steps, each a working program on the real board
+and one commit.
 
-**Approach:** One lesson draft (an ordinary PlatformIO project at the root of `module-1/extra-rgb-byte-ui/`, as in
-lesson 1.7) grows step by step. When a step works on the board and has been reviewed, it is copied into a numbered
-step project and committed. The breadboard grows with the steps: nothing is wired before the step that needs it.
+**Approach:** One ordinary PlatformIO project, `module-1/extra-rgb-byte-ui/`, grows step by step. When a step works
+on the board and has been reviewed, it is committed: one commit per step, so the git history shows the progress
+(the author's decision of 2026-10-20; no step folders, no Wokwi circuit per step). The breadboard grows with the
+steps: nothing is wired before the step that needs it.
 
 **Tech Stack:** ESP32-S3 DevKitC-1 clone (N16R8), PlatformIO board `esp32-s3-devkitc-1`, Arduino core 2.0.17;
-breadboard, 3 mm LEDs, tactile buttons, a discrete RGB LED, a multimeter; Wokwi.
+breadboard, 3 mm LEDs, tactile buttons, a discrete RGB LED, a multimeter.
 
 **Spec:** [`rgb-byte-ui-design.md`](rgb-byte-ui-design.md)
 
@@ -29,39 +31,32 @@ breadboard, 3 mm LEDs, tactile buttons, a discrete RGB LED, a multimeter; Wokwi.
 - Everything in the repo is in English, comments included.
 - Who does what: the author picks the pins, does every hands-on action (wiring, Upload, Serial Monitor, multimeter,
   pressing buttons), one action at a time, and writes each step's first version. The assistant checks the chosen pins,
-  reviews and improves the code, builds, draws the Wokwi circuit and saves the step.
+  reviews and improves the code, builds and commits the step.
 - A commit and push only after the author's yes. Message: `module-1/extra-rgb-byte-ui: <what was done>`.
 
 ## How a step is verified (no unit tests)
 
 There is no host test environment (one PlatformIO environment per project). Each step's **board checks** are written
-below before any code; they fail first because the draft doesn't do it yet. A step is done when every board check
-passes on the real board, the build has no warnings, and the saved step's Wokwi circuit matches its code.
+below before any code; they fail first because the project doesn't do it yet. A step is done when every board check
+passes on the real board and the build has no warnings.
 
 ## The cycle of every step (CYCLE)
 
 1. **Hints:** the assistant goes through the step's hints with the author (in Ukrainian), no code.
 2. **Wiring:** the author picks pins for the new parts; the assistant checks them against the constraints; the author
    wires them, one part at a time.
-3. **First version:** the author writes it in the draft's `src/main.cpp`, builds, uploads and runs the board checks.
+3. **First version:** the author writes it in the project's `src/main.cpp`, builds, uploads and runs the board checks.
 4. **Review:** the assistant reads the author's version, explains what works and what is weak or will break on the
    board, then improves it in small changes, each explained; the author re-runs the board checks after each change.
-5. **SAVE** (below), then the next step.
+5. **COMMIT** (below), then the next step.
 
-## Save-step procedure (SAVE)
+## Commit procedure (COMMIT)
 
-1. Create `NN-<type>-<slug>/` (names from the design's step table): `platformio.ini` (the constraint lines),
-   `wokwi.toml` (the `/save-hw` template), `src/main.cpp` from the draft as reviewed, `diagram.json` matching the
-   step's pins (checked with the local Wokwi wire checker), `schematic.svg` (schemdraw, as in `/save-hw`), and a step
-   `README.md`: what the step does, a `| Part | GPIO |` table, `![Schematic](schematic.svg)`,
-   `![Circuit in Wokwi](diagram.png)`, the board checks and their results, what breaks on real hardware.
-2. Ask the author for `diagram.png` (a screenshot from the Wokwi editor).
-3. First save only: the lesson `README.md` (the assignment and a steps table), a row in `module-1/README.md`, a row
-   and the pins in `module-1/CLAUDE.md`.
-4. Build the step (`~/.platformio/penv/bin/pio run -d <step>`: `SUCCESS`, no `warning:`), run
-   `.github/scripts/checks.sh`, check `git status --short`: only the new step and the registered files, never the
-   draft's own files at the lesson root (`platformio.ini`, `src/`, `include/`, `lib/`, `test/`) and no `.pio/`.
-5. Suggest `module-1/extra-rgb-byte-ui: save step NN-<type>-<slug>`; commit and push after the author's yes.
+1. Build (`~/.platformio/penv/bin/pio run -d module-1/extra-rgb-byte-ui`: `SUCCESS`, no `warning:`), run
+   `.github/scripts/checks.sh`, check `git status --short`: only this project's files (no `.pio/`, no `.vscode/`).
+2. First commit only: a row in `module-1/README.md` and in `module-1/CLAUDE.md` (lessons table, pins used).
+3. Suggest `module-1/extra-rgb-byte-ui: step NN, <what the step does>`; commit and push after the author's yes.
+4. After the last step: the project `README.md` (what it does, the wiring table, what breaks on real hardware).
 
 ## Review Focus
 
@@ -74,16 +69,17 @@ passes on the real board, the build has no warnings, and the saved step's Wokwi 
 
 ---
 
-### Task 0: The lesson draft
+### Task 0: The project
 
 - [ ] **Step 1:** the assistant explains, then runs
   `~/.platformio/penv/bin/pio project init -d module-1/extra-rgb-byte-ui -b esp32-s3-devkitc-1 -O framework=arduino`
   and adds the two constraint lines to `platformio.ini`.
 - [ ] **Step 2:** in `EMB27.code-workspace`, replace the `1.7 / 02-extra-web` folder with
-  `{"name": "RGB byte UI (draft)", "path": "module-1/extra-rgb-byte-ui"}`; the author reopens the workspace and sees the
+  `{"name": "RGB byte UI", "path": "module-1/extra-rgb-byte-ui"}`; the author reopens the workspace and sees the
   PlatformIO buttons.
-- [ ] **Step 3:** the empty draft builds: `~/.platformio/penv/bin/pio run -d module-1/extra-rgb-byte-ui` → `SUCCESS`.
-  No commit (the draft is not committed).
+- [ ] **Step 3:** no build yet: `pio project init` creates an empty `src/`, and the Arduino framework doesn't link
+  without `setup()` and `loop()`. The first build comes with the author's `src/main.cpp` in Task 1. The wizard's
+  placeholder `README` files in `include/`, `lib/` and `test/` are removed (no committed project keeps them).
 
 ### Task 1: Step `00-base-byte-leds` — the eight LEDs show a number
 
@@ -95,7 +91,7 @@ weight, not 1); `uint8_t`.
 
 - [ ] Board checks: `160` → `●○●○○○○○`; `1` → only the rightmost; `128` → only the leftmost; `255` → all;
   `0` → none; `85` → `○●○●○●○●`. Each value is a re-flash.
-- [ ] CYCLE, SAVE.
+- [ ] CYCLE, COMMIT.
 
 ### Task 2: Step `01-base-cursor` — button 1 moves the cursor
 
@@ -108,7 +104,7 @@ left, from bit 7 back to bit 0; one press is one step, however long the button i
 
 - [ ] Checkpoint: 20 slow presses → the count ends at 20; no line on any release; holding the button 2 s → one line.
 - [ ] Board checks: 8 presses from power-on → back on bit 0; a 9th → bit 1; holding 2 s → one step.
-- [ ] CYCLE, SAVE.
+- [ ] CYCLE, COMMIT.
 
 ### Task 3: Step `02-base-toggle-bit` — button 2 toggles the bit under the cursor
 
@@ -121,7 +117,7 @@ Optional for debugging: print the byte after each press, `Serial.println(value, 
 - [ ] Board checks: from power-on, 1 ×5, 2, then 1 → bit 5 stays lit after the cursor leaves; then 1 ×1, 2, 1 ×1
   → `●○●○○○○●`, where the rightmost is the cursor on bit 0 (the byte is 160); 2 twice on the same bit → no change;
   holding 2 → one toggle.
-- [ ] CYCLE, SAVE.
+- [ ] CYCLE, COMMIT.
 
 ### Task 4: Step `03-base-select` — buttons 3/4/5 and the indicators
 
@@ -132,7 +128,7 @@ one byte, and the eight LEDs don't change on a selection.
 
 - [ ] Board checks: power-on → only red; 4 → only green; 5 → only blue; 3 → only red; 4 twice → still green;
   buttons 1 and 2 still work; 3 and 4 pressed together → exactly one indicator lit.
-- [ ] CYCLE, SAVE.
+- [ ] CYCLE, COMMIT.
 
 ### Task 5: Step `04-base-slots` — each slot keeps its own byte
 
@@ -143,7 +139,7 @@ all slots are 0 at power-on.
 - [ ] Board checks: set R = 160 (bits 7 and 5); 4 → only the cursor's LED lit (G = 0); move the cursor to bit 6,
   press 2 → G = 64; 3 → bits 7 and 5 lit plus the cursor's LED on bit 6; 4 → only bit 6 lit (the cursor is on it
   too); RST → all slots 0, R selected.
-- [ ] CYCLE, SAVE.
+- [ ] CYCLE, COMMIT.
 
 ### Task 6: Step `05-base-rgb` — button 6 and the RGB LED
 
@@ -159,7 +155,7 @@ the lesson 1.3 note that `pinMode` after `ledcAttachPin` detaches the PWM.
 - [ ] Checkpoint: each fixed colour lights only its own die.
 - [ ] Board checks: power-on → dark; only R = 255, 6 → red; only G = 255 → green; only B = 255 → blue; all 0, 6 →
   dark; change R after 6 → no change until 6 again.
-- [ ] CYCLE, SAVE.
+- [ ] CYCLE, COMMIT.
 
 ### Task 7: Step `06-extra-blink` — the cursor blinks
 
@@ -168,15 +164,16 @@ the lesson 1.3 note that `pinMode` after `ledcAttachPin` detaches the PWM.
 
 - [ ] Board checks: the cursor blinks over a 0 and over a 1; 10 quick presses of 1 → exactly 10 steps; holding 1 →
   one step; the other seven LEDs never blink.
-- [ ] CYCLE, SAVE.
+- [ ] CYCLE, COMMIT.
 
 ### Task 8 (optional): Step `07-extra-remember` — the slots survive a power cycle
 
 - [ ] A short design talk first (what is written to flash and when, what comes back at boot), recorded in the design.
 - [ ] Hints then point at the built-in `Preferences` library of core 2.0.17; board checks come from that talk and run
   on the board only (a real reset and a real power cycle).
-- [ ] CYCLE, SAVE.
+- [ ] CYCLE, COMMIT.
 
 ### Task 9: Finish
 
-- [ ] `/finish-lesson`: build every step, check code against circuits and READMEs, check questions, docs, commit.
+- [ ] The project `README.md`, then `/finish-lesson` adapted to one project: build it, check the code against the
+  README, check questions, docs, commit.

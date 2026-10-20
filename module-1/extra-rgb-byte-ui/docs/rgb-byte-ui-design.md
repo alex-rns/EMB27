@@ -85,8 +85,9 @@ pressed (few flash writes, and it matches the assignment's "the last stored conf
 
 ## Steps
 
-Each step is an ordinary PlatformIO project (repository rules) with its own Wokwi circuit. The hardware grows with
-the code: only what the step needs is on the breadboard.
+The whole project is one ordinary PlatformIO project, `module-1/extra-rgb-byte-ui/`, and each step is one commit:
+the git history shows the progress (decided by the author on 2026-10-20, instead of one folder per step). No Wokwi
+circuit per step. The hardware grows with the code: only what the step needs is on the breadboard.
 
 | Step | What you see on the board | Hardware added |
 |---|---|---|
@@ -99,7 +100,7 @@ the code: only what the step needs is on the breadboard.
 | `06-extra-blink` | The cursor blinks; no press is lost while it blinks. | — |
 | `07-extra-remember` | Optional. The slots survive a reset and a power cycle. | — |
 
-The step names are a suggestion; the numbering and the types follow the repository rules. Inside a step, smaller
+The step names label the commits. Inside a step, smaller
 checkpoints come first and are not saved on their own: in step 01, one Serial line per press before the cursor moves;
 in step 05, the diode test and a fixed colour from the code before button 6.
 
@@ -142,7 +143,7 @@ absolute maximum).
 
 ## Goals, non-goals, anti-goals
 
-**Goals:** the behaviour above, reached through the steps above, each working on the real board and in Wokwi.
+**Goals:** the behaviour above, reached through the steps above, each working on the real board.
 
 **Non-goals:** interrupts or hardware timers for the buttons; shift registers or LED drivers; the onboard WS2812;
 any UI over Serial or Wi-Fi; brightness correction (gamma); long press, auto-repeat or button combinations.
@@ -157,7 +158,7 @@ any UI over Serial or Wi-Fi; brightness correction (gamma); long press, auto-rep
 
 - Every step: the author runs the step's checks on the board (the presses in the table above and the edge cases:
   the wrap from bit 7 to bit 0, toggling a bit back, selecting the already selected slot, button 6 with all slots
-  at 0) and in Wokwi.
+  at 0).
 - Step 05: the RGB LED shows red only for `255 0 0`, green only for `0 255 0`, blue only for `0 0 255`; if a colour
   is inverted or swapped, the anode/cathode or the wiring is wrong.
 - Step 06: fast presses of button 1 while the cursor blinks move the cursor by exactly the number of presses.

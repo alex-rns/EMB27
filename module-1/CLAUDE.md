@@ -16,6 +16,7 @@
 | 1.7 | Mini project: light sensor controls an LED | `1.7-twilight-switch` | ✅ finished: `00` (base: twilight switch), `01` (extra: PIR, 15 s), `02` (extra: Wi-Fi page, modes) |
 | 1.8 | Debrief: typical mistakes (LED, polarity, wiring) | — | — |
 | 1.9 | Basic soldering | — | — |
+| extra | RGB byte UI (mini project outside the program) | `extra-rgb-byte-ui` | ⏳ one PlatformIO project, **one commit per step** (no step folders, no Wokwi per step; the author's decision 2026-10-20); step 00 done. Design and plan in `extra-rgb-byte-ui/docs/` |
 
 Module 1 has no flexible slot (those are in modules 2–6).
 
@@ -31,6 +32,7 @@ Module 1 has no flexible slot (those are in modules 2–6).
   the channels 1–8, Logic 2 and PulseView call them D0–D7. Its GND goes to the board's GND.
 - Pins used so far: 1.3: 47, 48, 21. 1.4: 45 (lecture, strapping pin on purpose), 15, 16, 21, 0 (homework).
   1.5: 4, 5, 6, 7 (lecture), 16 (homework). 1.6: 4 (LDR, ADC1), 7 (lecture LED). 1.7: 4 (LDR, ADC1), 5 (PIR OUT), 7 (GPIO Out → BC547B).
+  RGB byte UI: byte LEDs bit 7 … bit 0 = 4, 5, 6, 7, 15, 16, 17, 18 (bit 0 rightmost on the breadboard).
 - GPIO 0 (BOOT) has an external pull-up on this board; Wokwi's DevKitC-1 model doesn't, so a Wokwi circuit
   that reads BOOT with `INPUT` needs a 10 kΩ from GPIO 0 to 3V3 in `diagram.json`.
 - Avoid: 19/20 (native USB — the board drops off the port), 0/3/45/46 (strapping),
@@ -59,6 +61,8 @@ Module 1 has no flexible slot (those are in modules 2–6).
   (above the 2200 threshold, the lamp switched itself off), 1011–1055 shielded. `WebServer` serves one client at a
   time inside `loop()`.
 - **LEDs:** polarity, a resistor from Ohm's law, max current per pin (datasheet).
+- **Breadboard rails (RGB byte UI, step 00):** the 830-hole board's power rails are split in the middle (a gap in
+  the blue and red lines). LEDs plugged into the far half of the GND rail stayed dark until a jumper bridged the gap.
 - **Datasheet:** pin functions, strapping pins, electrical characteristics.
 
 ## Lesson notes
