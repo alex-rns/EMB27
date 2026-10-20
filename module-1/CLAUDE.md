@@ -16,7 +16,8 @@
 | 1.7 | Mini project: light sensor controls an LED | `1.7-twilight-switch` | ✅ finished: `00` (base: twilight switch), `01` (extra: PIR, 15 s), `02` (extra: Wi-Fi page, modes) |
 | 1.8 | Debrief: typical mistakes (LED, polarity, wiring) | — | — |
 | 1.9 | Basic soldering | — | — |
-| extra | RGB byte UI (mini project outside the program) | `extra-rgb-byte-ui` | ⏳ one PlatformIO project, **one commit per step** (no step folders, no Wokwi per step; the author's decision 2026-10-20); steps 00, 01a (presses counted on Serial) and 01 (button 1 moves the cursor) done. Design and plan in `extra-rgb-byte-ui/docs/` |
+| extra | RGB byte UI (mini project outside the program) | `extra-rgb-byte-ui` | ⏳ one PlatformIO project, **one commit per step** (no step folders, no Wokwi per step; the author's decision 2026-10-20); steps 00, 01a (presses counted on Serial), 01 (button 1 moves the cursor) and 02 (button 2 toggles the bit
+  under the cursor) done. Design and plan in `extra-rgb-byte-ui/docs/` |
 
 Module 1 has no flexible slot (those are in modules 2–6).
 
