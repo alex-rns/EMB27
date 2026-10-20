@@ -1,6 +1,8 @@
 # RGB byte UI: eight LEDs, six buttons, an RGB LED — design
 
-Extra mini project, Module 1, EMB27 course (not part of the course program). Status: draft, 2026-10-20.
+Extra mini project, Module 1, EMB27 course (not part of the course program). Status: approved by the author
+2026-10-20; the same day the steps were re-split (selection and slots became two steps, 00–07). Plan:
+[`rgb-byte-ui-plan.md`](rgb-byte-ui-plan.md).
 
 ## Intent
 
@@ -39,8 +41,8 @@ Agreed with the author on a clickable mockup of this behaviour.
 (160 = `1010 0000` = `●○●○○○○○`). They always show the value of the selected slot.
 
 **The cursor (the "active bit").** One bit position is the cursor. At power-on it is on bit 0.
-- Steps 01–04: the LED under the cursor is lit steadily, whatever the bit's value.
-- From step 05 on: the LED under the cursor blinks at a fixed rate, the same for a 0 and a 1. The other seven LEDs
+- Steps 01–05: the LED under the cursor is lit steadily, whatever the bit's value.
+- From step 06 on: the LED under the cursor blinks at a fixed rate, the same for a 0 and a 1. The other seven LEDs
   show their bits. Accepted consequence: while the cursor sits on a bit, that bit's value is not visible; it shows
   once the cursor moves on.
 
@@ -62,11 +64,11 @@ Only the indicator of the selected slot is lit.
 auto-repeat). Contact bounce must not turn one press into two, on the press or on the release (lesson 1.5 measured
 the kit's buttons bouncing on releases, 0.07–1.2 ms).
 
-**Memory.** The slots live in RAM. A reset or a power cycle clears them; step 06 keeps them in flash.
+**Memory.** The slots live in RAM. A reset or a power cycle clears them; step 07 keeps them in flash.
 
-**Step 06 is outlined only.** What is written to flash and when, what comes back at boot (the slots only, or also
+**Step 07 is outlined only.** What is written to flash and when, what comes back at boot (the slots only, or also
 the selected slot and the cursor), whether the RGB LED lights at boot, and whether the values survive a re-flash are
-designed after step 05 works. A candidate to start the discussion from: write the three slots when button 6 is
+designed after step 06 works. A candidate to start the discussion from: write the three slots when button 6 is
 pressed (few flash writes, and it matches the assignment's "the last stored configuration"), restore them at boot.
 
 ### Where this departs from the assignment, and why
@@ -79,7 +81,7 @@ pressed (few flash writes, and it matches the assignment's "the last stored conf
    Autosave removes both traps.
 2. **Three slot indicators added.** Without them nothing on the board shows which slot is selected.
 3. **The cursor is drawn on top of the byte.** The assignment does not say how the active bit is shown. Steady in
-   the first steps, blinking from step 05.
+   the first steps, blinking from step 06.
 
 ## Steps
 
@@ -91,12 +93,15 @@ the code: only what the step needs is on the breadboard.
 | `00-base-byte-leds` | The eight LEDs show a byte fixed in the code (for example 160). Changing the number and re-flashing changes the pattern. | 8 LEDs, 8 × 220 Ω |
 | `01-base-cursor` | Button 1 moves a single lit LED left, wrapping from bit 7 to bit 0. Nothing else is lit. | button 1 |
 | `02-base-toggle-bit` | Button 2 toggles the bit under the cursor; the LEDs show the byte with the cursor lit on top. | button 2 |
-| `03-base-slots` | Buttons 3/4/5 select R/G/B, the LEDs show the selected slot, its indicator is lit. | buttons 3–5, 3 indicator LEDs, 3 × 220 Ω |
-| `04-base-rgb` | Button 6 lights the RGB LED with the three slots. This completes the assignment's behaviour. | RGB LED, 3 × 220 Ω, button 6 |
-| `05-extra-blink` | The cursor blinks; no press is lost while it blinks. | — |
-| `06-extra-remember` | The slots survive a reset and a power cycle. | — |
+| `03-base-select` | Buttons 3/4/5 select R/G/B and light their indicator. There is still one byte: the eight LEDs don't change on a selection. | buttons 3–5, 3 indicator LEDs, 3 × 220 Ω |
+| `04-base-slots` | Each slot keeps its own byte: button 2 changes the selected slot, a selection shows that slot's byte. | — (logic only) |
+| `05-base-rgb` | Button 6 lights the RGB LED with the three slots. This completes the assignment's behaviour. | RGB LED, 3 × 220 Ω, button 6 |
+| `06-extra-blink` | The cursor blinks; no press is lost while it blinks. | — |
+| `07-extra-remember` | Optional. The slots survive a reset and a power cycle. | — |
 
-The step names are a suggestion; the numbering and the types follow the repository rules.
+The step names are a suggestion; the numbering and the types follow the repository rules. Inside a step, smaller
+checkpoints come first and are not saved on their own: in step 01, one Serial line per press before the cursor moves;
+in step 05, the diode test and a fixed colour from the code before button 6.
 
 ## Hardware
 
@@ -144,7 +149,7 @@ any UI over Serial or Wi-Fi; brightness correction (gamma); long press, auto-rep
 
 **Anti-goals** (the project fails even if it otherwise works):
 - a press that is lost or counted twice;
-- buttons that stop responding while the cursor blinks (step 05);
+- buttons that stop responding while the cursor blinks (step 06);
 - a part on a pin from the avoid list;
 - an LED without a series resistor.
 
@@ -153,10 +158,10 @@ any UI over Serial or Wi-Fi; brightness correction (gamma); long press, auto-rep
 - Every step: the author runs the step's checks on the board (the presses in the table above and the edge cases:
   the wrap from bit 7 to bit 0, toggling a bit back, selecting the already selected slot, button 6 with all slots
   at 0) and in Wokwi.
-- Step 04: the RGB LED shows red only for `255 0 0`, green only for `0 255 0`, blue only for `0 0 255`; if a colour
+- Step 05: the RGB LED shows red only for `255 0 0`, green only for `0 255 0`, blue only for `0 0 255`; if a colour
   is inverted or swapped, the anode/cathode or the wiring is wrong.
-- Step 05: fast presses of button 1 while the cursor blinks move the cursor by exactly the number of presses.
-- Step 06: checks are written together with its behaviour. In any version they run on the board: the test is a
+- Step 06: fast presses of button 1 while the cursor blinks move the cursor by exactly the number of presses.
+- Step 07: checks are written together with its behaviour. In any version they run on the board: the test is a
   real reset and a real power cycle.
 
 ## Left to the builder
