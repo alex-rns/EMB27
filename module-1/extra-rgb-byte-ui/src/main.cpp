@@ -27,7 +27,7 @@ void setup()
     pinMode(BTN_CHANGE_PIN, INPUT_PULLUP);
 }
 
-uint8_t x = 160;
+uint8_t x = 1;
 uint8_t btn_prev_level = HIGH;
 uint32_t last_read_time = 0;
 uint32_t btn_press_count = 0;
@@ -52,8 +52,12 @@ void loop()
         if ( btn_prev_level == HIGH && btn_level == LOW) {
             btn_press_count = btn_press_count + 1;
             Serial.println(btn_press_count);
+            x = x << 1;
+            if (x == 0) { x = 1; }
+            Serial.printf("press %u: x = %u\n", btn_press_count, x);
         }
         btn_prev_level = btn_level;
     };
+    
 
 }
