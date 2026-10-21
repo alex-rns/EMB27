@@ -56,7 +56,9 @@ uint8_t btn_move_prev_level = HIGH;
 uint8_t btn_toggle_prev_level = HIGH;
 uint32_t last_read_time = 0;
 uint32_t btn_press_count = 0;
-uint8_t channel_value = 0;
+uint8_t channel_r_value = 0;
+uint8_t channel_g_value = 0;
+uint8_t channel_b_value = 0;
 
 uint8_t chosen_channel = CHANNEL_R;
 uint8_t btn_r_channel_prev_level = HIGH;
@@ -65,7 +67,15 @@ uint8_t btn_b_channel_prev_level = HIGH;
 
 void loop()
 {
-    uint8_t display_byte = channel_value | cursor_position;
+    uint8_t display_byte;
+    if (chosen_channel == CHANNEL_R) {
+        display_byte = channel_r_value;
+    } else if (chosen_channel == CHANNEL_G) {
+        display_byte = channel_g_value;
+    } else {
+        display_byte = channel_b_value;
+    }
+    display_byte = display_byte | cursor_position;
 
     digitalWrite(LED_1_BIT_PIN, (display_byte & 1) ? HIGH : LOW);
     digitalWrite(LED_2_BIT_PIN, (display_byte & 2) ? HIGH : LOW);
@@ -101,25 +111,34 @@ void loop()
         btn_move_prev_level = btn_move_level;
 
         if ( btn_toggle_prev_level == HIGH && btn_toggle_level == LOW) {
-            channel_value = channel_value ^ cursor_position;
-            Serial.printf( "toggle: channel_value = %u\n", channel_value);
+            if (chosen_channel == CHANNEL_R) {
+                channel_r_value = channel_r_value ^ cursor_position;
+            } else if (chosen_channel == CHANNEL_G) {
+                channel_g_value = channel_g_value ^ cursor_position;
+            } else {
+                channel_b_value = channel_b_value ^ cursor_position;
+            }
+            Serial.printf( "toggle: R = %u, G = %u, B = %u\n", channel_r_value, channel_g_value, channel_b_value);
         }
         btn_toggle_prev_level = btn_toggle_level;
 
         if ( btn_r_channel_prev_level == HIGH && btn_r_channel_level == LOW) {
             chosen_channel = CHANNEL_R;
+            cursor_position = 1;
             Serial.printf( "chosen_channel = %u\n", chosen_channel);
         }
         btn_r_channel_prev_level = btn_r_channel_level;
 
         if ( btn_g_channel_prev_level == HIGH && btn_g_channel_level == LOW) {
             chosen_channel = CHANNEL_G;
+            cursor_position = 1;
             Serial.printf( "chosen_channel = %u\n", chosen_channel);
         }
         btn_g_channel_prev_level = btn_g_channel_level;
 
         if ( btn_b_channel_prev_level == HIGH && btn_b_channel_level == LOW) {
             chosen_channel = CHANNEL_B;
+            cursor_position = 1;
             Serial.printf( "chosen_channel = %u\n", chosen_channel);
         }
         btn_b_channel_prev_level = btn_b_channel_level;

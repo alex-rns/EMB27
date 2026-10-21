@@ -17,7 +17,7 @@
 | 1.8 | Debrief: typical mistakes (LED, polarity, wiring) | — | — |
 | 1.9 | Basic soldering | — | — |
 | extra | RGB byte UI (mini project outside the program) | `extra-rgb-byte-ui` | ⏳ one PlatformIO project, **one commit per step** (no step folders, no Wokwi per step; the author's decision 2026-10-20); steps 00, 01a (presses counted on Serial), 01 (button 1 moves the cursor), 02 (button 2 toggles the bit
-  under the cursor) and 03 (buttons 3/4/5 select R/G/B and light their indicator) done. Design and plan in `extra-rgb-byte-ui/docs/` |
+  under the cursor), 03 (buttons 3/4/5 select R/G/B and light their indicator) and 04 (each channel keeps its own byte; a selection returns the cursor to bit 0) done. Design and plan in `extra-rgb-byte-ui/docs/` |
 
 Module 1 has no flexible slot (those are in modules 2–6).
 

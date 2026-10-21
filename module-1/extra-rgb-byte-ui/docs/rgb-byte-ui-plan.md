@@ -132,13 +132,13 @@ one byte, and the eight LEDs don't change on a selection.
 
 ### Task 5: Step `04-base-slots` — each slot keeps its own byte
 
-**Does:** button 2 changes the selected slot's byte; selecting a slot shows its byte; the cursor stays where it is;
-all slots are 0 at power-on.
+**Does:** button 2 changes the selected slot's byte; selecting a slot shows its byte and returns the cursor to bit 0,
+also when the slot is already selected; all slots are 0 at power-on.
 **Wire:** nothing.
 
-- [ ] Board checks: set R = 160 (bits 7 and 5); 4 → only the cursor's LED lit (G = 0); move the cursor to bit 6,
-  press 2 → G = 64; 3 → bits 7 and 5 lit plus the cursor's LED on bit 6; 4 → only bit 6 lit (the cursor is on it
-  too); RST → all slots 0, R selected.
+- [ ] Board checks: set R = 160 (bits 7 and 5); 4 → only bit 0 lit (G = 0, the cursor back on bit 0); move the cursor
+  to bit 6, press 2 → G = 64; 3 → bits 7, 5 and 0 lit (the cursor on bit 0); 4 → bits 6 and 0 lit; move the cursor
+  off bit 0, 4 again → the cursor back on bit 0, G still 64; RST → all slots 0, R selected.
 - [ ] CYCLE, COMMIT.
 
 ### Task 6: Step `05-base-rgb` — button 6 and the RGB LED

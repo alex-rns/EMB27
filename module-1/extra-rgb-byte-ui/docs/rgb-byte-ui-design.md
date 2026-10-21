@@ -52,7 +52,7 @@ Agreed with the author on a clickable mockup of this behaviour.
 |---|---|
 | 1 | Moves the cursor one place left (bit n → bit n+1); from bit 7 it wraps to bit 0. Changes no value. |
 | 2 | Toggles the bit under the cursor in the selected slot (0 → 1, 1 → 0). The slot changes at once: there is no separate "store" step. |
-| 3, 4, 5 | Select slot R, G, B. The eight LEDs switch to that slot's value; the cursor stays where it was. Pressing the button of the slot that is already selected does nothing. |
+| 3, 4, 5 | Select slot R, G, B. The eight LEDs switch to that slot's value and the cursor returns to bit 0. Pressing the button of the slot that is already selected only returns the cursor to bit 0. (Changed by the author at step 04, 2026-10-21; before, the cursor stayed where it was.) |
 | 6 | Lights the RGB LED with the three slot values as they are at that moment (each 0–255, by PWM). Later changes to the slots do not reach the RGB LED until button 6 is pressed again. With all slots at 0 the RGB LED stays dark: that is correct. |
 
 **Slot indicators.** One small LED next to each of buttons 3, 4, 5: red next to R, green next to G, blue next to B.
