@@ -98,7 +98,9 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
    - the build results, each command explained in a line;
    - `git status --short`.
 
-   Commit only after the user says yes: `module-N/N.M-<topic>: save homework`, then `git push`.
+   Commit only after the user says yes, on the lesson's branch `module-N/N.M-<topic>` (CLAUDE.md, Git;
+   if it doesn't exist yet, create it from an up-to-date `main` first): `module-N/N.M-<topic>: save homework`,
+   then `git push -u origin module-N/N.M-<topic>`. Never commit lesson work to `main` directly.
    Then offer `/finish-lesson` for the check questions.
 
 ## Templates

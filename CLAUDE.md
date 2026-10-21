@@ -16,9 +16,9 @@ Personal notes about the author never go into this repository; it is public.
   `setup()` don't link. Otherwise no rules while experimenting.
 - `/save-hw` + the assignment turns a finished homework into the saved structure below: steps from
   `archive/` and the assignment, code for each step, Wokwi circuits, READMEs. The draft goes to the macOS Trash.
-  Commit and push after the author confirms.
+  Commit and push to the lesson's branch after the author confirms.
 - `/finish-lesson` builds every step, checks code against circuits and READMEs, asks check questions,
-  then updates the docs and commits.
+  then updates the docs, commits and opens the lesson's pull request (homework: for the teacher's review; see Git).
 - Project skills live in `.claude/skills/` (tracked). Follow a skill when it is invoked or the situation matches it.
 
 ## Repository layout
@@ -81,14 +81,22 @@ Keep every project standard: **never** multiple environments, `src_dir` or `buil
 
 ## Git
 
-- One repository; everything on `main`. Commit after every step that works.
+- One repository; lesson work is never committed to `main` directly. Each lesson (or extra project) gets its own
+  branch, named after its folder (`module-N/N.M-<topic>`), created from an up-to-date `main` before its first commit.
+  Commit to that branch after every step that works.
   Format: `<folder>: <what was done>` (`repo:` for root configs, `docs:` for documentation).
-- Remote `origin` = https://github.com/alex-rns/EMB27, public. Push after committing.
+- Remote `origin` = https://github.com/alex-rns/EMB27, public. Push the branch after committing.
   The history is published: no rewriting and no force-push unless the author explicitly asks.
-- CI (GitHub Actions, `.github/workflows/build.yml`) runs on every push to `main`: `.github/scripts/checks.sh`
-  (no Cyrillic, valid `diagram.json`, no `secrets.h`) and `.github/scripts/build-all.sh` (builds every folder with a
-  `platformio.ini`; a compiler warning in our code fails it). PlatformIO 6.2.0 and espressif32 7.1.3 are pinned there;
-  change them together with the local install. Both scripts run locally too
+- A branch reaches `main` only through a pull request (`gh pr create --base main`), so CI checks it first.
+  Homework goes to the teacher: `/finish-lesson` opens the PR, the author sends its link to the teacher, review
+  fixes are new commits on the same branch, and the merge waits for the teacher's review and the author's yes.
+  A branch the author says is not homework skips the review: the author merges it once CI passes.
+  Always a merge commit (`gh pr merge --merge --delete-branch`), never squash: every step's commit stays in the
+  history. Repo configs and docs outside a lesson (`repo:`, `docs:`) may still go straight to `main`.
+- CI (GitHub Actions, `.github/workflows/build.yml`) runs on every push to `main` and on every pull request:
+  `.github/scripts/checks.sh` (no Cyrillic, valid `diagram.json`, no `secrets.h`) and `.github/scripts/build-all.sh`
+  (builds every folder with a `platformio.ini`; a compiler warning in our code fails it). PlatformIO 6.2.0 and
+  espressif32 7.1.3 are pinned there; change them together with the local install. Both scripts run locally too
   (`PIO=~/.platformio/penv/bin/pio bash .github/scripts/build-all.sh`).
   A step's `wokwi-scenario.yaml` runs locally only (`wokwi-cli . --scenario wokwi-scenario.yaml` in the step folder),
   not in CI: the free Wokwi plan has 50 minutes per rolling 30 days, shared with the Wokwi MCP.

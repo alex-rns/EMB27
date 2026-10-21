@@ -9,7 +9,8 @@ description: Use when the user says a lesson or its homework is done in the EMB2
 
 The point of finishing a lesson is that the user **understands the topic**. A lesson is finished when
 every saved step still builds, the docs match the code, the user has answered check questions in their
-own words, and the result is committed and pushed. If the homework isn't saved yet, run `/save-hw` first.
+own words, and the result is committed, pushed and opened as a pull request into `main` (homework: for the
+teacher's review). If the homework isn't saved yet, run `/save-hw` first.
 
 Steps 1–3 run right away and count as one step: report them in one message and stop.
 Step 4 onwards waits for the user's answers.
@@ -65,8 +66,17 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
      learning progress never go into repo files;
    - root `README.md`: set the module status to `done` after its last lesson;
    - root `CLAUDE.md`: update "Next step" if it changed. Lesson summaries never go into the root file.
-6. **Commit and push.** Suggest `module-N/N.M-<topic>: finish lesson`; the user approves or rewrites it
-   (CLAUDE.md). Then `git push`. `git status -sb` must show `## main...origin/main` with nothing ahead.
+6. **Commit and push.** On the lesson's branch, suggest `module-N/N.M-<topic>: finish lesson`; the user
+   approves or rewrites it (CLAUDE.md). Then `git push`. `git status -sb` must show
+   `## module-N/N.M-<topic>...origin/module-N/N.M-<topic>` with nothing ahead.
+7. **Open the pull request** (after the user's yes): `gh pr create --base main`, title `module-N/N.M-<topic>`,
+   an English body for the teacher: what the lesson builds, the steps table with links, how it was tested
+   (builds, Wokwi, the board), known limits. Wait for CI to pass (`gh pr checks`).
+   - Homework (the default): give the user the PR link to send to the teacher. Review fixes are new commits on
+     the same branch. Merge only after the teacher's review and the user's yes.
+   - A branch the user says is not homework: no review; merge after the user's yes.
+
+   Merge with `gh pr merge --merge --delete-branch`, then `git switch main && git pull`.
 
 ## Common mistakes
 
@@ -79,3 +89,6 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
 | Marking the lesson done before the answers | Breaks the learning rule in CLAUDE.md |
 | Lesson summary written into the root CLAUDE.md | The root file bloats; summaries belong in `module-N/CLAUDE.md` |
 | Questions about things the lesson didn't cover | Questions must come from this lesson's work |
+| Lesson work committed to `main` directly | It skips CI on the branch and, for homework, the teacher's review |
+| Homework merged before the teacher's review | The teacher reviews code that is already in `main` |
+| Squash merge | The per-step commits the teacher can walk through collapse into one |
