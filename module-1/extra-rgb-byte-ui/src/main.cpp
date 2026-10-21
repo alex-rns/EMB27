@@ -21,9 +21,21 @@
 #define BTN_G_CHANNEL_PIN 12
 #define BTN_B_CHANNEL_PIN 13
 
+#define BTN_TO_RGB_PIN 14
+
 #define CHANNEL_R 0
 #define CHANNEL_G 1
 #define CHANNEL_B 2
+
+#define RGB_R_PIN 21
+#define RGB_G_PIN 41
+#define RGB_B_PIN 42
+
+#define RGB_R_LEDC_CHANNEL 0
+#define RGB_G_LEDC_CHANNEL 1
+#define RGB_B_LEDC_CHANNEL 2
+#define RGB_PWM_FREQ 5000
+#define RGB_PWM_BITS 8
 
 
 void setup()
@@ -43,12 +55,21 @@ void setup()
     pinMode(LED_G_CHANNEL_PIN, OUTPUT);
     pinMode(LED_B_CHANNEL_PIN, OUTPUT);
 
+    pinMode(BTN_TO_RGB_PIN, INPUT_PULLUP);
+
     pinMode(BTN_MOVE_PIN, INPUT_PULLUP);
     pinMode(BTN_TOGGLE_PIN, INPUT_PULLUP);
 
     pinMode(BTN_R_CHANNEL_PIN, INPUT_PULLUP);
     pinMode(BTN_G_CHANNEL_PIN, INPUT_PULLUP);
     pinMode(BTN_B_CHANNEL_PIN, INPUT_PULLUP);
+
+    ledcSetup(RGB_R_LEDC_CHANNEL, RGB_PWM_FREQ, RGB_PWM_BITS);
+    ledcSetup(RGB_G_LEDC_CHANNEL, RGB_PWM_FREQ, RGB_PWM_BITS);
+    ledcSetup(RGB_B_LEDC_CHANNEL, RGB_PWM_FREQ, RGB_PWM_BITS);
+    ledcAttachPin(RGB_R_PIN, RGB_R_LEDC_CHANNEL);
+    ledcAttachPin(RGB_G_PIN, RGB_G_LEDC_CHANNEL);
+    ledcAttachPin(RGB_B_PIN, RGB_B_LEDC_CHANNEL);
 }
 
 uint8_t cursor_position = 1;
@@ -64,6 +85,8 @@ uint8_t chosen_channel = CHANNEL_R;
 uint8_t btn_r_channel_prev_level = HIGH;
 uint8_t btn_g_channel_prev_level = HIGH;
 uint8_t btn_b_channel_prev_level = HIGH;
+
+uint8_t btn_to_rgb_prev_level = HIGH;
 
 void loop()
 {
@@ -102,6 +125,9 @@ void loop()
         uint8_t btn_g_channel_level = digitalRead(BTN_G_CHANNEL_PIN);
         uint8_t btn_b_channel_level = digitalRead(BTN_B_CHANNEL_PIN);
 
+        uint8_t btn_to_rgb_level = digitalRead(BTN_TO_RGB_PIN);
+
+        // BTN #1
         if ( btn_move_prev_level == HIGH && btn_move_level == LOW) {
             btn_press_count = btn_press_count + 1;
             cursor_position = cursor_position << 1;
@@ -110,6 +136,7 @@ void loop()
         }
         btn_move_prev_level = btn_move_level;
 
+        // BTN #2
         if ( btn_toggle_prev_level == HIGH && btn_toggle_level == LOW) {
             if (chosen_channel == CHANNEL_R) {
                 channel_r_value = channel_r_value ^ cursor_position;
@@ -122,6 +149,7 @@ void loop()
         }
         btn_toggle_prev_level = btn_toggle_level;
 
+        // BTN #3
         if ( btn_r_channel_prev_level == HIGH && btn_r_channel_level == LOW) {
             chosen_channel = CHANNEL_R;
             cursor_position = 1;
@@ -129,6 +157,7 @@ void loop()
         }
         btn_r_channel_prev_level = btn_r_channel_level;
 
+        // BTN #4
         if ( btn_g_channel_prev_level == HIGH && btn_g_channel_level == LOW) {
             chosen_channel = CHANNEL_G;
             cursor_position = 1;
@@ -136,13 +165,21 @@ void loop()
         }
         btn_g_channel_prev_level = btn_g_channel_level;
 
+        // BTN #5
         if ( btn_b_channel_prev_level == HIGH && btn_b_channel_level == LOW) {
             chosen_channel = CHANNEL_B;
             cursor_position = 1;
             Serial.printf( "chosen_channel = %u\n", chosen_channel);
         }
         btn_b_channel_prev_level = btn_b_channel_level;
-    }
-    
 
+        // BTN #6
+        if ( btn_to_rgb_prev_level == HIGH && btn_to_rgb_level == LOW) {
+            ledcWrite(RGB_R_LEDC_CHANNEL, channel_r_value);
+            ledcWrite(RGB_G_LEDC_CHANNEL, channel_g_value);
+            ledcWrite(RGB_B_LEDC_CHANNEL, channel_b_value);
+            Serial.printf( "rgb: R = %u, G = %u, B = %u\n", channel_r_value, channel_g_value, channel_b_value);
+        }
+        btn_to_rgb_prev_level = btn_to_rgb_level;
+    }
 }

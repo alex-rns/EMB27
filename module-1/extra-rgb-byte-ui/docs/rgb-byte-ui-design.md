@@ -96,7 +96,7 @@ circuit per step. The hardware grows with the code: only what the step needs is 
 | `02-base-toggle-bit` | Button 2 toggles the bit under the cursor; the LEDs show the byte with the cursor lit on top. | button 2 |
 | `03-base-select` | Buttons 3/4/5 select R/G/B and light their indicator. There is still one byte: the eight LEDs don't change on a selection. | buttons 3–5, 3 indicator LEDs, 3 × 220 Ω |
 | `04-base-slots` | Each slot keeps its own byte: button 2 changes the selected slot, a selection shows that slot's byte. | — (logic only) |
-| `05-base-rgb` | Button 6 lights the RGB LED with the three slots. This completes the assignment's behaviour. | RGB LED, 3 × 220 Ω, button 6 |
+| `05-base-rgb` | Button 6 lights the RGB LED with the three slots. This completes the assignment's behaviour. | RGB LED, 3 × 100 Ω, button 6 |
 | `06-extra-blink` | The cursor blinks; no press is lost while it blinks. | — |
 | `07-extra-remember` | Optional. The slots survive a reset and a power cycle. | — |
 
@@ -112,9 +112,10 @@ in step 05, the diode test and a fixed colour from the code before button 6.
 |---|---|---|
 | 3 mm LED, one colour for the byte | 8 | one colour, so all eight look equally bright; plenty on hand |
 | 3 mm LED red, green, blue (slot indicators) | 1 each | plenty on hand |
-| RGB LED, discrete, 4 legs | 1 | AliExpress kit; common anode or common cathode is not stated: see below |
+| RGB LED, discrete, 4 legs | 1 | AliExpress kit; common cathode (measured at step 05, see below) |
 | Tactile button | 6 | exactly 6 on hand, no spare |
-| 220 Ω resistor | 14 | 8 + 3 + 3; plenty on hand |
+| 220 Ω resistor | 11 | 8 + 3; the last ones on hand |
+| 100 Ω resistor | 3 | the RGB LED: the 220 Ω ran out at step 05 |
 | Breadboard, jumper wires | | 20 signal wires to the board in the end |
 
 **Pins.** 20 GPIOs in the end: 8 byte LEDs, 6 buttons, 3 indicators, 3 RGB channels. Choose them from
@@ -133,6 +134,11 @@ absolute maximum).
 - Find out whether it is common anode or common cathode with the multimeter's diode test before wiring it. With a
   common anode, the shared leg goes to 3V3 (not GND) and a colour lights when its pin is LOW, so the PWM duty is
   inverted: 255 means off.
+- Measured at step 05 (the author, multimeter diode test): **common cathode**. The legs are cut to one length; in a
+  row they are R, common, G, B. The meter lit red and green but not blue (its test voltage is below the blue die's
+  forward voltage); blue was confirmed from 3V3 through a resistor. The common leg goes to GND.
+- Wired with 100 Ω (no 220 Ω left): red takes about 13 mA, green and blue about 3 mA, all within the 20 mA limits.
+  So at the same duty red is expected to look brighter than green and blue.
 - PWM with Arduino core 2.0.17: `ledcSetup`, `ledcAttachPin`, `ledcWrite` (not the 3.x `ledcAttach`). With 8-bit
   resolution a slot value is the duty as it is.
 - On real hardware: perceived brightness is not linear (128 looks much brighter than half of 255), and the three

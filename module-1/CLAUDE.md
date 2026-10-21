@@ -17,7 +17,7 @@
 | 1.8 | Debrief: typical mistakes (LED, polarity, wiring) | — | — |
 | 1.9 | Basic soldering | — | — |
 | extra | RGB byte UI (mini project outside the program) | `extra-rgb-byte-ui` | ⏳ one PlatformIO project, **one commit per step** (no step folders, no Wokwi per step; the author's decision 2026-10-20); steps 00, 01a (presses counted on Serial), 01 (button 1 moves the cursor), 02 (button 2 toggles the bit
-  under the cursor), 03 (buttons 3/4/5 select R/G/B and light their indicator) and 04 (each channel keeps its own byte; a selection returns the cursor to bit 0) done. Design and plan in `extra-rgb-byte-ui/docs/` |
+  under the cursor), 03 (buttons 3/4/5 select R/G/B and light their indicator), 04 (each channel keeps its own byte; a selection returns the cursor to bit 0) and 05 (button 6 lights the RGB LED; the assignment's behaviour is complete) done. Design and plan in `extra-rgb-byte-ui/docs/` |
 
 Module 1 has no flexible slot (those are in modules 2–6).
 
@@ -34,7 +34,7 @@ Module 1 has no flexible slot (those are in modules 2–6).
 - Pins used so far: 1.3: 47, 48, 21. 1.4: 45 (lecture, strapping pin on purpose), 15, 16, 21, 0 (homework).
   1.5: 4, 5, 6, 7 (lecture), 16 (homework). 1.6: 4 (LDR, ADC1), 7 (lecture LED). 1.7: 4 (LDR, ADC1), 5 (PIR OUT), 7 (GPIO Out → BC547B).
   RGB byte UI: byte LEDs bit 7 … bit 0 = 4, 5, 6, 7, 15, 16, 17, 18 (bit 0 rightmost on the breadboard); buttons 1–6 = 9, 10, 11,
-  12, 13, 14 (to GND, `INPUT_PULLUP`); slot indicators R, G, B = 38, 39, 40.
+  12, 13, 14 (to GND, `INPUT_PULLUP`); slot indicators R, G, B = 38, 39, 40; RGB LED (common cathode to GND, 100 Ω) R, G, B = 21, 41, 42 on LEDC channels 0, 1, 2.
 - GPIO 0 (BOOT) has an external pull-up on this board; Wokwi's DevKitC-1 model doesn't, so a Wokwi circuit
   that reads BOOT with `INPUT` needs a 10 kΩ from GPIO 0 to 3V3 in `diagram.json`.
 - Avoid: 19/20 (native USB — the board drops off the port), 0/3/45/46 (strapping),
