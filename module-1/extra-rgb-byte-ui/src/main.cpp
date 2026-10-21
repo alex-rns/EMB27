@@ -37,6 +37,8 @@
 #define RGB_PWM_FREQ 5000
 #define RGB_PWM_BITS 8
 
+#define CURSOR_BLINK_MS 250
+
 
 void setup()
 {
@@ -98,7 +100,13 @@ void loop()
     } else {
         display_byte = channel_b_value;
     }
-    display_byte = display_byte | cursor_position;
+
+    // BLINK
+    if ((millis() / CURSOR_BLINK_MS) % 2 == 1) {
+        display_byte = display_byte | cursor_position;
+    } else {
+        display_byte = display_byte & ~cursor_position;
+    }
 
     digitalWrite(LED_1_BIT_PIN, (display_byte & 1) ? HIGH : LOW);
     digitalWrite(LED_2_BIT_PIN, (display_byte & 2) ? HIGH : LOW);
