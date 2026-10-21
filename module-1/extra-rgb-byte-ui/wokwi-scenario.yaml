@@ -1,0 +1,42 @@
+# Wokwi CI smoke test: each of the six buttons reaches the firmware on the pin from main.cpp, and buttons
+# 3/4/5 light the indicator on GPIO 38/39/40. The firmware acts on the press, so each line is awaited before
+# the release.
+name: 'RGB byte UI: buttons and indicators'
+version: 1
+author: 'Oleksandr Bielodubrovskyi'
+steps:
+  - delay: 500ms
+  # button 1: the cursor moves from bit 0 to bit 1
+  - set-control: { part-id: btn1, control: pressed, value: 1 }
+  - wait-serial: 'press 1: cursor_position = 2'
+  - set-control: { part-id: btn1, control: pressed, value: 0 }
+  - delay: 50ms
+  # button 2: bit 1 of R is set
+  - set-control: { part-id: btn2, control: pressed, value: 1 }
+  - wait-serial: 'toggle: R = 2, G = 0, B = 0'
+  - set-control: { part-id: btn2, control: pressed, value: 0 }
+  - delay: 50ms
+  # buttons 4, 5, 3: G, B, R selected, only its indicator lit
+  - set-control: { part-id: btn4, control: pressed, value: 1 }
+  - wait-serial: 'chosen_channel = 1'
+  - set-control: { part-id: btn4, control: pressed, value: 0 }
+  - delay: 50ms
+  - expect-pin: { part-id: esp, pin: 39, value: 1 }
+  - expect-pin: { part-id: esp, pin: 38, value: 0 }
+  - set-control: { part-id: btn5, control: pressed, value: 1 }
+  - wait-serial: 'chosen_channel = 2'
+  - set-control: { part-id: btn5, control: pressed, value: 0 }
+  - delay: 50ms
+  - expect-pin: { part-id: esp, pin: 40, value: 1 }
+  - expect-pin: { part-id: esp, pin: 39, value: 0 }
+  - set-control: { part-id: btn3, control: pressed, value: 1 }
+  - wait-serial: 'chosen_channel = 0'
+  - set-control: { part-id: btn3, control: pressed, value: 0 }
+  - delay: 50ms
+  - expect-pin: { part-id: esp, pin: 38, value: 1 }
+  - expect-pin: { part-id: esp, pin: 40, value: 0 }
+  # button 6: the three values go to the RGB LED
+  - set-control: { part-id: btn6, control: pressed, value: 1 }
+  - wait-serial: 'rgb: R = 2, G = 0, B = 0'
+  - set-control: { part-id: btn6, control: pressed, value: 0 }
+  - delay: 50ms

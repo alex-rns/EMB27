@@ -168,6 +168,8 @@ the lesson 1.3 note that `pinMode` after `ledcAttachPin` detaches the PWM.
 
 ### Task 8 (optional): Step `07-extra-remember` — the slots survive a power cycle
 
+Dropped by the author on 2026-10-21, after step 06.
+
 - [ ] A short design talk first (what is written to flash and when, what comes back at boot), recorded in the design.
 - [ ] Hints then point at the built-in `Preferences` library of core 2.0.17; board checks come from that talk and run
   on the board only (a real reset and a real power cycle).

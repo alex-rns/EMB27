@@ -64,9 +64,9 @@ Only the indicator of the selected slot is lit.
 auto-repeat). Contact bounce must not turn one press into two, on the press or on the release (lesson 1.5 measured
 the kit's buttons bouncing on releases, 0.07–1.2 ms).
 
-**Memory.** The slots live in RAM. A reset or a power cycle clears them; step 07 keeps them in flash.
+**Memory.** The slots live in RAM. A reset or a power cycle clears them. Step 07, keeping them in flash, was dropped by the author on 2026-10-21.
 
-**Step 07 is outlined only.** What is written to flash and when, what comes back at boot (the slots only, or also
+**Step 07 (dropped 2026-10-21) was outlined only.** What is written to flash and when, what comes back at boot (the slots only, or also
 the selected slot and the cursor), whether the RGB LED lights at boot, and whether the values survive a re-flash are
 designed after step 06 works. A candidate to start the discussion from: write the three slots when button 6 is
 pressed (few flash writes, and it matches the assignment's "the last stored configuration"), restore them at boot.
@@ -87,7 +87,7 @@ pressed (few flash writes, and it matches the assignment's "the last stored conf
 
 The whole project is one ordinary PlatformIO project, `module-1/extra-rgb-byte-ui/`, and each step is one commit:
 the git history shows the progress (decided by the author on 2026-10-20, instead of one folder per step). No Wokwi
-circuit per step. The hardware grows with the code: only what the step needs is on the breadboard.
+circuit per step; the finished circuit got one Wokwi diagram and a schematic at the end (2026-10-21). The hardware grows with the code: only what the step needs is on the breadboard.
 
 | Step | What you see on the board | Hardware added |
 |---|---|---|
@@ -98,7 +98,7 @@ circuit per step. The hardware grows with the code: only what the step needs is 
 | `04-base-slots` | Each slot keeps its own byte: button 2 changes the selected slot, a selection shows that slot's byte. | — (logic only) |
 | `05-base-rgb` | Button 6 lights the RGB LED with the three slots. This completes the assignment's behaviour. | RGB LED, 3 × 100 Ω, button 6 |
 | `06-extra-blink` | The cursor blinks; no press is lost while it blinks. | — |
-| `07-extra-remember` | Optional. The slots survive a reset and a power cycle. | — |
+| `07-extra-remember` | Dropped by the author (2026-10-21). Was: the slots survive a reset and a power cycle. | — |
 
 The step names label the commits. Inside a step, smaller
 checkpoints come first and are not saved on their own: in step 01, one Serial line per press before the cursor moves;
@@ -168,7 +168,7 @@ any UI over Serial or Wi-Fi; brightness correction (gamma); long press, auto-rep
 - Step 05: the RGB LED shows red only for `255 0 0`, green only for `0 255 0`, blue only for `0 0 255`; if a colour
   is inverted or swapped, the anode/cathode or the wiring is wrong.
 - Step 06: fast presses of button 1 while the cursor blinks move the cursor by exactly the number of presses.
-- Step 07: checks are written together with its behaviour. In any version they run on the board: the test is a
+- Step 07 (dropped): checks were to be written together with its behaviour. In any version they run on the board: the test is a
   real reset and a real power cycle.
 
 ## Left to the builder
