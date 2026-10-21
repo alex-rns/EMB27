@@ -16,8 +16,7 @@
 | 1.7 | Mini project: light sensor controls an LED | `1.7-twilight-switch` | ✅ finished: `00` (base: twilight switch), `01` (extra: PIR, 15 s), `02` (extra: Wi-Fi page, modes) |
 | 1.8 | Debrief: typical mistakes (LED, polarity, wiring) | — | — |
 | 1.9 | Basic soldering | — | — |
-| extra | RGB byte UI (mini project outside the program) | `extra-rgb-byte-ui` | ⏳ one PlatformIO project, **one commit per step** (no step folders, no Wokwi per step; the author's decision 2026-10-20); steps 00, 01a (presses counted on Serial), 01 (button 1 moves the cursor), 02 (button 2 toggles the bit
-  under the cursor), 03 (buttons 3/4/5 select R/G/B and light their indicator), 04 (each channel keeps its own byte; a selection returns the cursor to bit 0), 05 (button 6 lights the RGB LED; the assignment's behaviour is complete) and 06 (the cursor blinks, 250 ms per phase, from `millis()`) done; step 07 dropped; README, schematic, Wokwi circuit (whole project, with `wokwi-scenario.yaml`) and photos added. Design and plan in `extra-rgb-byte-ui/docs/` |
+| extra | RGB byte UI (mini project outside the program) | `extra-rgb-byte-ui` | ✅ finished 2026-10-21: one PlatformIO project, **one commit per step** (no step folders; the author's decision 2026-10-20), steps 00–06 (07, flash, dropped); README with photos and video, schematic, one Wokwi circuit for the finished project with `wokwi-scenario.yaml`. Design and plan in `extra-rgb-byte-ui/docs/` |
 
 Module 1 has no flexible slot (those are in modules 2–6).
 
@@ -178,6 +177,21 @@ name waits 5 s for an IPv6 answer the board never gives: `curl -4`. Falstad simu
 Steps: `1.7-twilight-switch/00` base, `01` extra (PIR, 15 s), `02` extra (Wi-Fi page, modes); design and plan in
 `1.7-twilight-switch/docs/`.
 
+**extra — RGB byte UI (mini project outside the program): eight LEDs, six buttons, an RGB LED.**
+One project, one commit per step (00–06). The byte is shown with a bit test per LED (`byte & 32` is the weight, not 1).
+The cursor is stored as a mask (the bit's weight 1…128), not its number: 0 means "no bit", and then `| 0`, `^ 0`
+and `& ~0` all leave the byte unchanged, a silent bug (no cursor, button 2 does nothing). `uint8_t` 128 << 1 stores
+0, the cue to wrap to 1. Buttons are sampled every 20 ms with one shared timer; a press is "HIGH last time, LOW now",
+and each button keeps its own previous level: a shared one lets another button's HIGH fake a press every 20 ms, a
+forgotten update repeats the action every 20 ms while the button is held. `loop()` draws everything from the state on
+every pass; the blink phase is `(millis() / 250) % 2`, with no state and no `delay()`. Button 6 is the only hardware
+write: three `ledcWrite(channel, duty)` calls, and the LEDC peripheral keeps the PWM going; a channel number out of
+range (e.g. a value passed as the channel) is ignored silently. Hardware: the breadboard's power rails are split in
+the middle; the RGB LED's legs were cut to one length, so the multimeter's diode test found the common cathode (it
+lights red and green, not blue); 100 Ω on the RGB because the 220 Ω ran out: red about 13 mA, green and blue about
+3 mA. GPIO 39–42 (JTAG) are free by default: JTAG goes to the USB Serial/JTAG controller unless eFuses say otherwise.
+Wokwi's DevKitC-1 drives its own RGB LED from GPIO 38, so the red indicator's pin lights it in the simulation.
+
 ## Known issues / open
 
 1. 1.3: add "▶ Simulate in Wokwi" links to each step README and the lesson's steps table once
@@ -193,3 +207,5 @@ Steps: `1.7-twilight-switch/00` base, `01` extra (PIR, 15 s), `02` extra (Wi-Fi 
 6. 1.7: brief flashes (car headlights) above 2200 switch the lamp off until the next motion: untested. Not run on
    the board either: a Wi-Fi drop, a wrong password, PIR false triggers from Wi-Fi, the reaction time with the page
    open.
+7. RGB byte UI: the button block (read, compare with the previous level, update it) is written out six times. A
+   function that takes the pin and a pointer to its previous level, or an array of buttons, would remove the copies.

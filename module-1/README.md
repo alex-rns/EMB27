@@ -16,4 +16,4 @@ buttons and signals, the ADC, and basic soldering.
 | 1.7 | Mini project: a light sensor controls an LED | [Twilight switch → night light](1.7-twilight-switch/) — base task + 2 extras |
 | 1.8 | Debrief: typical mistakes (LEDs, polarity, wiring) | — |
 | 1.9 | Basic soldering | — |
-| extra | Mini project outside the course program | [RGB byte UI](extra-rgb-byte-ui/) — eight LEDs, six buttons and an RGB LED; one project, a commit per step (in progress) |
+| extra | Mini project outside the course program | [RGB byte UI](extra-rgb-byte-ui/) — eight LEDs, six buttons and an RGB LED; one project, a commit per step |
