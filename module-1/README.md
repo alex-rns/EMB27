@@ -3,7 +3,7 @@
 [← All modules](../)
 
 Measuring current and voltage, the first ESP32 program, GPIO and the datasheet,
-buttons and signals, the ADC, and basic soldering.
+buttons and signals, the ADC, the first STM32 program, and basic soldering.
 
 | Lesson | Topic | Homework |
 |---|---|---|
@@ -14,6 +14,6 @@ buttons and signals, the ADC, and basic soldering.
 | 1.5 | Signals and a button: what an oscilloscope sees when you press a button | [Button bounce on a logic analyzer](1.5-signals-button/) — base task |
 | 1.6 | Intro to the ADC: "reading" light with an analog input | [LDR voltage: formula vs calibration](1.6-adc-light/) — base task |
 | 1.7 | Mini project: a light sensor controls an LED | [Twilight switch → night light](1.7-twilight-switch/) — base task + 2 extras |
-| 1.8 | Debrief: typical mistakes (LEDs, polarity, wiring) | — |
+| 1.8 | STM32: CubeMX, CubeIDE and the first program (the program lists a debrief here) | [STM32 blink](1.8-stm32-blink/) — lecture demo |
 | 1.9 | Basic soldering | — |
 | extra | Mini project outside the course program | [RGB byte UI](extra-rgb-byte-ui/) — eight LEDs, six buttons and an RGB LED; one project, a commit per step |

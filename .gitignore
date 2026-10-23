@@ -16,3 +16,10 @@
 
 # Wi-Fi credentials for the night light (copy include/secrets.example.h to secrets.h and edit)
 secrets.h
+
+# STM32CubeIDE: build output (CubeIDE writes the makefiles here too), debug launch configurations
+# (machine-specific, with absolute paths; CubeIDE re-creates them) and CubeMX's empty macOS marker
+/module-*/**/Debug/
+/module-*/**/Release/
+*.launch
+.osx.project
