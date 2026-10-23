@@ -1,0 +1,4 @@
+# STM32CubeMX writes the code it generates (Core/, .mxproject) with Windows line endings (CRLF), the HAL in Drivers/
+# with LF. Store these files with LF, so a regenerate or an editor that flips line endings does not show as a change.
+module-*/**/Core/** text=auto
+module-*/**/.mxproject text=auto
