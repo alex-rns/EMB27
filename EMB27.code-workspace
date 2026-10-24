@@ -5,8 +5,8 @@
       "name": "EMB27 (repo)"
     },
     {
-      "name": "RGB byte UI",
-      "path": "module-1/extra-rgb-byte-ui"
+      "name": "2.1-embedded-cpp",
+      "path": "module-2/2.1-embedded-cpp"
     }
   ],
   "settings": {
