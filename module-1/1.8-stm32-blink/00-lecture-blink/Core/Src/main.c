@@ -94,9 +94,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+      if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET)
       {
           HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-          HAL_Delay(50);
+          HAL_Delay(100);
       }
     /* USER CODE END WHILE */
 
@@ -180,7 +181,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : PA0 */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */

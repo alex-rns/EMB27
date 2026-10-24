@@ -7,13 +7,13 @@ over SWD · **Tools:** STM32CubeMX 6.18.1, STM32CubeIDE 2.2.0 · **Library:** HA
 
 The course program lists a debrief as lesson 1.8 and STM32 only as an optional port in module 7; this lesson
 brought the STM32 forward: configure the chip in CubeMX, generate a CubeIDE project, write the loop by hand,
-flash it through the ST-Link.
+flash it through the ST-Link, then read the board's button.
 
 ## Steps
 
 | # | Step | Type | What it shows |
 |---|---|---|---|
-| 00 | [lecture-blink](00-lecture-blink/) | lecture demo | the onboard LED on PC13 toggled with HAL every 51 ms; clock 100 MHz from the 25 MHz crystal |
+| 00 | [lecture-blink](00-lecture-blink/) | lecture demo | the KEY button on PA0 (internal pull-up) read with HAL; while it is held, the onboard LED on PC13 toggles every 101 ms; clock 100 MHz from the 25 MHz crystal |
 
 ## Working with the steps
 

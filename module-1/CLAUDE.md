@@ -14,7 +14,7 @@
 | 1.5 | Signals and a button (oscilloscope) | `1.5-signals-button` | ✅ finished: `00` (lecture: debounce), `01` (homework: interrupt counter vs analyzer) |
 | 1.6 | Intro to the ADC: reading light | `1.6-adc-light` | ✅ finished: `00` (lecture: smart light), `01` (homework: formula vs `analogReadMilliVolts`) |
 | 1.7 | Mini project: light sensor controls an LED | `1.7-twilight-switch` | ✅ finished: `00` (base: twilight switch), `01` (extra: PIR, 15 s), `02` (extra: Wi-Fi page, modes) |
-| 1.8 | STM32 intro: CubeMX, CubeIDE, Black Pill (the program lists a debrief here) | `1.8-stm32-blink` | 🔄 in progress: `00` (lecture: blink PC13); the teacher's button version not saved yet |
+| 1.8 | STM32 intro: CubeMX, CubeIDE, Black Pill (the program lists a debrief here) | `1.8-stm32-blink` | 🔄 in progress: `00` (lecture: blink PC13 while the KEY button on PA0 is held) |
 | 1.9 | Basic soldering | — | — |
 | extra | RGB byte UI (mini project outside the program) | `extra-rgb-byte-ui` | ✅ finished 2026-10-21: one PlatformIO project, **one commit per step** (no step folders; the author's decision 2026-10-20), steps 00–06 (07, flash, dropped); README with photos and video, schematic, one Wokwi circuit for the finished project with `wokwi-scenario.yaml`. Design and plan in `extra-rgb-byte-ui/docs/` |
 
@@ -42,7 +42,8 @@ Module 1 has no flexible slot (those are in modules 2–6).
   clone (firmware V2J37S7; CubeIDE offers an update: decline it on a clone). SWD header by its labels: ST-Link
   3.3V → 3V3, GND → GND, SWDIO → DIO, SWCLK → SCK; the board then runs from the ST-Link, USB-C unplugged.
   Per WeAct's V3.1 schematic: blue LED 3.3 V → 1.5 kΩ → PC13 (lit on LOW), KEY button PA0 → 330 Ω → GND with no
-  external pull-up, NRST and BOOT0 buttons, PA13/PA14 = SWD. Pins used: PC13 (LED), PA0 (input, unused in `00`).
+  external pull-up, NRST and BOOT0 buttons, PA13/PA14 = SWD. Pins used: PC13 (LED), PA0 (KEY, input with the
+  internal pull-up).
 
 ## What to watch for (common mistakes, including in AI-generated code)
 
@@ -204,10 +205,14 @@ is EWARM (IAR), set STM32CubeIDE; Project Location locks after the first save. T
 Eclipse project share one name; an Eclipse workspace can't hold two projects with the same name. Black Pill: blue LED
 on PC13 lit by LOW (CubeMX writes PC13 low before making it an output, so it lights at reset); HSE 25 MHz → PLL →
 100 MHz (USB would need the 48 MHz output reworked: it gives 50 MHz). `HAL_Delay(n)` waits n + 1 ms (one tick added,
-SysTick-driven, blocking). Memory: 5932 bytes of flash (vector table 408), 44 bytes of variables in RAM plus a
-1540-byte heap/stack reserve. The ST-Link serves one program at a time: an open STM32CubeProgrammer window blocks a
-CubeIDE debug launch ("another process has device opened for exclusive access"); CubeIDE on macOS also needs the
-ST-LINK Server package from its dmg. Steps: `1.8-stm32-blink/00` lecture (blink PC13 every 51 ms).
+SysTick-driven, blocking). KEY on PA0 needs CubeMX's Pull-up: the board has no resistor to 3.3 V, and without it a
+released button leaves PA0 floating (it read 1 in a test, by luck). CubeMX's File → Load Project may open an older
+project from the CubeIDE workspace: check Project Manager → Project Location before changing anything. Memory: 5996
+bytes of flash (vector table 408), 44 bytes of variables in RAM plus a 1540-byte heap/stack reserve. The ST-Link
+serves one program at a time: an open STM32CubeProgrammer window blocks a CubeIDE debug launch ("another process has
+device opened for exclusive access"); CubeIDE on macOS also needs the ST-LINK Server package from its dmg. Steps:
+`1.8-stm32-blink/00` lecture (the LED on PC13 toggles every 101 ms while KEY is held; the plain blink every 51 ms is
+the step's first commit).
 
 ## Known issues / open
 
@@ -232,5 +237,4 @@ ST-LINK Server package from its dmg. Steps: `1.8-stm32-blink/00` lecture (blink 
 9. 1.8: CI doesn't build STM32 steps (`build-all.sh` looks for `platformio.ini`). Options: headless CubeIDE in CI
    (a ~1 GB install) or CubeMX Toolchain = CMake and `arm-none-eabi-gcc` + `cmake` (CubeIDE 2.x opens CMake projects
    too; to be tested before switching).
-10. 1.8: the teacher's button version (PA0 labelled `BUTTON1` with a pull-up, LED toggles while the button is held) is
-    not saved yet. The board's revision (WeAct V3.x) is not checked against the V3.1 schematic.
+10. 1.8: the board's revision (WeAct V3.x) is not checked against the V3.1 schematic.
