@@ -9,8 +9,9 @@ description: Use when the user says a lesson or its homework is done in the EMB2
 
 The point of finishing a lesson is that the user **understands the topic**. A lesson is finished when
 every saved step still builds, the docs match the code, the user has answered check questions in their
-own words, and the result is committed, pushed and opened as a pull request into `main` (homework: for the
-teacher's review). If the homework isn't saved yet, run `/save-hw` first.
+own words, and the result is committed, pushed and, for a homework, opened as a pull request into `main` for the
+teacher's review. That pull request comes from the homework branch `module-N/N.M-<topic>-homework` and holds only
+the homework (CLAUDE.md, Git). If the homework isn't saved yet, run `/save-hw` first.
 
 Steps 1–3 run right away and count as one step: report them in one message and stop.
 Step 4 onwards waits for the user's answers.
@@ -24,13 +25,16 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
    ```bash
    L=module-N/N.M-<topic>
    for s in $L/*/; do
+     [ -f "$s"platformio.ini ] || continue   # STM32 steps: built separately, below
      rm -rf "$s".pio/build/*/src
      echo "== $s"; ~/.platformio/penv/bin/pio run -d "$s" 2>&1 | grep -E 'warning:|error:|SUCCESS|FAILED'
    done
    ```
+   STM32 steps (`-stm32`, from module 2 on) are CubeIDE projects: build each with the headless build from
+   lesson 1.8's README ("Working with the steps", CubeIDE closed) and check its output for `warning:` the same way.
    Every step must succeed. Explain every warning to the user, then fix it or say why it stays.
 2. **Consistency checks:**
-   - every step has `platformio.ini` (one `[env:esp32-s3-devkitc-1]`, `build_src_flags = -Wall -Wextra`),
+   - every PlatformIO step has `platformio.ini` (one `[env:esp32-s3-devkitc-1]`, `build_src_flags = -Wall -Wextra`),
      `src/main.cpp`, `diagram.json` (valid JSON), `wokwi.toml` (→ `.pio/build/esp32-s3-devkitc-1/…`), `README.md`;
    - pins in each `diagram.json` match the pins in its `main.cpp`. Don't open the `diagram.png` screenshots:
      viewing them is slow, and `/save-hw` already checked each one when it was taken;
@@ -55,26 +59,34 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
    counts as unfinished.
 4. **Review the answers.** Confirm what is right and correct misconceptions with an analogy.
    Record anything still shaky as an open thread.
-5. **Update the docs** (English):
-   - lesson `README.md`: fix the doc findings from step 2; add Wokwi links if the user published them;
-   - the lesson's draft, if it is still there: move it to the Trash and put the lesson's last step in its place
-     in `EMB27.code-workspace`, so one PlatformIO project stays open (without one the buttons disappear);
-   - `module-N/README.md`: the lesson row → `[<short name>](N.M-<topic>/) — base task + K extras`,
-     plus ` + P practice` when the lesson has practice steps;
-   - `module-N/CLAUDE.md`: status ✅ and a technical lesson summary: concepts and what breaks on real
-     hardware. Update open threads. The repo is public: how the user answered, their mistakes and their
-     learning progress never go into repo files;
-   - root `README.md`: set the module status to `done` after its last lesson;
-   - root `CLAUDE.md`: update "Next step" if it changed. Lesson summaries never go into the root file.
-6. **Commit and push.** On the lesson's branch, suggest `module-N/N.M-<topic>: finish lesson`; the user
-   approves or rewrites it (CLAUDE.md). Then `git push`. `git status -sb` must show
-   `## module-N/N.M-<topic>...origin/module-N/N.M-<topic>` with nothing ahead.
-7. **Open the pull request** (after the user's yes): `gh pr create --base main`, title `module-N/N.M-<topic>`,
-   an English body for the teacher: what the lesson builds, the steps table with links, how it was tested
-   (builds, Wokwi, the board), known limits. Wait for CI to pass (`gh pr checks`).
-   - Homework (the default): give the user the PR link to send to the teacher. Review fixes are new commits on
-     the same branch. Merge only after the teacher's review and the user's yes.
-   - A branch the user says is not homework: no review; merge after the user's yes.
+5. **Update the docs** (English). The homework's pull request holds only the homework, so the docs go to
+   three places:
+   - **the homework branch** `module-N/N.M-<topic>-homework`: the homework steps' READMEs and their rows in the lesson
+     `README.md`: fix the doc findings from step 2; add Wokwi links if the user published them;
+   - **`main`, one `docs:` commit** (`git switch main && git pull`; the pre-commit hook allows files outside lesson
+     folders), never in the homework's pull request:
+     - `module-N/README.md`: the lesson row → `[<short name>](N.M-<topic>/) — base task + K extras`,
+       plus ` + P practice` when the lesson has practice steps;
+     - `module-N/CLAUDE.md`: status ✅ and a technical lesson summary: concepts and what breaks on real
+       hardware. Update open threads. The repo is public: how the user answered, their mistakes and their
+       learning progress never go into repo files;
+     - root `README.md`: set the module status to `done` after its last lesson;
+     - root `CLAUDE.md`: update "Next step" if it changed. Lesson summaries never go into the root file;
+   - **a new lesson branch** `module-N/N.M-<topic>` from `main`, only when a `practice` or `lecture` step needs a fix,
+     or the lesson's draft is still there (move it to the Trash and put the lesson's last step in its place in
+     `EMB27.code-workspace`, so one PlatformIO project stays open). Its pull request has no review: merge it after
+     the user's yes without waiting for CI.
+6. **Commit and push.** Suggest the messages; the user approves or rewrites them (CLAUDE.md):
+   `module-N/N.M-<topic>: finish lesson` on the homework branch (only when it has changes) and
+   `docs: module-N: finish lesson N.M` on `main`. Push both. `git status -sb` on the homework branch must show
+   `## module-N/N.M-<topic>-homework...origin/module-N/N.M-<topic>-homework` with nothing ahead.
+7. **Open the homework's pull request** (after the user's yes):
+   `gh pr create --base main --head module-N/N.M-<topic>-homework`, title `module-N/N.M-<topic>: homework`, an
+   English body for the teacher: the assignment in short, the homework steps table with links, how it was tested
+   (builds, Wokwi, the board), known limits. `gh pr view --json files --jq '.files[].path'` must list only the
+   homework steps and the lesson `README.md`. Wait for CI to pass (`gh pr checks`), then give the user the link to
+   send to the teacher. Review fixes are new commits on the homework branch. Merge only after the teacher's review
+   and the user's yes. A lesson without homework has only its lesson branch: no review, merge after the user's yes.
 
    Merge with `gh pr merge --merge --delete-branch`, then `git switch main && git pull`.
 
@@ -92,3 +104,5 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
 | Lesson work committed to `main` directly | It skips CI on the branch and, for homework, the teacher's review |
 | Homework merged before the teacher's review | The teacher reviews code that is already in `main` |
 | Squash merge | The per-step commits the teacher can walk through collapse into one |
+| Practice, lecture steps or module notes in the homework's pull request | The teacher reviews things that aren't the homework (the author's rule) |
+| Homework branch started before the lesson branch is merged | The lesson branch's commits (draft, practice, lecture) land in the teacher's pull request |

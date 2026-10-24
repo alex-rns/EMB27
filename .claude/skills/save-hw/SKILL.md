@@ -26,6 +26,10 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
     always kept. It is optional: a lesson without it starts at the lecture or the base task;
   - a class demo (`archive/lecture-*.cpp`) → `NN-lecture-<slug>`, only if the user wants to keep it;
   - then `NN-base-<slug>` and `NN-extra-<slug>`. Slugs: kebab-case English.
+  - from module 2 on every step name ends with its board (root `CLAUDE.md`, "Two boards"): this skill makes the
+    `-esp32` steps, e.g. `00-base-blink-esp32`. An STM32 version is a CubeIDE project CubeMX generates straight into its
+    own `NN-<type>-<slug>-stm32` folder, with the same number and slug as the ESP32 step it repeats; this skill only
+    lists it in the lesson README.
 
   Examples: lecture + base + 4 extras → `00`–`05` (lesson 1.3); practice + lecture + base → `00-practice`,
   `01-lecture`, `02-base`.
@@ -42,12 +46,15 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
    mkdir -p "$T" && mv <source> "$T"/
    ```
    Never `rm` the user's work.
+   The draft is usually the lesson folder itself. If it already holds `*-stm32` step folders (CubeIDE projects, not
+   part of the draft), move them aside first (`mv` next to the lesson folder) and back into the new lesson folder in
+   step 3, so they don't go to the Trash with the draft.
 2. **Map code to steps.** Read everything in the Trash copy: `archive/` first (one file per finished
    piece, named by its type), then `src/main.cpp`, other copies and files, plus our conversation.
    For each step pick the version of the code that implements it.
    If a step has no version, ask. If the user isn't available, give it an empty skeleton and say so.
 3. **Build the lesson folder** `module-N/N.M-<topic>/` (`<topic>` comes from the lesson topic in
-   `module-N/README.md`). For each step create `NN-<type>-<slug>/`:
+   `module-N/README.md`). For each step create `NN-<type>-<slug>/` (`NN-<type>-<slug>-esp32/` from module 2 on):
    - `platformio.ini`, `wokwi.toml`: the templates below;
    - `src/main.cpp`: the mapped version, unchanged;
    - `diagram.json`: a Wokwi circuit matching the pins used in that step's code. Wokwi closes an
@@ -98,10 +105,21 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
    - the build results, each command explained in a line;
    - `git status --short`.
 
-   Commit only after the user says yes, on the lesson's branch `module-N/N.M-<topic>` (CLAUDE.md, Git;
-   if it doesn't exist yet, create it from an up-to-date `main` first): `module-N/N.M-<topic>: save homework`,
-   then `git push -u origin module-N/N.M-<topic>`. Never commit lesson work to `main` directly.
-   Then offer `/finish-lesson` for the check questions.
+   Commit only after the user says yes, in two parts (CLAUDE.md, Git), so the pull request the teacher reviews
+   holds nothing but the homework:
+   1. **The lesson branch** `module-N/N.M-<topic>` (if it doesn't exist yet, create it from an up-to-date `main`):
+      everything except the homework — the draft's removal, the `practice` and `lecture` steps, the lesson README
+      without the assignment and the homework rows, `module-N/README.md`, `module-N/CLAUDE.md`, `EMB27.code-workspace`.
+      Commit `module-N/N.M-<topic>: save the practice and lecture steps` (name only the kinds it has), push, open a
+      pull request (`gh pr create --base main`, title `module-N/N.M-<topic>`) and merge it after the user's yes
+      without waiting for CI (`gh pr merge --merge --delete-branch`). The homework step folders stay untracked
+      meanwhile; switching branches keeps them. If the lesson branch has nothing left to commit, skip this part.
+   2. **The homework branch** `module-N/N.M-<topic>-homework`, from the updated `main`
+      (`git switch main && git pull && git switch -c module-N/N.M-<topic>-homework`): the `base` and `extra` steps,
+      the assignment and their rows in the lesson README. Commit `module-N/N.M-<topic>: save homework`, then
+      `git push -u origin module-N/N.M-<topic>-homework`. `/finish-lesson` opens its pull request.
+
+   Never commit lesson work to `main` directly. Then offer `/finish-lesson` for the check questions.
 
 ## Templates
 
@@ -151,5 +169,6 @@ elf = '.pio/build/esp32-s3-devkitc-1/firmware.elf'
 | `diagram.json` pins differ from the code | Wokwi simulates a different circuit |
 | Wires left as `[]` | The picture shows wires over pins or merged: someone wiring from it makes a short |
 | Leaving the source project in the workspace | VS Code shows a missing folder |
+| Homework steps committed on the lesson branch | The teacher's pull request also shows the draft, practice and lecture commits |
 | Removing it without putting the last step in its place | No PlatformIO project left: the buttons vanish after a reload |
 | Committing before the user's yes | Breaks the CLAUDE.md agreement on commits |
