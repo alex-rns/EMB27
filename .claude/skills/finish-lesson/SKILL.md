@@ -24,13 +24,16 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
    ```bash
    L=module-N/N.M-<topic>
    for s in $L/*/; do
+     [ -f "$s"platformio.ini ] || continue   # STM32 steps: built separately, below
      rm -rf "$s".pio/build/*/src
      echo "== $s"; ~/.platformio/penv/bin/pio run -d "$s" 2>&1 | grep -E 'warning:|error:|SUCCESS|FAILED'
    done
    ```
+   STM32 steps (`-stm32`, from module 2 on) are CubeIDE projects: build each with the headless build from
+   lesson 1.8's README ("Working with the steps", CubeIDE closed) and check its output for `warning:` the same way.
    Every step must succeed. Explain every warning to the user, then fix it or say why it stays.
 2. **Consistency checks:**
-   - every step has `platformio.ini` (one `[env:esp32-s3-devkitc-1]`, `build_src_flags = -Wall -Wextra`),
+   - every PlatformIO step has `platformio.ini` (one `[env:esp32-s3-devkitc-1]`, `build_src_flags = -Wall -Wextra`),
      `src/main.cpp`, `diagram.json` (valid JSON), `wokwi.toml` (→ `.pio/build/esp32-s3-devkitc-1/…`), `README.md`;
    - pins in each `diagram.json` match the pins in its `main.cpp`. Don't open the `diagram.png` screenshots:
      viewing them is slow, and `/save-hw` already checked each one when it was taken;

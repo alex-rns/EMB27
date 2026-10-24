@@ -26,6 +26,10 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
     always kept. It is optional: a lesson without it starts at the lecture or the base task;
   - a class demo (`archive/lecture-*.cpp`) → `NN-lecture-<slug>`, only if the user wants to keep it;
   - then `NN-base-<slug>` and `NN-extra-<slug>`. Slugs: kebab-case English.
+  - from module 2 on every step name ends with its board (root `CLAUDE.md`, "Two boards"): this skill makes the
+    `-esp32` steps, e.g. `00-base-blink-esp32`. An STM32 version is a CubeIDE project CubeMX generates straight into its
+    own `NN-<type>-<slug>-stm32` folder, with the same number and slug as the ESP32 step it repeats; this skill only
+    lists it in the lesson README.
 
   Examples: lecture + base + 4 extras → `00`–`05` (lesson 1.3); practice + lecture + base → `00-practice`,
   `01-lecture`, `02-base`.
@@ -42,12 +46,15 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
    mkdir -p "$T" && mv <source> "$T"/
    ```
    Never `rm` the user's work.
+   The draft is usually the lesson folder itself. If it already holds `*-stm32` step folders (CubeIDE projects, not
+   part of the draft), move them aside first (`mv` next to the lesson folder) and back into the new lesson folder in
+   step 3, so they don't go to the Trash with the draft.
 2. **Map code to steps.** Read everything in the Trash copy: `archive/` first (one file per finished
    piece, named by its type), then `src/main.cpp`, other copies and files, plus our conversation.
    For each step pick the version of the code that implements it.
    If a step has no version, ask. If the user isn't available, give it an empty skeleton and say so.
 3. **Build the lesson folder** `module-N/N.M-<topic>/` (`<topic>` comes from the lesson topic in
-   `module-N/README.md`). For each step create `NN-<type>-<slug>/`:
+   `module-N/README.md`). For each step create `NN-<type>-<slug>/` (`NN-<type>-<slug>-esp32/` from module 2 on):
    - `platformio.ini`, `wokwi.toml`: the templates below;
    - `src/main.cpp`: the mapped version, unchanged;
    - `diagram.json`: a Wokwi circuit matching the pins used in that step's code. Wokwi closes an
