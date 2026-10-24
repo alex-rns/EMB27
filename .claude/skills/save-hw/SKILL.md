@@ -105,10 +105,21 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
    - the build results, each command explained in a line;
    - `git status --short`.
 
-   Commit only after the user says yes, on the lesson's branch `module-N/N.M-<topic>` (CLAUDE.md, Git;
-   if it doesn't exist yet, create it from an up-to-date `main` first): `module-N/N.M-<topic>: save homework`,
-   then `git push -u origin module-N/N.M-<topic>`. Never commit lesson work to `main` directly.
-   Then offer `/finish-lesson` for the check questions.
+   Commit only after the user says yes, in two parts (CLAUDE.md, Git), so the pull request the teacher reviews
+   holds nothing but the homework:
+   1. **The lesson branch** `module-N/N.M-<topic>` (if it doesn't exist yet, create it from an up-to-date `main`):
+      everything except the homework — the draft's removal, the `practice` and `lecture` steps, the lesson README
+      without the assignment and the homework rows, `module-N/README.md`, `module-N/CLAUDE.md`, `EMB27.code-workspace`.
+      Commit `module-N/N.M-<topic>: save the practice and lecture steps` (name only the kinds it has), push, open a
+      pull request (`gh pr create --base main`, title `module-N/N.M-<topic>`) and merge it after the user's yes
+      without waiting for CI (`gh pr merge --merge --delete-branch`). The homework step folders stay untracked
+      meanwhile; switching branches keeps them. If the lesson branch has nothing left to commit, skip this part.
+   2. **The homework branch** `module-N/N.M-<topic>-homework`, from the updated `main`
+      (`git switch main && git pull && git switch -c module-N/N.M-<topic>-homework`): the `base` and `extra` steps,
+      the assignment and their rows in the lesson README. Commit `module-N/N.M-<topic>: save homework`, then
+      `git push -u origin module-N/N.M-<topic>-homework`. `/finish-lesson` opens its pull request.
+
+   Never commit lesson work to `main` directly. Then offer `/finish-lesson` for the check questions.
 
 ## Templates
 
@@ -158,5 +169,6 @@ elf = '.pio/build/esp32-s3-devkitc-1/firmware.elf'
 | `diagram.json` pins differ from the code | Wokwi simulates a different circuit |
 | Wires left as `[]` | The picture shows wires over pins or merged: someone wiring from it makes a short |
 | Leaving the source project in the workspace | VS Code shows a missing folder |
+| Homework steps committed on the lesson branch | The teacher's pull request also shows the draft, practice and lecture commits |
 | Removing it without putting the last step in its place | No PlatformIO project left: the buttons vanish after a reload |
 | Committing before the user's yes | Breaks the CLAUDE.md agreement on commits |

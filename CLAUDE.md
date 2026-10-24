@@ -16,9 +16,9 @@ Personal notes about the author never go into this repository; it is public.
   `setup()` don't link. Otherwise no rules while experimenting.
 - `/save-hw` + the assignment turns a finished homework into the saved structure below: steps from
   `archive/` and the assignment, code for each step, Wokwi circuits, READMEs. The draft goes to the macOS Trash.
-  Commit and push to the lesson's branch after the author confirms.
+  Commit and push after the author confirms: the lesson branch first, then the homework branch (see Git).
 - `/finish-lesson` builds every step, checks code against circuits and READMEs, asks check questions,
-  then updates the docs, commits and opens the lesson's pull request (homework: for the teacher's review; see Git).
+  then updates the docs, commits and opens the homework's pull request for the teacher's review (see Git).
 - Project skills live in `.claude/skills/` (tracked). Follow a skill when it is invoked or the situation matches it.
 
 ## Repository layout
@@ -105,16 +105,24 @@ in the same CubeIDE workspace. Module 1 keeps its names.
 ## Git
 
 - One repository; lesson work is never committed to `main` directly. Each lesson (or extra project) gets its own
-  branch, named after its folder (`module-N/N.M-<topic>`), created from an up-to-date `main` before its first commit.
-  Commit to that branch after every step that works.
+  branch, named after its folder (`module-N/N.M-<topic>`), created from an up-to-date `main` before its first commit:
+  the draft, `practice` and `lecture` steps, the lesson README, module docs. Commit to it after every step that works.
+- **The homework gets a branch of its own,** `module-N/N.M-<topic>-homework`, so the pull request the teacher reviews
+  holds nothing but the homework: the `base` and `extra` steps, the assignment and their rows in the lesson README.
+  The teacher may see the practice and lecture steps on `main`, just not in that pull request. Order: the homework is
+  written in the draft on the lesson branch; `/save-hw` splits the draft into steps, commits everything except the
+  homework steps to the lesson branch, and that branch is merged; then the homework branch starts from the updated
+  `main` and gets only the homework steps. Notes written after the homework (`module-N/CLAUDE.md`,
+  `module-N/README.md`) go to `main` as `docs:` commits, never into the homework pull request.
   Format: `<folder>: <what was done>` (`repo:` for root configs, `docs:` for documentation).
 - Remote `origin` = https://github.com/alex-rns/EMB27, public. Push the branch after committing.
   The history is published: no rewriting and no force-push unless the author explicitly asks.
 - A branch reaches `main` only through a pull request (`gh pr create --base main`), and CI runs on it.
-  Homework goes to the teacher: `/finish-lesson` opens the PR, the author sends its link to the teacher, review
-  fixes are new commits on the same branch, and the merge waits for the teacher's review and the author's yes.
-  A branch the author says is not homework skips the review: the author merges it without waiting for CI, and the
-  CI result is checked after the merge (a failure gets a fix on a new branch).
+  The homework branch goes to the teacher: `/finish-lesson` opens its PR, the author sends the link to the teacher,
+  review fixes are new commits on the homework branch, and the merge waits for the teacher's review and the author's
+  yes. Every other branch (the lesson branch, an extra project the author says is not homework) skips the review:
+  the author merges it without waiting for CI, and the CI result is checked after the merge (a failure gets a fix on
+  a new branch).
   Always a merge commit (`gh pr merge --merge --delete-branch`), never squash: every step's commit stays in the
   history. Repo configs and docs outside a lesson (`repo:`, `docs:`) may still go straight to `main`.
 - CI (GitHub Actions, `.github/workflows/build.yml`) runs on every push to `main` and on every pull request:
