@@ -97,10 +97,11 @@ CubeIDE opens a step in place (File → Open Projects from File System, no copy 
   Format: `<folder>: <what was done>` (`repo:` for root configs, `docs:` for documentation).
 - Remote `origin` = https://github.com/alex-rns/EMB27, public. Push the branch after committing.
   The history is published: no rewriting and no force-push unless the author explicitly asks.
-- A branch reaches `main` only through a pull request (`gh pr create --base main`), so CI checks it first.
+- A branch reaches `main` only through a pull request (`gh pr create --base main`), and CI runs on it.
   Homework goes to the teacher: `/finish-lesson` opens the PR, the author sends its link to the teacher, review
   fixes are new commits on the same branch, and the merge waits for the teacher's review and the author's yes.
-  A branch the author says is not homework skips the review: the author merges it once CI passes.
+  A branch the author says is not homework skips the review: the author merges it without waiting for CI, and the
+  CI result is checked after the merge (a failure gets a fix on a new branch).
   Always a merge commit (`gh pr merge --merge --delete-branch`), never squash: every step's commit stays in the
   history. Repo configs and docs outside a lesson (`repo:`, `docs:`) may still go straight to `main`.
 - CI (GitHub Actions, `.github/workflows/build.yml`) runs on every push to `main` and on every pull request:
