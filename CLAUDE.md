@@ -51,7 +51,8 @@ The step folder, `<step>.ioc` and the Eclipse project share one name: CubeMX gen
 and an Eclipse workspace can't hold two projects with the same name. CubeMX Toolchain/IDE = STM32CubeIDE (its default
 is EWARM). Tracked: the `.ioc` (pins, clock: the source of truth), `Core/`, `Drivers/` (the HAL CubeMX copies in, so a
 clone builds without CubeMX), the `*.ld` linker scripts, `.project`, `.cproject`, `.mxproject`, `.settings/`,
-`README.md`. Ignored: `Debug/`, `Release/`, `*.launch` (absolute paths), `.osx.project`.
+`README.md`. Ignored: `Debug/`, `Release/`, `*.launch` (absolute paths), `.osx.project`,
+`.settings/language.settings.xml` (the indexer's cache: its `env-hash` changes per machine, CubeIDE re-creates it).
 `.gitattributes` stores `Core/` and `.mxproject` (CubeMX writes CRLF) with LF.
 Own code only between `USER CODE BEGIN/END`: a regenerate rewrites the rest.
 CubeIDE opens a step in place (File → Open Projects from File System, no copy into the workspace).

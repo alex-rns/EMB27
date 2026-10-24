@@ -34,7 +34,8 @@ STM32 steps are STM32CubeIDE projects, not PlatformIO ones. The step folder, the
   `STM32_Programmer_CLI` comes with CubeIDE (inside its plugins) and with STM32CubeProgrammer; it is not on the PATH.
 - **In git:** the `.ioc`, `Core/`, `Drivers/` (the HAL CubeMX copies in, so a clone builds without CubeMX),
   the linker scripts, `.project`, `.cproject`, `.mxproject`, `.settings/`. Not in git: `Debug/` (build output and the
-  makefiles CubeIDE writes), `*.launch` (debug settings with absolute paths; CubeIDE re-creates them).
+  makefiles CubeIDE writes), `*.launch` (debug settings with absolute paths; CubeIDE re-creates them),
+  `.settings/language.settings.xml` (the code indexer's cache, different on every machine; CubeIDE re-creates it).
   CubeMX writes `Core/` with Windows line endings: `.gitattributes` stores them with LF.
 - **CI** runs the repo checks on these files but doesn't build STM32 steps yet (`build-all.sh` builds PlatformIO
   projects only).

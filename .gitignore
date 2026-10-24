@@ -18,8 +18,10 @@
 secrets.h
 
 # STM32CubeIDE: build output (CubeIDE writes the makefiles here too), debug launch configurations
-# (machine-specific, with absolute paths; CubeIDE re-creates them) and CubeMX's empty macOS marker
+# (machine-specific, with absolute paths; CubeIDE re-creates them), CubeMX's empty macOS marker and the indexer's
+# cache of the compiler's built-in settings (its env-hash changes per machine; CubeIDE re-creates the file)
 /module-*/**/Debug/
 /module-*/**/Release/
 *.launch
 .osx.project
+/module-*/**/.settings/language.settings.xml
