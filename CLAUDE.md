@@ -13,7 +13,8 @@ Personal notes about the author never go into this repository; it is public.
 - Each lesson's ESP32 work is done in a draft: an ordinary PlatformIO project created by the wizard, one
   `src/main.cpp`, in the lesson's folder (`module-N/N.M-<topic-slug>/`). A finished piece (practice before the lecture, the lecture demo, …) is copied to
   `archive/<type>-<slug>.cpp` next to `src/`, never inside it: every `.cpp` in `src/` is compiled, and two
-  `setup()` don't link. Otherwise no rules while experimenting.
+  `setup()` don't link. A piece with headers of its own goes to a folder, `archive/<type>-<slug>/`, holding
+  `main.cpp` and the headers from `include/`. Otherwise no rules while experimenting.
 - `/save-hw` + the assignment turns a finished homework into the saved structure below: steps from
   `archive/` and the assignment, code for each step, Wokwi circuits, READMEs. The draft goes to the macOS Trash.
   Commit and push after the author confirms: the lesson branch first, then the homework branch (see Git).

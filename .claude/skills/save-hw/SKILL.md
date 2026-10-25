@@ -8,7 +8,8 @@ description: Use when the user wants to save a course homework in the EMB27 repo
 ## Overview
 
 The user works in the lesson's draft, an ordinary PlatformIO project: one `src/main.cpp`, and each
-finished piece copied to `archive/<type>-<slug>.cpp` (outside `src/`, where every `.cpp` is compiled).
+finished piece copied to `archive/<type>-<slug>.cpp` (outside `src/`, where every `.cpp` is compiled), or, when
+it has headers of its own, to a folder `archive/<type>-<slug>/` with `main.cpp` and those headers.
 This skill turns the result into the saved structure: a lesson folder with one folder per step, and
 **each step is an ordinary PlatformIO project**.
 The user must only ever see standard projects: never multiple environments, `src_dir` or `build_src_filter`.
@@ -22,9 +23,9 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
   - the lesson number `N.M` (or ask);
   - the homework steps: the required part → `base`, each optional item → `extra`.
 - **The steps**, numbered from `00` in the order the work happened: `practice` → `lecture` → `base` → `extra`.
-  - own practice before the lecture (`archive/practice-*.cpp`) → `NN-practice-<slug>`, one step per file,
-    always kept. It is optional: a lesson without it starts at the lecture or the base task;
-  - a class demo (`archive/lecture-*.cpp`) → `NN-lecture-<slug>`, only if the user wants to keep it;
+  - own practice before the lecture (`archive/practice-*.cpp` or `archive/practice-*/`) → `NN-practice-<slug>`,
+    one step per file or folder, always kept. It is optional: a lesson without it starts at the lecture or the base task;
+  - a class demo (`archive/lecture-*.cpp` or `archive/lecture-*/`) → `NN-lecture-<slug>`, only if the user wants to keep it;
   - then `NN-base-<slug>` and `NN-extra-<slug>`. Slugs: kebab-case English.
   - from module 2 on every step name ends with its board (root `CLAUDE.md`, "Two boards"): this skill makes the
     `-esp32` steps, e.g. `00-base-blink-esp32`. An STM32 version is a CubeIDE project CubeMX generates straight into its
@@ -49,14 +50,15 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
    The draft is usually the lesson folder itself. If it already holds `*-stm32` step folders (CubeIDE projects, not
    part of the draft), move them aside first (`mv` next to the lesson folder) and back into the new lesson folder in
    step 3, so they don't go to the Trash with the draft.
-2. **Map code to steps.** Read everything in the Trash copy: `archive/` first (one file per finished
-   piece, named by its type), then `src/main.cpp`, other copies and files, plus our conversation.
+2. **Map code to steps.** Read everything in the Trash copy: `archive/` first (one file or folder per finished
+   piece, named by its type), then `src/`, `include/`, other copies and files, plus our conversation.
    For each step pick the version of the code that implements it.
    If a step has no version, ask. If the user isn't available, give it an empty skeleton and say so.
 3. **Build the lesson folder** `module-N/N.M-<topic>/` (`<topic>` comes from the lesson topic in
    `module-N/README.md`). For each step create `NN-<type>-<slug>/` (`NN-<type>-<slug>-esp32/` from module 2 on):
    - `platformio.ini`, `wokwi.toml`: the templates below;
-   - `src/main.cpp`: the mapped version, unchanged;
+   - `src/main.cpp`: the mapped version, unchanged; from an `archive/<type>-<slug>/` folder, `main.cpp` goes to
+     `src/` and the headers to `include/`, all unchanged;
    - `diagram.json`: a Wokwi circuit matching the pins used in that step's code. Wokwi closes an
      unrouted wire horizontally first, then vertically, so a wire with `[]` easily runs over a row of
      pins or along another wire, and the picture shows connections that don't exist. Give wires
