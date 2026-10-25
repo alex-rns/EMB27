@@ -1,23 +1,6 @@
 #include <Arduino.h>
-
-enum class LedState { On, Off };
-
-struct Config {
-    static constexpr uint8_t kLedPin = 7;
-    static constexpr uint32_t kBlinkIntervalMs = 1000;
-};
-
-class Led {
-    public:
-
-    void init() {
-        pinMode(Config::kLedPin, OUTPUT);
-    }
-
-    void set(LedState state) {
-        digitalWrite(Config::kLedPin, state == LedState::On ? HIGH : LOW);
-    }
-};
+#include "config.h"
+#include "led.h"
 
 Led led;
 
