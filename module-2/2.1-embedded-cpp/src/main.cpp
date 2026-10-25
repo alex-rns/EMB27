@@ -1,12 +1,16 @@
 #include <Arduino.h>
 
+enum class LedState { On, Off };
+constexpr uint8_t kLedPin = 7;
+constexpr uint32_t kBlinkIntervalMs = 1000;
+
 void setup() {
-    pinMode(7, OUTPUT);       // the LED pin is an output
+    pinMode(kLedPin, OUTPUT);
 }
 
 void loop() {
-    digitalWrite(7, HIGH);    // turn the LED on
-    delay(1000);              // wait for a second
-    digitalWrite(7, LOW);     // turn the LED off
-    delay(1000);              // wait for a second
+    digitalWrite(kLedPin, HIGH);
+    delay(kBlinkIntervalMs);
+    digitalWrite(kLedPin, LOW);
+    delay(kBlinkIntervalMs);
 }
