@@ -80,7 +80,11 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
    `module-N/N.M-<topic>: finish lesson` on the homework branch (only when it has changes) and
    `docs: module-N: finish lesson N.M` on `main`. Push both. `git status -sb` on the homework branch must show
    `## module-N/N.M-<topic>-homework...origin/module-N/N.M-<topic>-homework` with nothing ahead.
-7. **Open the homework's pull request** (after the user's yes):
+7. **Open the homework's pull request** (after the user's yes). First check, on the homework branch, that it holds
+   nothing but the homework: after `git fetch origin`, `git diff --name-only origin/main...HEAD` must list only the
+   homework steps and the lesson `README.md`, and `git log --oneline origin/main..HEAD` only the homework branch's own
+   commits (`save homework`, `finish lesson`). Anything else (the draft, `archive/`, practice or lecture steps, module
+   docs, lesson-branch commits): stop and fix the branch before opening. Then
    `gh pr create --base main --head module-N/N.M-<topic>-homework`, title `module-N/N.M-<topic>: homework`, an
    English body for the teacher: the assignment in short, the homework steps table with links, how it was tested
    (builds, Wokwi, the board), known limits. `gh pr view --json files --jq '.files[].path'` must list only the
