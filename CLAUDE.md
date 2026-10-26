@@ -59,8 +59,8 @@ Keep every project standard: **never** multiple environments, `src_dir` or `buil
 The step folder, `<step>.ioc` and the Eclipse project share one name: CubeMX generates into `<location>/<project name>`,
 and an Eclipse workspace can't hold two projects with the same name. CubeMX Toolchain/IDE = STM32CubeIDE (its default
 is EWARM). Tracked: the `.ioc` (pins, clock: the source of truth), `Core/`, `Drivers/` (the HAL CubeMX copies in, so a
-clone builds without CubeMX), the `*.ld` linker scripts, `.project`, `.cproject`, `.mxproject`, `.settings/`,
-`README.md`. Ignored: `Debug/`, `Release/`, `*.launch` (absolute paths), `.osx.project`,
+clone builds without CubeMX; `.gitattributes` marks it `linguist-generated`, so pull requests collapse it), the `*.ld`
+linker scripts, `.project`, `.cproject`, `.mxproject`, `.settings/`, `README.md`. Ignored: `Debug/`, `Release/`, `*.launch` (absolute paths), `.osx.project`,
 `.settings/language.settings.xml` (the indexer's cache: its `env-hash` changes per machine, CubeIDE re-creates it).
 `.gitattributes` stores `Core/` and `.mxproject` (CubeMX writes CRLF) with LF.
 Own code only between `USER CODE BEGIN/END`: a regenerate rewrites the rest.

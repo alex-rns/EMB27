@@ -2,3 +2,6 @@
 # with LF. Store these files with LF, so a regenerate or an editor that flips line endings does not show as a change.
 module-*/**/Core/** text=auto
 module-*/**/.mxproject text=auto
+# The HAL and CMSIS that CubeMX copies into an STM32 step: committed so a clone builds without CubeMX, marked as
+# generated so GitHub collapses them in pull request diffs and leaves them out of the language statistics.
+module-*/**/Drivers/** linguist-generated=true
