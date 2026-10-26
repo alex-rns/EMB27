@@ -22,8 +22,9 @@ Personal notes about the author never go into this repository; it is public.
   final code and can walk the steps. READMEs always; Wokwi circuits and schematics only when the author asks for them.
   The draft goes to the macOS Trash. Commit and push after the author confirms: the lesson branch first, then the
   homework branch, and `/save-hw` opens the homework's pull request for the teacher right away (see Git).
-- `/finish-lesson` is optional and comes after that pull request, when the author asks for it: it builds every
-  step, checks code against READMEs (and circuits, if any), asks check questions, then updates the docs.
+- `/finish-lesson` is optional and runs whenever the author asks for it, before or after the save and the pull
+  request: it builds every step, checks code against READMEs (and circuits, if any), asks check questions, then
+  updates the docs. Nothing waits for it.
 - Project skills live in `.claude/skills/` (tracked). Follow a skill when it is invoked or the situation matches it.
 
 ## Repository layout

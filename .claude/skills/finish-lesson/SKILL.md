@@ -1,6 +1,6 @@
 ---
 name: finish-lesson
-description: Use when the user runs /finish-lesson or asks for a lesson's check questions or wrap-up in the EMB27 repo. Optional, after the homework's pull request is open; never a step the homework waits for.
+description: Use when the user runs /finish-lesson or asks for a lesson's check questions or wrap-up in the EMB27 repo. Optional, at any moment the user asks; never a step the homework or its pull request waits for.
 ---
 
 # Finish lesson
@@ -9,10 +9,10 @@ description: Use when the user runs /finish-lesson or asks for a lesson's check 
 
 The point of finishing a lesson is that the user **understands the topic**: every saved step still builds, the
 docs match the code, and the user has answered check questions in their own words. This skill is **optional** and
-runs only when the user asks. The homework's pull request is already open by then (`/save-hw` opens it right after
-saving); it comes from the homework branch `module-N/N.M-<topic>-homework` and holds only the homework (CLAUDE.md,
-Git), so doc fixes for the homework become new commits on that branch and show up in the open pull request.
-If the homework isn't saved yet, run `/save-hw` first.
+runs whenever the user asks: before the save (then it builds the draft and asks the questions; the doc updates wait
+for the save), after it, or after the pull request. `/save-hw` opens the homework's pull request right after saving;
+it comes from the homework branch `module-N/N.M-<topic>-homework` and holds only the homework (CLAUDE.md, Git), so
+doc fixes for the homework become new commits on that branch and show up in the open pull request.
 
 Steps 1–3 run right away and count as one step: report them in one message and stop.
 Step 4 onwards waits for the user's answers.
@@ -83,7 +83,7 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
    `module-N/N.M-<topic>: finish lesson` on the homework branch (only when it has changes) and
    `docs: module-N: finish lesson N.M` on `main`. Push both. `git status -sb` on the homework branch must show
    `## module-N/N.M-<topic>-homework...origin/module-N/N.M-<topic>-homework` with nothing ahead.
-7. **The homework's pull request** is already open. After pushing to the homework branch, check that the pull
+7. **The homework's pull request**, once it is open: after pushing to the homework branch, check that the pull
    request still holds nothing but the homework: `gh pr view <n> --json files --jq '.files[].path'` lists only the
    homework folder and the lesson `README.md`. Anything else (the draft, `archive/`, practice or lecture steps,
    module docs): fix the branch at once. Review fixes are new commits on the homework branch. Merge only after the
