@@ -7,7 +7,7 @@
 
 | Lesson | Topic | Folder | Status |
 |---|---|---|---|
-| 2.1 | C++ for MCUs: resource limits and specifics | `2.1-embedded-cpp` | ✅ saved · homework PR #6 open, waiting for the teacher's review |
+| 2.1 | C++ for MCUs: resource limits and specifics | `2.1-embedded-cpp` | ✅ done · homework PR #6 waiting for the teacher's review |
 | 2.2 | Passive and active loads: connecting a heavy load | — | — |
 | 2.3 | Superloop: several things at once | — | — |
 | 2.4 | Hardware interrupts: reacting to buttons | — | — |
@@ -59,10 +59,38 @@ The homework is written for the ESP32; a step may also get an STM32 version. Nam
 
 ## Lesson notes
 
-(Filled in as each lesson is finished.)
+### 2.1 — Embedded C++ blink (`2.1-embedded-cpp`)
+
+Steps: `00-practice-blink-esp32` (the homework tasks done before the lecture) and `01-homework-blink-esp32` (the
+homework, PR #6: one folder, one commit per change). The two have the same code. No Wokwi circuit or schematic for
+this lesson. Pins: LED 7, button 9.
+
+- **`enum class LedState { On, Off }`:** no implicit conversion to an integer, so `digitalWrite(pin, state)` doesn't
+  compile; `Led::set()` maps it with `state == LedState::On ? HIGH : LOW`. Enumerators named `HIGH` / `LOW` clash
+  with Arduino's macros (`#define HIGH 0x1`, `esp32-hal-gpio.h`). Without an underlying type it takes 4 bytes.
+- **`struct Config` with `static constexpr` members:** a non-static `constexpr` data member doesn't compile. The values
+  cost no memory: `nm -C -S firmware.elf` shows no `Config::` symbol at all, the numbers sit in the instructions.
+- **`static` locals in `loop()`** keep their value between calls and are visible only inside `loop()`. Zero-initialised
+  ones land in `.bss`; `ledState` starts at `LedState::Off` (= 1), so it lands in `.data` (`nm`: `d`, not `b`). The
+  initializer runs once: `static uint32_t now = millis();` would freeze the time of the first call.
+- **Pin setup in `Led::init()`, not in the constructor:** the global `led` is constructed before `setup()` runs (C++
+  static initialization in the startup code).
+- **Loop timing:** `micros()` around the loop's work, the print kept out of the measured part. Average 2.03–2.05 µs with
+  the blink only, 2.12–2.16 µs with the button logic. `micros()` counts whole microseconds, so a single iteration reads
+  as 2 or 3 µs and the average of 1000 gives the fraction. `Serial` adds about 24 KB of flash and 360 bytes of RAM.
+- **Button:** the `IRAM_ATTR` ISR only sets a `volatile bool`; `loop()` clears it and accepts a press 30 ms or more
+  after the previous one, then moves the mode on with `nextMode()`. The read and the clear of the flag are two steps,
+  not one atomic action.
+- **Toolchain:** the ESP32-S3 Arduino core 2.0.17 builds with GCC 8.4.0 and `-std=gnu++11`, so `std::make_unique` and
+  `std::optional` are missing; `std::array` compiles.
 
 ## Known issues / open
 
 1. STM32 versions in C++: CubeMX generates C. The plan is a C++ file of our own, called from a `USER CODE` block in
-   `main.c`, in a project converted to C++ in CubeIDE. Untested.
+   `main.c`, in a project converted to C++ in CubeIDE. Untested. Checked with CubeIDE 2.2.0's compiler
+   (arm-none-eabi-g++ 14.3.1) on test files: CubeIDE's C++ defaults are `-std=gnu++14 -fno-exceptions -fno-rtti`
+   (its toolchain plugin); `static constexpr GPIO_TypeDef* kPort = GPIOC;` fails ("`reinterpret_cast` ... is not a
+   constant expression"), while `constexpr uint16_t` for `GPIO_PIN_13` is fine; a `HAL_GPIO_EXTI_Callback` defined
+   in a `.cpp` with the HAL's signature keeps its C name, but one with another parameter type (`uint8_t`) compiles to a
+   mangled name, so the HAL's empty `__weak` default stays and the button does nothing, with no error or warning.
 2. STM32 steps are not built in CI (`../module-1/CLAUDE.md`, open 9) and CubeIDE builds with `-Wall` only (open 8).
