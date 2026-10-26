@@ -15,11 +15,15 @@ Personal notes about the author never go into this repository; it is public.
   `archive/<type>-<slug>.cpp` next to `src/`, never inside it: every `.cpp` in `src/` is compiled, and two
   `setup()` don't link. A piece with headers of its own goes to a folder, `archive/<type>-<slug>/`, holding
   `main.cpp` and the headers from `include/`. Otherwise no rules while experimenting.
-- `/save-hw` + the assignment turns a finished homework into the saved structure below: steps from
-  `archive/` and the assignment, code for each step, Wokwi circuits, READMEs. The draft goes to the macOS Trash.
-  Commit and push after the author confirms: the lesson branch first, then the homework branch (see Git).
-- `/finish-lesson` builds every step, checks code against circuits and READMEs, asks check questions,
-  then updates the docs, commits and opens the homework's pull request for the teacher's review (see Git).
+- The homework is written in the same draft after the practice and the lecture, one commit per change.
+- `/save-hw` + the assignment turns the draft into the saved structure below: a step for each practice or lecture
+  piece in `archive/`, and **one homework folder** with the final code of every task, required and optional. The
+  homework branch rebuilds that folder commit by commit from the draft's homework commits, so the teacher sees the
+  final code and can walk the steps. READMEs always; Wokwi circuits and schematics only when the author asks for them.
+  The draft goes to the macOS Trash. Commit and push after the author confirms: the lesson branch first, then the
+  homework branch, and `/save-hw` opens the homework's pull request for the teacher right away (see Git).
+- `/finish-lesson` is optional and comes after that pull request, when the author asks for it: it builds every
+  step, checks code against READMEs (and circuits, if any), asks check questions, then updates the docs.
 - Project skills live in `.claude/skills/` (tracked). Follow a skill when it is invoked or the situation matches it.
 
 ## Repository layout
@@ -33,18 +37,20 @@ module-N/
 ├── CLAUDE.md                ← technical notes for this module: lessons → folders → status,
 │                              hardware/pins, what to watch for, known issues
 └── N.M-<topic-slug>/        ← one folder per lesson with homework (a container, not a project)
-    ├── README.md            ← assignment + table of steps (type, what it shows)
-    └── NN-<type>-<slug>/    ← one step = one ordinary PlatformIO project; type = practice | lecture | base | extra,
-        │                      numbered from 00 in the order of the work (practice is optional); from module 2 on
-        │                      the name ends with the board, -esp32 or -stm32 (see "Two boards")
+    ├── README.md            ← table of steps (type, what it shows)
+    └── NN-<type>-<slug>/    ← one step = one ordinary PlatformIO project; type = practice | lecture | homework,
+        │                      numbered from 00 in the order of the work (practice and lecture are optional); from
+        │                      module 2 on the name ends with the board, -esp32 or -stm32 (see "Two boards")
         ├── platformio.ini   ← the wizard's 4 lines + build_src_flags = -Wall -Wextra
-        ├── src/main.cpp
-        ├── diagram.json, wokwi.toml (→ .pio/build/esp32-s3-devkitc-1/firmware.bin|elf)
-        ├── diagram.png      ← screenshot of the circuit from the Wokwi editor (the author takes it)
-        ├── schematic.svg    ← the real circuit as a schematic (schemdraw; the script lives outside the repo)
-        └── README.md        ← what the step does, wiring, ![Schematic](schematic.svg), ![Circuit in Wokwi](diagram.png),
-                               what breaks on real hardware; "▶ Simulate in Wokwi" link once published
+        ├── src/main.cpp, include/*.h
+        ├── diagram.json, wokwi.toml ← Wokwi circuit (→ .pio/build/esp32-s3-devkitc-1/firmware.bin|elf), if asked for
+        ├── diagram.png      ← screenshot of the circuit from the Wokwi editor (the author takes it), with diagram.json
+        ├── schematic.svg    ← the real circuit as a schematic (schemdraw, script outside the repo), if asked for
+        └── README.md        ← what the step does, wiring, what breaks on real hardware; the homework's README also
+                               holds the assignment, translated in full, and how each point is done
 ```
+The homework is **one folder per board** (`NN-homework-<slug>-esp32`, maybe `…-stm32` too): the final code of every
+task, required and optional. Module 1 split homework into `base` and `extra` steps; it stays as it is.
 Module 0 (self-study) is not in the repo.
 Keep every project standard: **never** multiple environments, `src_dir` or `build_src_filter`.
 
@@ -109,21 +115,21 @@ in the same CubeIDE workspace. Module 1 keeps its names.
   branch, named after its folder (`module-N/N.M-<topic>`), created from an up-to-date `main` before its first commit:
   the draft, `practice` and `lecture` steps, the lesson README, module docs. Commit to it after every step that works.
 - **The homework gets a branch of its own,** `module-N/N.M-<topic>-homework`, so the pull request the teacher reviews
-  holds nothing but the homework: the `base` and `extra` steps, the assignment and their rows in the lesson README.
-  The teacher may see the practice and lecture steps on `main`, just not in that pull request. Order: the homework is
-  written in the draft on the lesson branch; `/save-hw` splits the draft into steps, commits everything except the
-  homework steps to the lesson branch, and that branch is merged; then the homework branch starts from the updated
-  `main` and gets only the homework steps. Notes written after the homework (`module-N/CLAUDE.md`,
-  `module-N/README.md`) go to `main` as `docs:` commits, never into the homework pull request.
+  holds nothing but the homework: its folder and its row in the lesson README. The teacher may see the practice and
+  lecture steps on `main`, just not in that pull request. Order: the homework is written in the draft on the lesson
+  branch, one commit per change; `/save-hw` saves the practice and lecture steps, removes the draft, and the lesson
+  branch is merged; then the homework branch starts from the updated `main` and replays the draft's homework commits
+  into the homework folder (same messages and author dates, each one built), plus a README commit. Notes written
+  after the homework (`module-N/CLAUDE.md`, `module-N/README.md`) go to `main` as `docs:` commits, never into the
+  homework pull request.
   Format: `<folder>: <what was done>` (`repo:` for root configs, `docs:` for documentation).
 - Remote `origin` = https://github.com/alex-rns/EMB27, public. Push the branch after committing.
   The history is published: no rewriting and no force-push unless the author explicitly asks.
 - A branch reaches `main` only through a pull request (`gh pr create --base main`), and CI runs on it.
-  The homework branch goes to the teacher: `/finish-lesson` opens its PR, the author sends the link to the teacher,
+  The homework branch goes to the teacher: `/save-hw` opens its PR, the author sends the link to the teacher,
   review fixes are new commits on the homework branch, and the merge waits for the teacher's review and the author's
   yes. Every other branch (the lesson branch, an extra project the author says is not homework) skips the review:
-  the author merges it without waiting for CI, and the CI result is checked after the merge (a failure gets a fix on
-  a new branch).
+  the author merges it without waiting for CI, and nobody waits for that CI run afterwards either.
   Always a merge commit (`gh pr merge --merge --delete-branch`), never squash: every step's commit stays in the
   history. Repo configs and docs outside a lesson (`repo:`, `docs:`) may still go straight to `main`.
 - CI (GitHub Actions, `.github/workflows/build.yml`) runs on every push to `main` and on every pull request:

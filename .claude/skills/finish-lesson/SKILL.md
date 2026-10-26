@@ -1,17 +1,18 @@
 ---
 name: finish-lesson
-description: Use when the user says a lesson or its homework is done in the EMB27 repo, runs /finish-lesson, or is about to move on to the next lesson.
+description: Use when the user runs /finish-lesson or asks for a lesson's check questions or wrap-up in the EMB27 repo. Optional, after the homework's pull request is open; never a step the homework waits for.
 ---
 
 # Finish lesson
 
 ## Overview
 
-The point of finishing a lesson is that the user **understands the topic**. A lesson is finished when
-every saved step still builds, the docs match the code, the user has answered check questions in their
-own words, and the result is committed, pushed and, for a homework, opened as a pull request into `main` for the
-teacher's review. That pull request comes from the homework branch `module-N/N.M-<topic>-homework` and holds only
-the homework (CLAUDE.md, Git). If the homework isn't saved yet, run `/save-hw` first.
+The point of finishing a lesson is that the user **understands the topic**: every saved step still builds, the
+docs match the code, and the user has answered check questions in their own words. This skill is **optional** and
+runs only when the user asks. The homework's pull request is already open by then (`/save-hw` opens it right after
+saving); it comes from the homework branch `module-N/N.M-<topic>-homework` and holds only the homework (CLAUDE.md,
+Git), so doc fixes for the homework become new commits on that branch and show up in the open pull request.
+If the homework isn't saved yet, run `/save-hw` first.
 
 Steps 1–3 run right away and count as one step: report them in one message and stop.
 Step 4 onwards waits for the user's answers.
@@ -35,8 +36,9 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
    Every step must succeed. Explain every warning to the user, then fix it or say why it stays.
 2. **Consistency checks:**
    - every PlatformIO step has `platformio.ini` (one `[env:esp32-s3-devkitc-1]`, `build_src_flags = -Wall -Wextra`),
-     `src/main.cpp`, `diagram.json` (valid JSON), `wokwi.toml` (→ `.pio/build/esp32-s3-devkitc-1/…`), `README.md`;
-   - pins in each `diagram.json` match the pins in its `main.cpp`. Don't open the `diagram.png` screenshots:
+     `src/main.cpp`, `README.md`; a step with circuits also has `diagram.json` (valid JSON) and `wokwi.toml`
+     (→ `.pio/build/esp32-s3-devkitc-1/…`);
+   - pins in each `diagram.json` (where a step has one) match the pins in its `main.cpp`. Don't open the `diagram.png` screenshots:
      viewing them is slow, and `/save-hw` already checked each one when it was taken;
    - each `schematic.svg` (where a step has one) shows the parts and GPIOs of its README and `main.cpp`: read
      its `<text>` labels, don't render it;
@@ -61,12 +63,13 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
    Record anything still shaky as an open thread.
 5. **Update the docs** (English). The homework's pull request holds only the homework, so the docs go to
    three places:
-   - **the homework branch** `module-N/N.M-<topic>-homework`: the homework steps' READMEs and their rows in the lesson
-     `README.md`: fix the doc findings from step 2; add Wokwi links if the user published them;
+   - **the homework branch** `module-N/N.M-<topic>-homework`: the homework folder's README and its row in the lesson
+     `README.md`: fix the doc findings from step 2; add Wokwi links if the user published them. These commits show
+     up in the open pull request;
    - **`main`, one `docs:` commit** (`git switch main && git pull`; the pre-commit hook allows files outside lesson
      folders), never in the homework's pull request:
-     - `module-N/README.md`: the lesson row → `[<short name>](N.M-<topic>/) — base task + K extras`,
-       plus ` + P practice` when the lesson has practice steps;
+     - `module-N/README.md`: the lesson row → `[<short name>](N.M-<topic>/) — homework`, plus ` + P practice` /
+       ` + L lecture` when the lesson has those steps;
      - `module-N/CLAUDE.md`: status ✅ and a technical lesson summary: concepts and what breaks on real
        hardware. Update open threads. The repo is public: how the user answered, their mistakes and their
        learning progress never go into repo files;
@@ -80,18 +83,12 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
    `module-N/N.M-<topic>: finish lesson` on the homework branch (only when it has changes) and
    `docs: module-N: finish lesson N.M` on `main`. Push both. `git status -sb` on the homework branch must show
    `## module-N/N.M-<topic>-homework...origin/module-N/N.M-<topic>-homework` with nothing ahead.
-7. **Open the homework's pull request** (after the user's yes). First check, on the homework branch, that it holds
-   nothing but the homework: after `git fetch origin`, `git diff --name-only origin/main...HEAD` must list only the
-   homework steps and the lesson `README.md`, and `git log --oneline origin/main..HEAD` only the homework branch's own
-   commits (`save homework`, `finish lesson`). Anything else (the draft, `archive/`, practice or lecture steps, module
-   docs, lesson-branch commits): stop and fix the branch before opening. Then
-   `gh pr create --base main --head module-N/N.M-<topic>-homework`, title `module-N/N.M-<topic>: homework`, an
-   English body for the teacher: the assignment in full (every point of the text the user pasted, translated), the
-   homework steps table with links, how it was tested
-   (builds, Wokwi, the board), known limits. `gh pr view --json files --jq '.files[].path'` must list only the
-   homework steps and the lesson `README.md`. Wait for CI to pass (`gh pr checks`), then give the user the link to
-   send to the teacher. Review fixes are new commits on the homework branch. Merge only after the teacher's review
-   and the user's yes. A lesson without homework has only its lesson branch: no review, merge after the user's yes.
+7. **The homework's pull request** is already open. After pushing to the homework branch, check that the pull
+   request still holds nothing but the homework: `gh pr view <n> --json files --jq '.files[].path'` lists only the
+   homework folder and the lesson `README.md`. Anything else (the draft, `archive/`, practice or lecture steps,
+   module docs): fix the branch at once. Review fixes are new commits on the homework branch. Merge only after the
+   teacher's review and the user's yes. A lesson without homework has only its lesson branch: no review, merge after
+   the user's yes.
 
    Merge with `gh pr merge --merge --delete-branch`, then `git switch main && git pull`.
 
