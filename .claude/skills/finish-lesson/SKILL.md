@@ -86,7 +86,8 @@ Talk to the user in their language (see their CLAUDE.md). Everything written int
    commits (`save homework`, `finish lesson`). Anything else (the draft, `archive/`, practice or lecture steps, module
    docs, lesson-branch commits): stop and fix the branch before opening. Then
    `gh pr create --base main --head module-N/N.M-<topic>-homework`, title `module-N/N.M-<topic>: homework`, an
-   English body for the teacher: the assignment in short, the homework steps table with links, how it was tested
+   English body for the teacher: the assignment in full (every point of the text the user pasted, translated), the
+   homework steps table with links, how it was tested
    (builds, Wokwi, the board), known limits. `gh pr view --json files --jq '.files[].path'` must list only the
    homework steps and the lesson `README.md`. Wait for CI to pass (`gh pr checks`), then give the user the link to
    send to the teacher. Review fixes are new commits on the homework branch. Merge only after the teacher's review
