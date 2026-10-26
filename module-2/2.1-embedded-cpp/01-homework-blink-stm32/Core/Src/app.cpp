@@ -8,11 +8,16 @@
 #include "app.h"
 #include "main.h"
 
+enum class LedState {On, Off};
+
+constexpr uint16_t kLedPin = GPIO_PIN_13;
+constexpr uint32_t kBlinkIntervalMs = 1000;
+
 void app_setup() {
 
 }
 
 void app_loop() {
-	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-	HAL_Delay(1000);
+	HAL_GPIO_TogglePin(GPIOC, kLedPin);
+	HAL_Delay(kBlinkIntervalMs);
 }
