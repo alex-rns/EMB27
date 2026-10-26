@@ -24,8 +24,14 @@ void setup() {
 }
 
 void loop() {
-    led.set(LedState::On);
-    delay(kBlinkIntervalMs);
-    led.set(LedState::Off);
-    delay(kBlinkIntervalMs);
+    static uint32_t lastToggleMs = 0;
+    static LedState ledState = LedState::Off;
+
+    const uint32_t nowMs = millis();
+
+    if (nowMs - lastToggleMs >= kBlinkIntervalMs) {
+        ledState = ledState == LedState::On ? LedState::Off : LedState::On;
+        led.set(ledState);
+        lastToggleMs = nowMs;
+    }
 }
