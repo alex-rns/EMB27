@@ -7,11 +7,14 @@
 Embedded C++ on the ESP32: `enum class`, `constexpr`, a `Led` class, a non-blocking superloop on `millis()`,
 the loop's own timing, and a button on an interrupt.
 
+The assignment, translated in full, is in the [homework step's README](01-homework-blink-esp32/README.md#assignment).
+
 ## Steps
 
 | # | Step | Type | What it shows |
 |---|---|---|---|
 | 00 | [practice-blink-esp32](00-practice-blink-esp32/) | practice | the homework tasks done once before the lecture |
+| 01 | [homework-blink-esp32](01-homework-blink-esp32/) | homework | the homework: the assignment, how each point is done, one commit per change |
 
 ## Working with the steps
 
