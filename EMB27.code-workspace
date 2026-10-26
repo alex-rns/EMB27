@@ -5,8 +5,8 @@
       "name": "EMB27 (repo)"
     },
     {
-      "name": "2.1-embedded-cpp",
-      "path": "module-2/2.1-embedded-cpp"
+      "name": "01-homework-blink-esp32",
+      "path": "module-2/2.1-embedded-cpp/01-homework-blink-esp32"
     }
   ],
   "settings": {

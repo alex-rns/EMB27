@@ -7,7 +7,7 @@
 
 | Lesson | Topic | Folder | Status |
 |---|---|---|---|
-| 2.1 | C++ for MCUs: resource limits and specifics | `2.1-embedded-cpp` | 🔄 in progress: the ESP32 draft |
+| 2.1 | C++ for MCUs: resource limits and specifics | `2.1-embedded-cpp` | ✅ saved · ⏳ /finish-lesson |
 | 2.2 | Passive and active loads: connecting a heavy load | — | — |
 | 2.3 | Superloop: several things at once | — | — |
 | 2.4 | Hardware interrupts: reacting to buttons | — | — |
@@ -16,6 +16,11 @@
 | 2.7 | Mini project: a traffic light on timers | — | — |
 | 2.8 | Debrief and optimisation: `volatile` | — | — |
 | 2.9 | Flexible slot | — | — |
+
+## Pins used so far
+
+- 2.1: 7 (LED through a resistor to GND), 9 (button to GND, `INPUT_PULLUP`, interrupt on `FALLING`).
+  The pins to avoid are listed in `../module-1/CLAUDE.md`.
 
 ## Two boards
 
