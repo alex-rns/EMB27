@@ -13,8 +13,10 @@ enum class LedState {
 	Off
 };
 
-constexpr uint16_t kLedPin = GPIO_PIN_13;
-constexpr uint32_t kBlinkIntervalMs = 1000;
+struct Config {
+	static constexpr uint16_t kLedPin = GPIO_PIN_13;
+	static constexpr uint32_t kBlinkIntervalMs = 1000;
+};
 
 class Led {
 	public:
@@ -24,7 +26,7 @@ class Led {
 	}
 
 	void set(LedState state) {
-		HAL_GPIO_WritePin(GPIOC, kLedPin, state == LedState::On ? GPIO_PIN_RESET : GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOC, Config::kLedPin, state == LedState::On ? GPIO_PIN_RESET : GPIO_PIN_SET);
 	}
 };
 
@@ -41,7 +43,7 @@ void app_loop() {
 
 	const uint32_t nowMs = HAL_GetTick();
 
-	if (nowMs - lastToggleMs >= kBlinkIntervalMs) {
+	if (nowMs - lastToggleMs >= Config::kBlinkIntervalMs) {
 		ledState = ledState == LedState::On ? LedState::Off : LedState::On;
 		led.set(ledState);
 		lastToggleMs = nowMs;
