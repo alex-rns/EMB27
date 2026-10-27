@@ -36,8 +36,15 @@ void app_setup() {
 }
 
 void app_loop() {
-	led.set(LedState::On);
-	HAL_Delay(kBlinkIntervalMs);
-	led.set(LedState::Off);
-	HAL_Delay(kBlinkIntervalMs);
+	static uint32_t lastToggleMs = 0;
+	static LedState ledState = LedState::Off;
+
+	const uint32_t nowMs = HAL_GetTick();
+
+	if (nowMs - lastToggleMs >= kBlinkIntervalMs) {
+		ledState = ledState == LedState::On ? LedState::Off : LedState::On;
+		led.set(ledState);
+		lastToggleMs = nowMs;
+	}
+
 }
