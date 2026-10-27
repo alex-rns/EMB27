@@ -16,6 +16,7 @@ enum class LedState {
 struct Config {
 	static constexpr uint16_t kLedPin = GPIO_PIN_13;
 	static constexpr uint32_t kBlinkIntervalMs = 1000;
+	static GPIO_TypeDef* ledPort() { return GPIOC; }
 };
 
 class Led {
@@ -26,7 +27,7 @@ class Led {
 	}
 
 	void set(LedState state) {
-		HAL_GPIO_WritePin(GPIOC, Config::kLedPin, state == LedState::On ? GPIO_PIN_RESET : GPIO_PIN_SET);
+		HAL_GPIO_WritePin(Config::ledPort(), Config::kLedPin, state == LedState::On ? GPIO_PIN_RESET : GPIO_PIN_SET);
 	}
 };
 
