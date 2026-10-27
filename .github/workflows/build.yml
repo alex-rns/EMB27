@@ -38,3 +38,26 @@ jobs:
           pio pkg install --global --platform "platformio/espressif32@7.1.3"
       - name: Build every project (fails on an error or a warning in our code)
         run: bash .github/scripts/build-all.sh
+
+  build-stm32:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Cache the Arm GNU Toolchain
+        id: armgcc
+        uses: actions/cache@v6
+        with:
+          path: ~/arm-gnu-toolchain
+          key: arm-gnu-toolchain-14.3.rel1-x86_64
+      # GCC 14.3, the version STM32CubeIDE 2.2.0 bundles (ST's build of it), straight from Arm.
+      # The checksum is the one Arm publishes next to the archive (.sha256asc).
+      - name: Install Arm GNU Toolchain 14.3.rel1
+        if: steps.armgcc.outputs.cache-hit != 'true'
+        run: |
+          url=https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi.tar.xz
+          curl -fsSL -o /tmp/armgcc.tar.xz "$url"
+          echo "8f6903f8ceb084d9227b9ef991490413014d991874a1e34074443c2a72b14dbd  /tmp/armgcc.tar.xz" | sha256sum -c -
+          mkdir -p ~/arm-gnu-toolchain
+          tar -xJf /tmp/armgcc.tar.xz --strip-components=1 -C ~/arm-gnu-toolchain
+      - name: Build every STM32CubeIDE project (fails on an error or a warning in Core/)
+        run: ARM_GCC_BIN=~/arm-gnu-toolchain/bin bash .github/scripts/build-stm32.sh
