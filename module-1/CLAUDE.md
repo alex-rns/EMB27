@@ -209,7 +209,9 @@ on PC13 lit by LOW (CubeMX writes PC13 low before making it an output, so it lig
 100 MHz (USB would need the 48 MHz output reworked: it gives 50 MHz). `HAL_Delay(n)` waits n + 1 ms (one tick added,
 SysTick-driven, blocking). KEY on PA0 needs CubeMX's Pull-up: the board has no resistor to 3.3 V, and without it a
 released button leaves PA0 floating (it read 1 in a test, by luck). CubeMX's File → Load Project may open an older
-project from the CubeIDE workspace: check Project Manager → Project Location before changing anything. Memory: 5996
+project from the CubeIDE workspace: check Project Manager → Project Location before changing anything. CubeIDE's
+own build uses `-Wall` only; CI's `build-stm32.sh` adds `-Wextra` for `Core/` (0 warnings there; the HAL's 3
+`-Wextra` warnings in `stm32f4xx_hal_flash_ex.c` stay out because `Drivers/` is built without warning flags). Memory: 5996
 bytes of flash (vector table 408), 44 bytes of variables in RAM plus a 1540-byte heap/stack reserve. The ST-Link
 serves one program at a time: an open STM32CubeProgrammer window blocks a CubeIDE debug launch ("another process has
 device opened for exclusive access"); CubeIDE on macOS also needs the ST-LINK Server package from its dmg. Steps:
@@ -233,9 +235,3 @@ the step's first commit).
    open.
 7. RGB byte UI: the button block (read, compare with the previous level, update it) is written out six times. A
    function that takes the pin and a pointer to its previous level, or an array of buttons, would remove the copies.
-8. 1.8: CubeIDE compiles with `-Wall` only. `-Wextra` (the repo's rule) gave 0 warnings in `Core/` and 3 in the HAL
-   (`stm32f4xx_hal_flash_ex.c`, unused parameter `Banks`). Open: turn it on project-wide and accept the HAL noise, or
-   only for `Core/`.
-9. 1.8: CI doesn't build STM32 steps (`build-all.sh` looks for `platformio.ini`). Options: headless CubeIDE in CI
-   (a ~1 GB install) or CubeMX Toolchain = CMake and `arm-none-eabi-gcc` + `cmake` (CubeIDE 2.x opens CMake projects
-   too; to be tested before switching).

@@ -138,6 +138,10 @@ in the same CubeIDE workspace. Module 1 keeps its names.
   (builds every folder with a `platformio.ini`; a compiler warning in our code fails it). PlatformIO 6.2.0 and
   espressif32 7.1.3 are pinned there; change them together with the local install. Both scripts run locally too
   (`PIO=~/.platformio/penv/bin/pio bash .github/scripts/build-all.sh`).
-  STM32 steps get `checks.sh` but no build yet: build them in CubeIDE (or its headless build) before committing.
+  `.github/scripts/build-stm32.sh` builds every STM32CubeIDE project (a folder with a `.cproject`) without CubeIDE:
+  the flags of CubeIDE's Debug build plus `-Wextra`, with Arm GNU Toolchain 14.3.rel1 (the GCC 14.3 that CubeIDE
+  2.2.0 bundles); a warning in `Core/` fails it, the HAL in `Drivers/` is built without warning flags. It runs
+  locally with CubeIDE's own compiler (the command is in the script's header) and needs no CubeIDE window closed.
+  It only compiles: it doesn't run CubeMX, so a `.ioc` change must still be regenerated in CubeMX and committed.
   A step's `wokwi-scenario.yaml` runs locally only (`wokwi-cli . --scenario wokwi-scenario.yaml` in the step folder),
   not in CI: the free Wokwi plan has 50 minutes per rolling 30 days, shared with the Wokwi MCP.

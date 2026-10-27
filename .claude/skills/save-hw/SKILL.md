@@ -96,7 +96,9 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
 5. **Verify.** Every check must pass:
    ```bash
    L=module-N/N.M-<topic>
-   for s in $L/*/; do echo "== $s"; ~/.platformio/penv/bin/pio run -d "$s" 2>&1 | grep -E 'warning:|error:|SUCCESS|FAILED'; done
+   for s in $L/*/; do [ -f "$s"platformio.ini ] || continue; echo "== $s"; ~/.platformio/penv/bin/pio run -d "$s" 2>&1 | grep -E 'warning:|error:|SUCCESS|FAILED'; done
+   # STM32 steps (every .cproject in the repo; the command with CubeIDE's compiler is in the script's header):
+   ARM_GCC_BIN="$(ls -d /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/*gnu-tools-for-stm32*macos*/tools/bin)" bash .github/scripts/build-stm32.sh
    # Cyrillic in the repo (tracked + new files) — must print nothing:
    git ls-files -co --exclude-standard -z | xargs -0 /usr/bin/perl -CSD -ne 'BEGIN { @ARGV = grep { -T } @ARGV } print "$ARGV:$.: $_" if /\p{Cyrillic}/; close ARGV if eof'
    git status --short   # no .pio/, .vscode/ or project .gitignore
