@@ -7,29 +7,8 @@
 
 #include "app.h"
 #include "main.h"
-
-enum class LedState {
-	On,
-	Off
-};
-
-struct Config {
-	static constexpr uint16_t kLedPin = GPIO_PIN_13;
-	static constexpr uint32_t kBlinkIntervalMs = 1000;
-	static GPIO_TypeDef* ledPort() { return GPIOC; }
-};
-
-class Led {
-	public:
-
-	void init() {
-		set(LedState::Off);
-	}
-
-	void set(LedState state) {
-		HAL_GPIO_WritePin(Config::ledPort(), Config::kLedPin, state == LedState::On ? GPIO_PIN_RESET : GPIO_PIN_SET);
-	}
-};
+#include "config.h"
+#include "led.h"
 
 Led led;
 
