@@ -41,9 +41,11 @@ Module 1 has no flexible slot (those are in modules 2–6).
 - 1.8: WeAct Black Pill STM32F411CEU6 (512 KB flash, 128 KB RAM, 25 MHz + 32.768 kHz crystals) and an ST-Link V2
   clone (firmware V2J37S7; CubeIDE offers an update: decline it on a clone). SWD header by its labels: ST-Link
   3.3V → 3V3, GND → GND, SWDIO → DIO, SWCLK → SCK; the board then runs from the ST-Link, USB-C unplugged.
-  Per WeAct's V3.1 schematic: blue LED 3.3 V → 1.5 kΩ → PC13 (lit on LOW), KEY button PA0 → 330 Ω → GND with no
-  external pull-up, NRST and BOOT0 buttons, PA13/PA14 = SWD. Pins used: PC13 (LED), PA0 (KEY, input with the
-  internal pull-up).
+  The board is WeAct V3.1 ("V3.1" printed on the back), so WeAct's V3.1 schematic applies: blue LED 3.3 V → 1.5 kΩ →
+  PC13 (lit on LOW), KEY button PA0 → 330 Ω → GND with no external pull-up, NRST and BOOT0 buttons, PA13/PA14 = SWD.
+  The optional SPI flash (U3, on the back) is fitted on this board (the packaging says 8 MB): PA4 = its CS,
+  PA5/PA6/PA7 = SCK/MISO/MOSI. Keep PA4 for the flash (HIGH keeps it off the bus); another SPI device can share
+  PA5–PA7. Pins used: PC13 (LED), PA0 (KEY, input with the internal pull-up).
 
 ## What to watch for (common mistakes, including in AI-generated code)
 
@@ -237,4 +239,3 @@ the step's first commit).
 9. 1.8: CI doesn't build STM32 steps (`build-all.sh` looks for `platformio.ini`). Options: headless CubeIDE in CI
    (a ~1 GB install) or CubeMX Toolchain = CMake and `arm-none-eabi-gcc` + `cmake` (CubeIDE 2.x opens CMake projects
    too; to be tested before switching).
-10. 1.8: the board's revision (WeAct V3.x) is not checked against the V3.1 schematic.
