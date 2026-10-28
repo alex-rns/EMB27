@@ -47,14 +47,19 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
 
 ## Steps
 
-1. **Move the source project to the Trash.** Ask the user to close the draft's files in VS Code first: with a
-   draft file still open, the PlatformIO extension was seen re-creating an empty project in the freed folder
-   (`platformio.ini` with comments only, `include/`, `lib/`, `test/`, `src/`, `.vscode/`; 2026-10-26).
+1. **Move the source project to the Trash.** With the draft still a workspace folder, the PlatformIO extension was
+   seen re-creating an empty project in the freed folder (`platformio.ini` with comments only, `include/`, `lib/`,
+   `test/`, `src/`, `.vscode/`; 2026-10-26). So first point `EMB27.code-workspace` at the homework folder (step 4's
+   change, done now; VS Code drops the draft from the workspace), wait a few seconds, then move it, then check that
+   nothing came back. No need to ask the user to close files (2026-10-29: it worked with them open).
    The Trash keeps everything, and this frees the path if the source sits where the lesson folder must go:
    ```bash
+   # EMB27.code-workspace already points at the homework folder; then:
+   sleep 5
    T=~/.Trash/<project-name>-$(date +%Y%m%d-%H%M)
    git rm -r -q --cached <source> 2>/dev/null   # only if it was tracked; history keeps it
    mkdir -p "$T" && mv <source> "$T"/
+   sleep 10; ls -A <source> 2>/dev/null          # must print nothing; a re-created stub goes to the Trash too
    ```
    Never `rm` the user's work.
    The draft is usually the lesson folder itself. If it already holds `*-stm32` step folders (CubeIDE projects, not

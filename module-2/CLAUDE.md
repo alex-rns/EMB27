@@ -8,7 +8,7 @@
 | Lesson | Topic | Folder | Status |
 |---|---|---|---|
 | 2.1 | C++ for MCUs: resource limits and specifics | `2.1-embedded-cpp` | ✅ done · homework PRs #6 (ESP32) and #7 (STM32) waiting for the teacher's review |
-| 2.2 | Passive and active loads: connecting a heavy load | — | — |
+| 2.2 | Passive and active loads: connecting a heavy load | `2.2-passive-active-loads` | ESP32 required task saved, PR open · bonus (soft PWM) and the STM32 versions to come, each in its own PR |
 | 2.3 | Superloop: several things at once | — | — |
 | 2.4 | Hardware interrupts: reacting to buttons | — | — |
 | 2.5 | Timers: measuring time precisely | — | — |
@@ -21,6 +21,8 @@
 
 - 2.1: 7 (LED through a resistor to GND), 9 (button to GND, `INPUT_PULLUP`, interrupt on `FALLING`).
   The pins to avoid are listed in `../module-1/CLAUDE.md`.
+- 2.2: 7 (relay coil: 10 kΩ to a BC547 base, collector to the module's IN with a 10 kΩ pull-up to 5 V), 9 (the relay's
+  NO contact, COM to GND, internal pull-up).
 - 2.1 STM32: PC13 (the Black Pill's onboard LED, lit on LOW). PA13/PA14 stay SWD.
 
 ## Two boards

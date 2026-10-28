@@ -5,8 +5,8 @@
       "name": "EMB27 (repo)"
     },
     {
-      "name": "01-homework-blink-esp32",
-      "path": "module-2/2.1-embedded-cpp/01-homework-blink-esp32"
+      "name": "00-homework-relay-delay-esp32",
+      "path": "module-2/2.2-passive-active-loads/00-homework-relay-delay-esp32"
     }
   ],
   "settings": {
