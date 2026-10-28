@@ -77,6 +77,149 @@ average of 10: ON 3312 us, OFF 4122 us
 
 The earlier busy-wait version (a `while` loop polling GPIO 9, in the history) gave the same: 3314 us and 4114 us.
 
+### All the runs on the board
+
+Serial output as printed, relay powered before the reset. Each run belongs to a commit of this folder.
+
+<details>
+<summary>Interrupt version (a1faf06): 10 cycles</summary>
+
+```
+relay ON:  contact closed after 3287 us
+relay OFF: contact opened after 4143 us
+average of 1: ON 3287 us, OFF 4143 us
+
+relay ON:  contact closed after 3308 us
+relay OFF: contact opened after 4132 us
+average of 2: ON 3297 us, OFF 4137 us
+
+relay ON:  contact closed after 3313 us
+relay OFF: contact opened after 4129 us
+average of 3: ON 3302 us, OFF 4134 us
+
+relay ON:  contact closed after 3312 us
+relay OFF: contact opened after 4127 us
+average of 4: ON 3305 us, OFF 4132 us
+
+relay ON:  contact closed after 3309 us
+relay OFF: contact opened after 4124 us
+average of 5: ON 3305 us, OFF 4131 us
+
+relay ON:  contact closed after 3315 us
+relay OFF: contact opened after 4120 us
+average of 6: ON 3307 us, OFF 4129 us
+
+relay ON:  contact closed after 3317 us
+relay OFF: contact opened after 4117 us
+average of 7: ON 3308 us, OFF 4127 us
+
+relay ON:  contact closed after 3322 us
+relay OFF: contact opened after 4113 us
+average of 8: ON 3310 us, OFF 4125 us
+
+relay ON:  contact closed after 3323 us
+relay OFF: contact opened after 4114 us
+average of 9: ON 3311 us, OFF 4124 us
+
+relay ON:  contact closed after 3319 us
+relay OFF: contact opened after 4107 us
+average of 10: ON 3312 us, OFF 4122 us
+```
+</details>
+
+<details>
+<summary>Busy-wait version with the running average (bf95e07): 11 cycles</summary>
+
+```
+relay ON:  contact closed after 3258 us
+relay OFF: contact opened after 4130 us
+average of 1: ON 3258 us, OFF 4130 us
+
+relay ON:  contact closed after 3316 us
+relay OFF: contact opened after 4124 us
+average of 2: ON 3287 us, OFF 4127 us
+
+relay ON:  contact closed after 3320 us
+relay OFF: contact opened after 4121 us
+average of 3: ON 3298 us, OFF 4125 us
+
+relay ON:  contact closed after 3316 us
+relay OFF: contact opened after 4118 us
+average of 4: ON 3302 us, OFF 4123 us
+
+relay ON:  contact closed after 3313 us
+relay OFF: contact opened after 4119 us
+average of 5: ON 3304 us, OFF 4122 us
+
+relay ON:  contact closed after 3321 us
+relay OFF: contact opened after 4111 us
+average of 6: ON 3307 us, OFF 4120 us
+
+relay ON:  contact closed after 3320 us
+relay OFF: contact opened after 4111 us
+average of 7: ON 3309 us, OFF 4119 us
+
+relay ON:  contact closed after 3321 us
+relay OFF: contact opened after 4107 us
+average of 8: ON 3310 us, OFF 4117 us
+
+relay ON:  contact closed after 3326 us
+relay OFF: contact opened after 4104 us
+average of 9: ON 3312 us, OFF 4116 us
+
+relay ON:  contact closed after 3332 us
+relay OFF: contact opened after 4103 us
+average of 10: ON 3314 us, OFF 4114 us
+
+relay ON:  contact closed after 3331 us
+relay OFF: contact opened after 4098 us
+average of 11: ON 3315 us, OFF 4113 us
+```
+</details>
+
+<details>
+<summary>Busy-wait version without the average (c8f13e1): 12 cycles</summary>
+
+```
+relay ON:  contact closed after 3309 us
+relay OFF: contact opened after 4138 us
+
+relay ON:  contact closed after 3307 us
+relay OFF: contact opened after 4132 us
+
+relay ON:  contact closed after 3311 us
+relay OFF: contact opened after 4129 us
+
+relay ON:  contact closed after 3314 us
+relay OFF: contact opened after 4122 us
+
+relay ON:  contact closed after 3312 us
+relay OFF: contact opened after 4122 us
+
+relay ON:  contact closed after 3312 us
+relay OFF: contact opened after 4117 us
+
+relay ON:  contact closed after 3311 us
+relay OFF: contact opened after 4117 us
+
+relay ON:  contact closed after 3319 us
+relay OFF: contact opened after 4111 us
+
+relay ON:  contact closed after 3324 us
+relay OFF: contact opened after 4108 us
+
+relay ON:  contact closed after 3324 us
+relay OFF: contact opened after 4106 us
+
+relay ON:  contact closed after 3327 us
+relay OFF: contact opened after 4104 us
+
+relay ON:  contact closed after 3323 us
+relay OFF: contact opened after 4102 us
+```
+Average of these 12 (by hand): ON 3316 us, OFF 4117 us.
+</details>
+
 **The bounce, seen with a logic analyzer** (24 MS/s; D1 = GPIO 7 command, D0 = GPIO 9 contact):
 
 ![Relay contact bounce](relay-bounce.svg)
