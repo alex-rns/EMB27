@@ -11,6 +11,7 @@ measure the relay's mechanical delay and see its contact bounce.
 
 | # | Step | Type | What it shows |
 |---|---|---|---|
+| 00 | [homework-relay-delay-esp32](00-homework-relay-delay-esp32/) | homework | a relay on a transistor switch, its switch-on / switch-off delay measured with a pin interrupt, contact bounce ([assignment](00-homework-relay-delay-esp32/README.md#assignment)) |
 
 ## Working with the steps
 
