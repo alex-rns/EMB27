@@ -16,6 +16,9 @@ void app_main(void) {
     gpio_set_direction(GPIO_NUM_9, GPIO_MODE_INPUT);   // input only: the pin reads, never drives
     gpio_set_pull_mode(GPIO_NUM_9, GPIO_PULLUP_ONLY);  // open contact reads 1 (pull-up), closed reads 0 (COM = GND)
 
+    int64_t sum_on = 0, sum_off = 0;  // all times so far, in us
+    int count = 0;                    // cycles so far
+
     while (true) {  // true is a keyword since C23 (ESP-IDF builds C with -std=gnu23)
         // ---- ON: command -> contact closes ----
         int64_t t0 = esp_timer_get_time();          // microseconds since boot, like Arduino's micros()
@@ -23,6 +26,7 @@ void app_main(void) {
         while (gpio_get_level(GPIO_NUM_9) == 1) {}  // busy-wait while the contact is still open (1 = open)
         int64_t t1 = esp_timer_get_time();          // first touch of the contact (bounce comes after it)
         printf("relay ON:  contact closed after %lld us\n", t1 - t0);  // int64_t is long long here: %lld
+        sum_on += t1 - t0;
         vTaskDelay(pdMS_TO_TICKS(1000));            // stay on 1 s = 100 ticks of 10 ms; other tasks run meanwhile
 
         // ---- OFF: command -> contact opens ----
@@ -30,7 +34,12 @@ void app_main(void) {
         gpio_set_level(GPIO_NUM_7, 0);              // LOW: the BC547 is off, the pull-up holds IN at 5 V, relay off
         while (gpio_get_level(GPIO_NUM_9) == 0) {}  // busy-wait while the contact is still closed (0 = closed)
         t1 = esp_timer_get_time();                  // the contact has just opened
-        printf("relay OFF: contact opened after %lld us\n\n", t1 - t0);  // blank line between cycles
+        printf("relay OFF: contact opened after %lld us\n", t1 - t0);
+        sum_off += t1 - t0;
         vTaskDelay(pdMS_TO_TICKS(1000));            // stay off 1 s too: without it the relay never releases
+
+        // ---- running average over all cycles so far ----
+        count++;
+        printf("average of %d: ON %lld us, OFF %lld us\n\n", count, sum_on / count, sum_off / count);
     }
 }
