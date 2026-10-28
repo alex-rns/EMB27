@@ -25,3 +25,8 @@ secrets.h
 *.launch
 .osx.project
 /module-*/**/.settings/language.settings.xml
+
+# ESP-IDF projects: the full sdkconfig.<env> is generated on the first build from the project's sdkconfig.defaults,
+# which is the tracked source of truth (keep options there, one line each)
+/module-*/**/sdkconfig.*
+!/module-*/**/sdkconfig.defaults
