@@ -104,6 +104,9 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim2);
 
+  uint32_t sum_on = 0, sum_off = 0;  // all times so far, in us; ~4200 us a cycle overflows after ~1 million cycles
+  uint32_t count = 0;                // cycles so far
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -119,6 +122,7 @@ int main(void)
 	  while (HAL_GPIO_ReadPin(CONTACT_IN_GPIO_Port, CONTACT_IN_Pin) == GPIO_PIN_SET) {}    // busy-wait while open (1)
 	  uint32_t t1 = __HAL_TIM_GET_COUNTER(&htim2);                            // first touch of the contact
 	  print_us("relay ON:  contact closed after", t1 - t0);                   // printed after t1: the print isn't timed
+	  sum_on += t1 - t0;
 	  HAL_Delay(1000);
 
 	  // ---- OFF: command -> contact opens ----
@@ -127,7 +131,14 @@ int main(void)
 	  while (HAL_GPIO_ReadPin(CONTACT_IN_GPIO_Port, CONTACT_IN_Pin) == GPIO_PIN_RESET) {}  // busy-wait while closed (0)
 	  t1 = __HAL_TIM_GET_COUNTER(&htim2);                                     // the contact has just opened
 	  print_us("relay OFF: contact opened after", t1 - t0);
-	  HAL_UART_Transmit(&huart2, (uint8_t *)"\r\n", 2, HAL_MAX_DELAY);        // blank line between cycles
+	  sum_off += t1 - t0;
+
+	  // ---- running average over all cycles so far ----
+	  count++;
+	  char buf[64];
+	  int len = snprintf(buf, sizeof buf, "average of %lu: ON %lu us, OFF %lu us\r\n\r\n",  // blank line between cycles
+	                     count, sum_on / count, sum_off / count);             // integer division: the fraction is dropped
+	  HAL_UART_Transmit(&huart2, (uint8_t *)buf, len, HAL_MAX_DELAY);
 	  HAL_Delay(1000);
   }
   /* USER CODE END 3 */
