@@ -92,6 +92,8 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  uint32_t duty_ms = PWM_DUTY_MS;
+  GPIO_PinState last_btn_state = GPIO_PIN_SET;
 
   /* USER CODE END 2 */
 
@@ -105,12 +107,22 @@ int main(void)
 	  uint32_t now = HAL_GetTick();                // ms since start (SysTick)
 	  uint32_t phase = (now % PWM_PERIOD_MS);      // ms into the current period: 0..9
 
-	  // on for the first PWM_DUTY_MS of each period, off for the rest
-	  if (phase < PWM_DUTY_MS) {
+	  // on for the first duty_ms of each period, off for the rest
+	  if (phase < duty_ms) {
 		  HAL_GPIO_WritePin(PWM_OUT_GPIO_Port, PWM_OUT_Pin, GPIO_PIN_SET);
 	  } else {
 		  HAL_GPIO_WritePin(PWM_OUT_GPIO_Port, PWM_OUT_Pin, GPIO_PIN_RESET);
 	  }
+
+	  GPIO_PinState btn_state = HAL_GPIO_ReadPin(BTN_UP_GPIO_Port, BTN_UP_Pin); // RESET = pressed (pull-up)
+
+	  // a press is the change SET -> RESET, not the pressed level itself
+	  if (last_btn_state == GPIO_PIN_SET && btn_state == GPIO_PIN_RESET) {
+		  if (duty_ms < PWM_PERIOD_MS) {
+			  duty_ms++;
+		  }
+	  }
+	  last_btn_state = btn_state;
   }
   /* USER CODE END 3 */
 }
