@@ -33,6 +33,7 @@
 /* USER CODE BEGIN PD */
 #define PWM_PERIOD_MS 10u // one PWM period: 100 Hz, too fast for the eye to see flicker
 #define PWM_DUTY_MS 3u    // LED on for 3 of every 10 ms = 30 % brightness
+#define DEBOUNCE_MS 30u   // ignore the button for this long after an accepted change
 
 /* USER CODE END PD */
 
@@ -94,6 +95,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   uint32_t duty_ms = PWM_DUTY_MS;
   GPIO_PinState last_btn_state = GPIO_PIN_SET;
+  uint32_t last_btn_change = 0;   // HAL_GetTick() of the last accepted button change
 
   /* USER CODE END 2 */
 
@@ -116,13 +118,15 @@ int main(void)
 
 	  GPIO_PinState btn_state = HAL_GPIO_ReadPin(BTN_UP_GPIO_Port, BTN_UP_Pin); // RESET = pressed (pull-up)
 
-	  // a press is the change SET -> RESET, not the pressed level itself
-	  if (last_btn_state == GPIO_PIN_SET && btn_state == GPIO_PIN_RESET) {
-		  if (duty_ms < PWM_PERIOD_MS) {
+	  // accept a change only DEBOUNCE_MS after the previous one: the bounces in between are ignored
+	  if (btn_state != last_btn_state && now - last_btn_change >= DEBOUNCE_MS) {
+		  // a press is the change SET -> RESET, not the pressed level itself
+		  if (btn_state == GPIO_PIN_RESET && duty_ms < PWM_PERIOD_MS) {
 			  duty_ms++;
 		  }
+		  last_btn_state = btn_state;
+		  last_btn_change = now;
 	  }
-	  last_btn_state = btn_state;
   }
   /* USER CODE END 3 */
 }
