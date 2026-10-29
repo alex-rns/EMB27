@@ -59,6 +59,14 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+// Reads the relay contact on PB1 and sends "contact open" or "contact closed" over USART2.
+static void print_contact(void)
+{
+  if (HAL_GPIO_ReadPin(CONTACT_IN_GPIO_Port, CONTACT_IN_Pin) == GPIO_PIN_SET)  // SET = open (pull-up)
+    HAL_UART_Transmit(&huart2, (uint8_t *)"contact open\r\n", 14, HAL_MAX_DELAY);
+  else                                                                           // RESET = closed (COM = GND)
+    HAL_UART_Transmit(&huart2, (uint8_t *)"contact closed\r\n", 16, HAL_MAX_DELAY);
+}
 
 /* USER CODE END 0 */
 
@@ -106,11 +114,15 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  HAL_GPIO_WritePin(RELAY_OUT_GPIO_Port, RELAY_OUT_Pin, GPIO_PIN_SET);    // PB0 high: the BC547 conducts, relay on
-	  HAL_UART_Transmit(&huart2, (uint8_t *)"tick\r\n", 6, HAL_MAX_DELAY);   // 6 bytes out of USART2 (PA2); \r: no printf to add it
+	  print_contact();                                                        // right after: still open, the relay hasn't moved yet
 	  HAL_Delay(1000);
+	  print_contact();                                                        // 1 s later: closed
 
 	  HAL_GPIO_WritePin(RELAY_OUT_GPIO_Port, RELAY_OUT_Pin, GPIO_PIN_RESET);  // PB0 low: relay off
+	  print_contact();                                                        // right after: still closed
 	  HAL_Delay(1000);
+	  print_contact();                                                        // 1 s later: open
+	  HAL_UART_Transmit(&huart2, (uint8_t *)"\r\n", 2, HAL_MAX_DELAY);        // blank line between cycles
   }
   /* USER CODE END 3 */
 }
