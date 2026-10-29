@@ -119,6 +119,8 @@ relay OFF: contact opened after 4117 us
 average of 8: ON 3302 us, OFF 4128 us
 ```
 
+![The same run in CubeIDE's serial console](serial-output.png)
+
 The same power test found two holes on the way, each found from a jump in the running average:
 
 - **A contact that had already moved.** A power cut during the relay's 1 s on let the contact open by itself before
