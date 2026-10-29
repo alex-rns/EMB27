@@ -94,6 +94,7 @@ int main(void)
   MX_TIM2_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  HAL_TIM_Base_Start(&htim2);
 
   /* USER CODE END 2 */
 
@@ -104,6 +105,12 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  HAL_GPIO_WritePin(RELAY_OUT_GPIO_Port, RELAY_OUT_Pin, GPIO_PIN_SET);    // PB0 high: the BC547 conducts, relay on
+	  HAL_UART_Transmit(&huart2, (uint8_t *)"tick\r\n", 6, HAL_MAX_DELAY);   // 6 bytes out of USART2 (PA2); \r: no printf to add it
+	  HAL_Delay(1000);
+
+	  HAL_GPIO_WritePin(RELAY_OUT_GPIO_Port, RELAY_OUT_Pin, GPIO_PIN_RESET);  // PB0 low: relay off
+	  HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
