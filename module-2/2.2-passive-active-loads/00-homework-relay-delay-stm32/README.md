@@ -22,8 +22,9 @@ README describes what differs on the STM32.
 | Average switch-on / switch-off time | `sum_on`, `sum_off`, `count`: after every measured cycle the program prints the running average |
 
 A cycle is skipped (`no contact change, cycle skipped`) and left out of the average when the contact doesn't start in
-the expected state (open before ON, closed before OFF) or doesn't change within 1 s (`CONTACT_TIMEOUT_US`), for
-example when the relay has no power.
+the expected state (open before ON, closed before OFF) or doesn't change within 50 ms (`CONTACT_TIMEOUT_US`), for
+example when the relay has no power. The relay switches in 3–4 ms, so 50 ms leaves a wide margin; a longer wait is
+something else (see "Checked on the board").
 
 ## What differs from the ESP32 version
 
@@ -31,9 +32,9 @@ example when the relay has no power.
 |---|---|---|
 | Pins | GPIO 7 out, GPIO 9 in | PB0 out, PB1 in (both 5 V tolerant, `FT`) |
 | Time | `esp_timer_get_time()`, `int64_t` | TIM2: prescaler 99 on its 100 MHz clock → 1 MHz, period 0xFFFFFFFF; `uint32_t` |
-| Waiting for the contact | pin interrupt on both edges, the ISR keeps the first one | polling in a `while` loop, with a 1 s timeout |
+| Waiting for the contact | pin interrupt on both edges, the ISR keeps the first one | polling in a `while` loop, with a 50 ms timeout |
 | Serial output | `printf` → UART0 → the board's CH343P | `snprintf` + `HAL_UART_Transmit` → USART2 (PA2) → a USB-TTL adapter (CH340) |
-| Skipped cycle | the contact doesn't change within 1 s | the same, plus a contact that is in the wrong state before the command |
+| Skipped cycle | the contact doesn't change within 1 s | the contact doesn't change within 50 ms, or is in the wrong state before the command |
 
 ## Project
 
@@ -72,6 +73,8 @@ while it is open.
 Serial: the adapter's port (`/dev/cu.usbserial-*` on macOS), 115200 baud; CubeIDE shows it in a Console of the type
 Command Shell Console → Serial Port.
 
+![The circuit on the breadboard](breadboard.jpg)
+
 ## Notes
 
 - **Why the transistor, though the module has one of its own.** The module's input stage is a PNP with its emitter on
@@ -102,24 +105,30 @@ Serial output of the average step (dc8b056), after a reset with the relay powere
 The ESP32 version measured 3312 us and 4122 us with the same relay. Over a run ON creeps up and OFF down, on both
 boards.
 
-The last commit, with the relay's power switched off for two cycles and back on:
+The last commit, with the relay's power switched off for a moment and back on:
 
 ```
-relay ON:  contact closed after 3297 us
-relay OFF: contact opened after 4132 us
-average of 13: ON 3292 us, OFF 4151 us
-
-no contact change, cycle skipped
+relay ON:  contact closed after 3302 us
+relay OFF: contact opened after 4120 us
+average of 7: ON 3302 us, OFF 4130 us
 
 no contact change, cycle skipped
 
 relay ON:  contact closed after 3306 us
-relay OFF: contact opened after 4128 us
-average of 14: ON 3293 us, OFF 4149 us
+relay OFF: contact opened after 4117 us
+average of 8: ON 3302 us, OFF 4128 us
 ```
 
-Before the start-state check, a power cut during the relay's 1 s on gave `relay OFF: contact opened after 1 us` (the
-contact had already opened) and pulled the OFF average from 4153 to 3834 us; the check skips such a cycle.
+The same power test found two holes on the way, each found from a jump in the running average:
+
+- **A contact that had already moved.** A power cut during the relay's 1 s on let the contact open by itself before
+  the OFF command; the OFF wait then ended at once with `relay OFF: contact opened after 1 us` and pulled the OFF
+  average from 4153 to 3834 us. Fixed by checking the contact's state before each command (d4f2b14).
+- **Power coming back during the wait.** With a 1 s timeout, one ON took about 0.55 s and passed every check. Most
+  likely the relay's power came back during that wait, so the contact closed only then (not confirmed). The ON average jumped from ~3300 to 22064 us
+  after 29 cycles (sum 639 856 us: one ON of ~547 600 us among 28 normal ones). Fixed by the 50 ms timeout (0138ce3).
+  A power return within the first 50 ms after a command would still be timed; the start of the wait is the only
+  window left.
 
 Build (Debug, `-O0 -g3`): 0 errors, 0 warnings with CubeIDE's flags and with `-Wextra`. `arm-none-eabi-size`: `text`
 13308, `data` 92, `bss` 2044 bytes. The formatting code behind `snprintf` is most of the growth: the generated
