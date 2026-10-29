@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>  // snprintf
 
 /* USER CODE END Includes */
 
@@ -59,13 +60,12 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-// Reads the relay contact on PB1 and sends "contact open" or "contact closed" over USART2.
-static void print_contact(void)
+// Sends "<text> <us> us" over USART2. A number can't be a ready-made string, so snprintf builds the line.
+static void print_us(const char *text, uint32_t us)
 {
-  if (HAL_GPIO_ReadPin(CONTACT_IN_GPIO_Port, CONTACT_IN_Pin) == GPIO_PIN_SET)  // SET = open (pull-up)
-    HAL_UART_Transmit(&huart2, (uint8_t *)"contact open\r\n", 14, HAL_MAX_DELAY);
-  else                                                                           // RESET = closed (COM = GND)
-    HAL_UART_Transmit(&huart2, (uint8_t *)"contact closed\r\n", 16, HAL_MAX_DELAY);
+  char buf[64];
+  int len = snprintf(buf, sizeof buf, "%s %lu us\r\n", text, us);  // uint32_t is unsigned long here: %lu
+  HAL_UART_Transmit(&huart2, (uint8_t *)buf, len, HAL_MAX_DELAY);   // snprintf returned the length
 }
 
 /* USER CODE END 0 */
@@ -113,16 +113,22 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  // ---- ON: command -> contact closes ----
+	  uint32_t t0 = __HAL_TIM_GET_COUNTER(&htim2);                            // TIM2 counts microseconds (1 MHz)
 	  HAL_GPIO_WritePin(RELAY_OUT_GPIO_Port, RELAY_OUT_Pin, GPIO_PIN_SET);    // PB0 high: the BC547 conducts, relay on
-	  print_contact();                                                        // right after: still open, the relay hasn't moved yet
+	  while (HAL_GPIO_ReadPin(CONTACT_IN_GPIO_Port, CONTACT_IN_Pin) == GPIO_PIN_SET) {}    // busy-wait while open (1)
+	  uint32_t t1 = __HAL_TIM_GET_COUNTER(&htim2);                            // first touch of the contact
+	  print_us("relay ON:  contact closed after", t1 - t0);                   // printed after t1: the print isn't timed
 	  HAL_Delay(1000);
-	  print_contact();                                                        // 1 s later: closed
 
+	  // ---- OFF: command -> contact opens ----
+	  t0 = __HAL_TIM_GET_COUNTER(&htim2);
 	  HAL_GPIO_WritePin(RELAY_OUT_GPIO_Port, RELAY_OUT_Pin, GPIO_PIN_RESET);  // PB0 low: relay off
-	  print_contact();                                                        // right after: still closed
-	  HAL_Delay(1000);
-	  print_contact();                                                        // 1 s later: open
+	  while (HAL_GPIO_ReadPin(CONTACT_IN_GPIO_Port, CONTACT_IN_Pin) == GPIO_PIN_RESET) {}  // busy-wait while closed (0)
+	  t1 = __HAL_TIM_GET_COUNTER(&htim2);                                     // the contact has just opened
+	  print_us("relay OFF: contact opened after", t1 - t0);
 	  HAL_UART_Transmit(&huart2, (uint8_t *)"\r\n", 2, HAL_MAX_DELAY);        // blank line between cycles
+	  HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
