@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h> // snprintf
 
 /* USER CODE END Includes */
 
@@ -99,6 +100,7 @@ int main(void)
   GPIO_PinState last_down_state = GPIO_PIN_SET;
   uint32_t last_up_change = 0;   // HAL_GetTick() of the last accepted button change
   uint32_t last_down_change = 0;
+  uint32_t printed_duty = PWM_PERIOD_MS + 1;  // a duty that never happens, so the first loop prints
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -139,6 +141,15 @@ int main(void)
 		  }
 		  last_down_state = down_state;
 		  last_down_change = now;
+	  }
+
+	  // print only when the duty changed: a print takes ~2 ms, the PWM stalls meanwhile
+	  if (duty_ms != printed_duty) {
+		  char buf[32];
+		  int len = snprintf(buf, sizeof(buf), "duty %lu ms (%lu %%)\r\n",
+				  duty_ms, duty_ms * 100 / PWM_PERIOD_MS);  // %lu: uint32_t is unsigned long on ARM, %% prints %
+		  HAL_UART_Transmit(&huart2, (uint8_t *)buf, len, 100);  // blocks until sent, 100 ms timeout
+		  printed_duty = duty_ms;
 	  }
   }
   /* USER CODE END 3 */
