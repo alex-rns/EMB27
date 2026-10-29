@@ -31,6 +31,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define PWM_PERIOD_MS 10u // one PWM period: 100 Hz, too fast for the eye to see flicker
+#define PWM_DUTY_MS 3u    // LED on for 3 of every 10 ms = 30 % brightness
 
 /* USER CODE END PD */
 
@@ -100,6 +102,15 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  uint32_t now = HAL_GetTick();                // ms since start (SysTick)
+	  uint32_t phase = (now % PWM_PERIOD_MS);      // ms into the current period: 0..9
+
+	  // on for the first PWM_DUTY_MS of each period, off for the rest
+	  if (phase < PWM_DUTY_MS) {
+		  HAL_GPIO_WritePin(PWM_OUT_GPIO_Port, PWM_OUT_Pin, GPIO_PIN_SET);
+	  } else {
+		  HAL_GPIO_WritePin(PWM_OUT_GPIO_Port, PWM_OUT_Pin, GPIO_PIN_RESET);
+	  }
   }
   /* USER CODE END 3 */
 }
