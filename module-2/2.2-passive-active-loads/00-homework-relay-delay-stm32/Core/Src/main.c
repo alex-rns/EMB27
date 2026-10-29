@@ -32,7 +32,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define CONTACT_TIMEOUT_US 1000000u  // 1 s: give up waiting for the contact (relay without power, a loose wire)
+#define CONTACT_TIMEOUT_US 50000u  // 50 ms: the relay switches in 3-4 ms (measured), anything longer isn't the relay
+                                   // (no power, a loose wire, power coming back during the wait)
 
 /* USER CODE END PD */
 
@@ -121,7 +122,7 @@ int main(void)
 	  GPIO_PinState before_on = HAL_GPIO_ReadPin(CONTACT_IN_GPIO_Port, CONTACT_IN_Pin);  // must be open (1): else nothing to time
 	  uint32_t t0 = __HAL_TIM_GET_COUNTER(&htim2);                            // TIM2 counts microseconds (1 MHz)
 	  HAL_GPIO_WritePin(RELAY_OUT_GPIO_Port, RELAY_OUT_Pin, GPIO_PIN_SET);    // PB0 high: the BC547 conducts, relay on
-	  // busy-wait while open (1), at most 1 s; now - t0 stays right when the counter wraps (unsigned subtraction)
+	  // busy-wait while open (1), at most 50 ms; now - t0 stays right when the counter wraps (unsigned subtraction)
 	  while (HAL_GPIO_ReadPin(CONTACT_IN_GPIO_Port, CONTACT_IN_Pin) == GPIO_PIN_SET
 	         && __HAL_TIM_GET_COUNTER(&htim2) - t0 < CONTACT_TIMEOUT_US) {}
 	  uint32_t on_us = __HAL_TIM_GET_COUNTER(&htim2) - t0;                    // first touch, or the timeout
