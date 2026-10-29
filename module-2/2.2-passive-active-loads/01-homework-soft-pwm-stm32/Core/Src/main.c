@@ -93,10 +93,12 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  uint32_t duty_ms = PWM_DUTY_MS;
-  GPIO_PinState last_btn_state = GPIO_PIN_SET;
-  uint32_t last_btn_change = 0;   // HAL_GetTick() of the last accepted button change
-
+  uint32_t duty_ms = PWM_DUTY_MS;  // LED on time per period, 0..PWM_PERIOD_MS, changed by the buttons
+  // each button keeps its own debounce memory: last accepted level and when it was accepted
+  GPIO_PinState last_up_state = GPIO_PIN_SET;    // SET = released
+  GPIO_PinState last_down_state = GPIO_PIN_SET;
+  uint32_t last_up_change = 0;   // HAL_GetTick() of the last accepted button change
+  uint32_t last_down_change = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -116,16 +118,27 @@ int main(void)
 		  HAL_GPIO_WritePin(PWM_OUT_GPIO_Port, PWM_OUT_Pin, GPIO_PIN_RESET);
 	  }
 
-	  GPIO_PinState btn_state = HAL_GPIO_ReadPin(BTN_UP_GPIO_Port, BTN_UP_Pin); // RESET = pressed (pull-up)
+	  GPIO_PinState up_state = HAL_GPIO_ReadPin(BTN_UP_GPIO_Port, BTN_UP_Pin);       // PB1, RESET = pressed (pull-up)
+	  GPIO_PinState down_state = HAL_GPIO_ReadPin(BTN_DOWN_GPIO_Port, BTN_DOWN_Pin); // PA0 (onboard KEY), same
 
 	  // accept a change only DEBOUNCE_MS after the previous one: the bounces in between are ignored
-	  if (btn_state != last_btn_state && now - last_btn_change >= DEBOUNCE_MS) {
+	  if (up_state != last_up_state && now - last_up_change >= DEBOUNCE_MS) {
 		  // a press is the change SET -> RESET, not the pressed level itself
-		  if (btn_state == GPIO_PIN_RESET && duty_ms < PWM_PERIOD_MS) {
+		  if (up_state == GPIO_PIN_RESET && duty_ms < PWM_PERIOD_MS) {
 			  duty_ms++;
 		  }
-		  last_btn_state = btn_state;
-		  last_btn_change = now;
+		  last_up_state = up_state;
+		  last_up_change = now;
+	  }
+
+	  // BTN_DOWN: the same debounce, lowers the duty
+	  if (down_state != last_down_state && now - last_down_change >= DEBOUNCE_MS) {
+		  // > 0 check: duty_ms is unsigned, 0 - 1 would wrap to 4294967295 (LED fully on)
+		  if (down_state == GPIO_PIN_RESET && duty_ms > 0) {
+			  duty_ms--;
+		  }
+		  last_down_state = down_state;
+		  last_down_change = now;
 	  }
   }
   /* USER CODE END 3 */
