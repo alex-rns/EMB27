@@ -32,6 +32,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define CONTACT_TIMEOUT_US 1000000u  // 1 s: give up waiting for the contact (relay without power, a loose wire)
 
 /* USER CODE END PD */
 
@@ -117,28 +118,43 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  // ---- ON: command -> contact closes ----
+	  GPIO_PinState before_on = HAL_GPIO_ReadPin(CONTACT_IN_GPIO_Port, CONTACT_IN_Pin);  // must be open (1): else nothing to time
 	  uint32_t t0 = __HAL_TIM_GET_COUNTER(&htim2);                            // TIM2 counts microseconds (1 MHz)
 	  HAL_GPIO_WritePin(RELAY_OUT_GPIO_Port, RELAY_OUT_Pin, GPIO_PIN_SET);    // PB0 high: the BC547 conducts, relay on
-	  while (HAL_GPIO_ReadPin(CONTACT_IN_GPIO_Port, CONTACT_IN_Pin) == GPIO_PIN_SET) {}    // busy-wait while open (1)
-	  uint32_t t1 = __HAL_TIM_GET_COUNTER(&htim2);                            // first touch of the contact
-	  print_us("relay ON:  contact closed after", t1 - t0);                   // printed after t1: the print isn't timed
-	  sum_on += t1 - t0;
+	  // busy-wait while open (1), at most 1 s; now - t0 stays right when the counter wraps (unsigned subtraction)
+	  while (HAL_GPIO_ReadPin(CONTACT_IN_GPIO_Port, CONTACT_IN_Pin) == GPIO_PIN_SET
+	         && __HAL_TIM_GET_COUNTER(&htim2) - t0 < CONTACT_TIMEOUT_US) {}
+	  uint32_t on_us = __HAL_TIM_GET_COUNTER(&htim2) - t0;                    // first touch, or the timeout
 	  HAL_Delay(1000);
 
 	  // ---- OFF: command -> contact opens ----
+	  GPIO_PinState before_off = HAL_GPIO_ReadPin(CONTACT_IN_GPIO_Port, CONTACT_IN_Pin);  // must be closed (0): the relay
+	                                                                          // may have dropped out by itself during the 1 s
 	  t0 = __HAL_TIM_GET_COUNTER(&htim2);
 	  HAL_GPIO_WritePin(RELAY_OUT_GPIO_Port, RELAY_OUT_Pin, GPIO_PIN_RESET);  // PB0 low: relay off
-	  while (HAL_GPIO_ReadPin(CONTACT_IN_GPIO_Port, CONTACT_IN_Pin) == GPIO_PIN_RESET) {}  // busy-wait while closed (0)
-	  t1 = __HAL_TIM_GET_COUNTER(&htim2);                                     // the contact has just opened
-	  print_us("relay OFF: contact opened after", t1 - t0);
-	  sum_off += t1 - t0;
+	  while (HAL_GPIO_ReadPin(CONTACT_IN_GPIO_Port, CONTACT_IN_Pin) == GPIO_PIN_RESET  // busy-wait while closed (0)
+	         && __HAL_TIM_GET_COUNTER(&htim2) - t0 < CONTACT_TIMEOUT_US) {}
+	  uint32_t off_us = __HAL_TIM_GET_COUNTER(&htim2) - t0;                   // the contact has just opened, or the timeout
 
-	  // ---- running average over all cycles so far ----
-	  count++;
-	  char buf[64];
-	  int len = snprintf(buf, sizeof buf, "average of %lu: ON %lu us, OFF %lu us\r\n\r\n",  // blank line between cycles
-	                     count, sum_on / count, sum_off / count);             // integer division: the fraction is dropped
-	  HAL_UART_Transmit(&huart2, (uint8_t *)buf, len, HAL_MAX_DELAY);
+	  // Prints come after both measurements: a print isn't timed. A cycle is dropped as a whole when a contact
+	  // didn't start in the right state or didn't change within the timeout: either way one time is meaningless
+	  // (a contact that is already open ends the OFF wait at once: "opened after 1 us").
+	  if (before_on != GPIO_PIN_SET || before_off != GPIO_PIN_RESET
+	      || on_us >= CONTACT_TIMEOUT_US || off_us >= CONTACT_TIMEOUT_US) {
+	    HAL_UART_Transmit(&huart2, (uint8_t *)"no contact change, cycle skipped\r\n\r\n", 36, HAL_MAX_DELAY);
+	  } else {
+	    print_us("relay ON:  contact closed after", on_us);
+	    print_us("relay OFF: contact opened after", off_us);
+	    sum_on += on_us;
+	    sum_off += off_us;
+
+	    // ---- running average over the measured cycles ----
+	    count++;
+	    char buf[64];
+	    int len = snprintf(buf, sizeof buf, "average of %lu: ON %lu us, OFF %lu us\r\n\r\n",  // blank line between cycles
+	                       count, sum_on / count, sum_off / count);           // integer division: the fraction is dropped
+	    HAL_UART_Transmit(&huart2, (uint8_t *)buf, len, HAL_MAX_DELAY);
+	  }
 	  HAL_Delay(1000);
   }
   /* USER CODE END 3 */
