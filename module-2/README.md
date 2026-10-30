@@ -9,7 +9,7 @@ a version for the STM32 Black Pill.
 | Lesson | Topic | Homework |
 |---|---|---|
 | 2.1 | C++ for MCUs: resource limits and specifics | [Embedded C++ blink](2.1-embedded-cpp/) — homework + 1 practice |
-| 2.2 | Passive and active loads: how to connect a heavy load | [Relay delay](2.2-passive-active-loads/) — homework |
+| 2.2 | Passive and active loads: how to connect a heavy load | [Relay delay, software PWM](2.2-passive-active-loads/) — homework + bonus |
 | 2.3 | Superloop: how to make an MCU do several things at once | — |
 | 2.4 | Hardware interrupts: how an MCU reacts to buttons instantly | — |
 | 2.5 | Timers: how an MCU measures time precisely | — |
