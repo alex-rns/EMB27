@@ -60,16 +60,20 @@ typedef struct
 {
 	GPIO_TypeDef * port;
 	uint32_t pin;
-	uint32_t half_period;
+	uint32_t half_period;   // ms between toggles: a full blink takes twice this
 	uint32_t last_change_timestamp;
 } LED_type_t;
 
+// designated initializers: fields not named start at 0
 LED_type_t LEDS[3] =
 {
-	[0] = {.pin = LED1_Pin, .port = LED1_GPIO_Port, .last_change_timestamp = 0u, .half_period = 100},
+	[0] = {.pin = LED1_Pin, .port = LED1_GPIO_Port, .last_change_timestamp = 0u, .half_period = 100},   // onboard PC13, lit on LOW
 	[1] = {.pin = LED_2_Pin, .port = LED_2_GPIO_Port, .last_change_timestamp = 0u, .half_period = 250},
 	[2] = {.pin = LED_3_Pin, .port = LED_3_GPIO_Port, .last_change_timestamp = 0u, .half_period = 500},
 };
+
+uint8_t paused = 0;   // 1 = all LEDs frozen in their current state
+GPIO_PinState last_btn2_state = GPIO_PIN_SET;   // level on the previous pass; SET = released (pull-up)
 
 /* USER CODE END 0 */
 
@@ -111,18 +115,28 @@ int main(void)
   while (1)
   {
 
-	  loop_timestamp_aka_now = HAL_GetTick();
+	  loop_timestamp_aka_now = HAL_GetTick();   // one timestamp for the whole pass
 
-	  for (uint8_t led_idx = 0; led_idx < 3; led_idx++)
-	  {
-		  LED_type_t* led = &LEDS[led_idx];
+	  GPIO_PinState btn2_state = HAL_GPIO_ReadPin(BUTTON_2_GPIO_Port, BUTTON_2_Pin);   // PA1 to GND: RESET = held
 
-		  if ((uint32_t)(loop_timestamp_aka_now - led->last_change_timestamp) >= led->half_period)
+	  // press edge: released last pass, held now; true on one pass per press
+	  if (last_btn2_state == GPIO_PIN_SET && btn2_state == GPIO_PIN_RESET)
 		  {
-			  HAL_GPIO_TogglePin(led->port, led->pin);
-			  led->last_change_timestamp = loop_timestamp_aka_now;
+			  paused = !paused;
 		  }
-	  }
+	  last_btn2_state = btn2_state;   // every pass, outside the if
+
+	  for (uint8_t led_idx = 0; led_idx < 3 && !paused; led_idx++)   // paused: no LED is touched
+		  {
+			  LED_type_t* led = &LEDS[led_idx];   // pointer to the array element, not a copy
+
+			  // unsigned subtraction stays right when HAL_GetTick() wraps (~49.7 days)
+			  if ((uint32_t)(loop_timestamp_aka_now - led->last_change_timestamp) >= led->half_period)
+			  {
+				  HAL_GPIO_TogglePin(led->port, led->pin);
+				  led->last_change_timestamp = loop_timestamp_aka_now;   // through the pointer: changes LEDS[led_idx] itself
+			  }
+		  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
