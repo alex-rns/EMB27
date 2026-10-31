@@ -25,8 +25,13 @@ void app_main(void) {
     gpio_set_direction(GPIO_NUM_7, GPIO_MODE_INPUT);     // input only: gpio_get_level() reads the pin
     gpio_set_pull_mode(GPIO_NUM_7, GPIO_PULLUP_ONLY);    // internal pull-up to 3.3 V: released = 1, pressed (to GND) = 0
 
+    gpio_reset_pin(GPIO_NUM_15);                         // the interval button: set up like GPIO 7
+    gpio_set_direction(GPIO_NUM_15, GPIO_MODE_INPUT);
+    gpio_set_pull_mode(GPIO_NUM_15, GPIO_PULLUP_ONLY);
+
     uint32_t paused = 0;           // 1 = all LEDs frozen in their current state
     int last_btn2_state = 1;       // level on the previous pass; 1 = released (pull-up)
+    int last_btn1_state = 1;       // GPIO 15 has its own memory, so one button never resets the other
 
     for (uint8_t led_idx = 0; led_idx < 3; led_idx++) {
         gpio_reset_pin(LEDS[led_idx].pin);
@@ -43,6 +48,20 @@ void app_main(void) {
             paused = !paused;
         }
         last_btn2_state = btn2_state;   // every pass, outside the if
+
+        int btn1_state = gpio_get_level(GPIO_NUM_15);
+
+        // each press moves GPIO 5 (LEDS[2]) to the next interval: 1000 -> 500 -> 200 -> 1000
+        if (last_btn1_state == 1 && btn1_state == 0) {
+            if (LEDS[2].half_period == 1000) {   // the array element itself, so '.' and no pointer
+                LEDS[2].half_period = 500;
+            } else if (LEDS[2].half_period == 500) {
+                LEDS[2].half_period = 200;
+            } else {                             // 200 or anything unexpected: back to the start
+                LEDS[2].half_period = 1000;
+            }
+        }
+        last_btn1_state = btn1_state;
 
         for (uint8_t led_idx = 0; led_idx < 3 && !paused; led_idx++) {   // paused: no LED is touched
             LED_type_t* led = &LEDS[led_idx];   // pointer to the array element, not a copy
