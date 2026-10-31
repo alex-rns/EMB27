@@ -74,6 +74,7 @@ LED_type_t LEDS[3] =
 
 uint8_t paused = 0;   // 1 = all LEDs frozen in their current state
 GPIO_PinState last_btn2_state = GPIO_PIN_SET;   // level on the previous pass; SET = released (pull-up)
+GPIO_PinState last_key_state = GPIO_PIN_SET;   // KEY has its own memory, so one button never resets the other
 
 /* USER CODE END 0 */
 
@@ -125,6 +126,26 @@ int main(void)
 			  paused = !paused;
 		  }
 	  last_btn2_state = btn2_state;   // every pass, outside the if
+
+	  GPIO_PinState key_state = HAL_GPIO_ReadPin(BUTTON_1_GPIO_Port, BUTTON_1_Pin);   // PA0 (KEY): 330 R to GND, internal pull-up
+
+	  // each press moves PA3 (LEDS[2]) to the next interval: 500 -> 250 -> 100 -> 500
+	  if (last_key_state == GPIO_PIN_SET && key_state == GPIO_PIN_RESET)
+	  {
+		  if (LEDS[2].half_period == 500)   // the array element itself, so '.' and no pointer
+		  {
+			  LEDS[2].half_period = 250;
+		  }
+		  else if (LEDS[2].half_period == 250)
+		  {
+			  LEDS[2].half_period = 100;
+		  }
+		  else   // 100 or anything unexpected: back to the start
+		  {
+			  LEDS[2].half_period = 500;
+		  }
+	  }
+	  last_key_state = key_state;
 
 	  for (uint8_t led_idx = 0; led_idx < 3 && !paused; led_idx++)   // paused: no LED is touched
 		  {
@@ -219,17 +240,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : BUTTON_1_Pin */
-  GPIO_InitStruct.Pin = BUTTON_1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(BUTTON_1_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : BUTTON_2_Pin */
-  GPIO_InitStruct.Pin = BUTTON_2_Pin;
+  /*Configure GPIO pins : BUTTON_1_Pin BUTTON_2_Pin */
+  GPIO_InitStruct.Pin = BUTTON_1_Pin|BUTTON_2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(BUTTON_2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LED_2_Pin LED_3_Pin */
   GPIO_InitStruct.Pin = LED_2_Pin|LED_3_Pin;
