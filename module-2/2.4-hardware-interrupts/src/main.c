@@ -3,6 +3,7 @@
 #include  <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"     // vTaskDelay
+#include "esp_timer.h"
 
 #define BUTTON_PIN GPIO_NUM_7  // button to GND, external 10 kOhm pull-up to 3V3
 
@@ -24,16 +25,26 @@ void app_main(void)
     gpio_install_isr_service(0);                         // once per program; must come before handler_add
     gpio_isr_handler_add(BUTTON_PIN, button_isr, NULL);  // the function itself, no (); NULL arrives as arg
 
-    static uint32_t last_counter = 0;
+    static uint32_t last_edge_count = 0;
+    static uint32_t press_count = 0;
+    static int64_t last_press_us = 0;
 
     while (true)
     {
         uint32_t now_counter = counter; // read once: the ISR may change counter at any moment
-
-        if (now_counter != last_counter)
+        
+        if (now_counter != last_edge_count)
         {
-            printf("count: %lu\n", now_counter); // uint32_t is unsigned long here: %lu
-            last_counter = now_counter;
+            int64_t now_us = esp_timer_get_time(); // microseconds since boot
+
+            // time-based debounce: an edge counts only 50 ms or more after the last accepted press
+            if (now_us - last_press_us >= 50000) {
+                press_count++;
+                last_press_us = now_us;
+                printf("press: %lu (edges: %lu)\n", press_count, now_counter); // uint32_t is unsigned long here: %lu
+            }
+
+            last_edge_count = now_counter; // these edges are handled, accepted or not
         }
 
         // = Arduino delay(10): lets the idle task feed the task watchdog; the ISR still counts meanwhile
