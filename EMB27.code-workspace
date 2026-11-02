@@ -5,8 +5,8 @@
       "name": "EMB27 (repo)"
     },
     {
-      "name": "00-homework-three-leds-esp32",
-      "path": "module-2/2.3-superloop/00-homework-three-leds-esp32"
+      "name": "2.4-hardware-interrupts (draft)",
+      "path": "module-2/2.4-hardware-interrupts"
     }
   ],
   "settings": {
