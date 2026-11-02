@@ -1,6 +1,8 @@
 #include "driver/gpio.h"
 #include "esp_attr.h"   // IRAM_ATTR
 #include  <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"     // vTaskDelay
 
 #define BUTTON_PIN GPIO_NUM_7  // button to GND, external 10 kOhm pull-up to 3V3
 
@@ -33,5 +35,8 @@ void app_main(void)
             printf("count: %lu\n", now_counter); // uint32_t is unsigned long here: %lu
             last_counter = now_counter;
         }
+
+        // = Arduino delay(10): lets the idle task feed the task watchdog; the ISR still counts meanwhile
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
