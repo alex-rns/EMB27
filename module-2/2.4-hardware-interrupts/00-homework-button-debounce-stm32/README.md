@@ -165,6 +165,7 @@ PB5 reads 1 while released (internal pull-up) and 0 while pressed.
   147184 ms).
 - **Final code:** a short press toggles PB6 on the release, a 2 s press toggles the blue LED on the release, the press
   itself changes nothing, PB7 keeps blinking.
+- **Video** of the board running it: https://photos.app.goo.gl/uAsFE9rx2HPPwmGD6 (Google Photos).
 
 Build (Debug, `-O0 -g3`): 0 errors, 0 warnings with CubeIDE's flags and with `-Wextra`. `arm-none-eabi-size`: `text`
 6308, `data` 12, `bss` 1580 bytes.
