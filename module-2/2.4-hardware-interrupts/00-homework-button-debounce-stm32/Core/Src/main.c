@@ -113,6 +113,10 @@ int main(void)
 		  {
 			  if (now - press_start < 1000u)        // held less than 1 s: a short press
 				  HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
+			  else
+			  {
+				  HAL_GPIO_TogglePin(LED_3_GPIO_Port, LED_3_Pin);
+			  }
 		  }
 		  else                                      // pressed: PB5 low (button to GND)
 		  {
