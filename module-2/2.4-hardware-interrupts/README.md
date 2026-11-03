@@ -11,7 +11,7 @@ though, and one press gives several edges. The homework compares ways to turn th
 
 | # | Step | Type | What it shows |
 |---|---|---|---|
-| 00 | homework-button-debounce: [stm32](00-homework-button-debounce-stm32/) | homework | an EXTI interrupt on PB5 only flags the edge; the loop toggles an LED if the button is still pressed 30 ms later (task 3, state-based) ([assignment](00-homework-button-debounce-stm32/README.md#assignment)) |
+| 00 | homework-button-debounce: [stm32](00-homework-button-debounce-stm32/) | homework | an EXTI interrupt on both edges of PB5 only flags the edge; the loop checks the level 30 ms later and, on the release, toggles one LED for a short press and the board's blue LED for a long one (task 3 and the extra short / long / after-release tasks) ([assignment](00-homework-button-debounce-stm32/README.md#assignment)) |
 
 ## Working with the steps
 
