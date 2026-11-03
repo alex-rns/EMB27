@@ -107,7 +107,7 @@ int main(void)
 	  uint32_t now = HAL_GetTick();
 	  if (btn_pressed_flag == 1u && now - btn_pressed_timestamp >= 30u)
 	  {
-		  if (HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == GPIO_PIN_RESET)
+		  if (HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == GPIO_PIN_SET)
 			  HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
 
 		  btn_pressed_flag = 0u;
