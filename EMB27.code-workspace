@@ -5,8 +5,8 @@
       "name": "EMB27 (repo)"
     },
     {
-      "name": "2.4-hardware-interrupts (draft)",
-      "path": "module-2/2.4-hardware-interrupts"
+      "name": "00-homework-button-debounce-esp32",
+      "path": "module-2/2.4-hardware-interrupts/00-homework-button-debounce-esp32"
     }
   ],
   "settings": {
