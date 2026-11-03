@@ -97,6 +97,8 @@ int main(void)
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
   uint32_t heartbeat_timestamp = HAL_GetTick();
+  uint32_t press_start = HAL_GetTick();     // ms when the last press was confirmed; only the loop uses it
+
 
   /* USER CODE END 2 */
 
@@ -107,8 +109,15 @@ int main(void)
 	  uint32_t now = HAL_GetTick();
 	  if (btn_pressed_flag == 1u && now - btn_pressed_timestamp >= 30u)
 	  {
-		  if (HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == GPIO_PIN_SET)
-			  HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
+		  if (HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == GPIO_PIN_SET) // released: PB5 high again (pull-up)
+		  {
+			  if (now - press_start < 1000u)        // held less than 1 s: a short press
+				  HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
+		  }
+		  else                                      // pressed: PB5 low (button to GND)
+		  {
+			  press_start = now;                    // both ends are confirmed 30 ms late, so the delays cancel
+		  }
 
 		  btn_pressed_flag = 0u;
 	  }
