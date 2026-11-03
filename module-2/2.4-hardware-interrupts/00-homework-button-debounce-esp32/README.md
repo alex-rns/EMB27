@@ -65,10 +65,25 @@ Expected result: the most stable behaviour; a slightly longer reaction delay.
 | 3. State-based | e422a01 | new edges only store the time and set `event_pending`. 50 ms after the last edge the loop reads `gpio_get_level(BUTTON_PIN)`: 0 (still pressed) counts a press, 1 means the edges came from a release and nothing happens |
 | 4. Polling | 1f6e345 | the interrupt setup is commented out. Every 10 ms the loop reads the pin; a state machine with two states (`stable` = 1 released, 0 pressed) switches only after 5 reads in a row (50 ms) differ from the current state, and counts a press when it switches to pressed. A read equal to the state resets the count |
 | 5. Hardware RC | — | not done yet; it comes in a later commit |
-| 6. Table | — | comes with task 5 |
+| 6. Table | — | below, "Comparison"; the hardware RC row comes with task 5 |
 
 The log: task 1 prints `count: N` (interrupts so far), tasks 2 and 3 print `press: N (edges: M)`, task 4 prints
 `press: N`.
+
+## Comparison (task 6)
+
+| Method | False triggers | Delay | Complexity | Comment |
+|---|---|---|---|---|
+| No debounce | 11 per 10 presses (21 interrupts) | none: the ISR counts at once, the log within the loop's 10 ms | lowest: an ISR with `counter++` | every bounce edge counts; the release bounces too |
+| Time-based | 2 per 10 presses (12 counted) | up to 10 ms: the first edge is accepted on the loop's next pass | low: one timestamp, one comparison | release bounce after the 50 ms window still counts, as the assignment expects |
+| State-based | 0 per 11 presses (22 edges) | 50 ms after the last edge, plus up to 10 ms | medium: an event flag and a level check | one reaction per press; a release does nothing |
+| Polling | 0 per 10 presses | 50 ms (5 reads × 10 ms) after the contacts settle | medium: a state machine, no ISR | no interrupt at all; a tap shorter than 50 ms is lost |
+| Hardware RC | comes with task 5 | | | |
+
+- **False triggers** are measured: the count minus the real presses, one run per method (see "Checked on the board").
+  The bounce changes from run to run, so this compares the methods only roughly.
+- **Delay** is from the code, not measured: how long the loop waits before it counts a press.
+- **Complexity** is our estimate from the amount of code and state each method needs.
 
 ## Wiring
 
