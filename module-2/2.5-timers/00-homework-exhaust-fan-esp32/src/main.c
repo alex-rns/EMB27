@@ -3,6 +3,8 @@
 #include "driver/gptimer.h"
 
 #define RELAY_PIN GPIO_NUM_7
+#define FAN_PERIOD_S  8   // full cycle; 3600 for 1 hour
+#define FAN_ON_S      2   // fan on; 900 for 15 min
 
 static bool is_relay_on = false;
 
@@ -10,6 +12,17 @@ static bool on_alarm(gptimer_handle_t timer, const gptimer_alarm_event_data_t *e
 {
     is_relay_on = !is_relay_on;
     gpio_set_level(RELAY_PIN, is_relay_on);
+
+    // how long the new state lasts, in ticks: on for FAN_ON_S, off for the rest of the period
+    uint64_t next_ticks = is_relay_on ? FAN_ON_S * 1000000ULL
+                                      : (FAN_PERIOD_S - FAN_ON_S) * 1000000ULL;
+    gptimer_alarm_config_t next_alarm = {
+        .alarm_count = next_ticks,
+        .reload_count = 0,
+        .flags.auto_reload_on_alarm = true,
+    };
+    gptimer_set_alarm_action(timer, &next_alarm);   // allowed inside the ISR: the next alarm comes after next_ticks
+
     return false;
 }
 
@@ -35,7 +48,7 @@ void app_main(void)
     ESP_ERROR_CHECK(gptimer_register_event_callbacks(timer, &callbacks, NULL));   // must come before gptimer_enable()
 
     gptimer_alarm_config_t alarm_config = {
-        .alarm_count = 2000000,               // 2 s at 1 tick = 1 us
+        .alarm_count = (FAN_PERIOD_S - FAN_ON_S) * 1000000ULL, // off phase first: the relay starts off
         .reload_count = 0,                    // the counter restarts from 0 at the alarm...
         .flags.auto_reload_on_alarm = true,   // ...by hardware, every time: a periodic alarm
     };
