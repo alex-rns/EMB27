@@ -4,6 +4,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_task_wdt.h"
+#include "esp_system.h"
 
 #define RELAY_PIN GPIO_NUM_7
 #define FAN_PERIOD_S  8   // full cycle; 3600 for 1 hour
@@ -31,7 +32,11 @@ static bool on_alarm(gptimer_handle_t timer, const gptimer_alarm_event_data_t *e
 
 void app_main(void)
 {
-    gpio_reset_pin(RELAY_PIN);                        // plain GPIO, old setup cleared (also enables the pull-up)
+    if (esp_reset_reason() == ESP_RST_TASK_WDT) {   // why the chip (re)started, kept by hardware across the reset
+        printf("started after a task watchdog reset\n");
+    }
+
+    gpio_reset_pin(RELAY_PIN);                       // plain GPIO, old setup cleared (also enables the pull-up)
     gpio_set_direction(RELAY_PIN, GPIO_MODE_OUTPUT);  // output driver on: the pin now drives 3.3 V or 0 V
     gpio_set_level(RELAY_PIN, 0);
 
@@ -62,6 +67,12 @@ void app_main(void)
     
     bool printed = is_relay_on;   // the state already reported
 
+    esp_task_wdt_config_t wdt_config = {
+        .timeout_ms = 5000,                     // 5 s without feeding, as the default
+        .idle_core_mask = (1u << 0) | (1u << 1),  // keep watching the idle tasks of core 0 and core 1
+        .trigger_panic = true,                  // on timeout: panic and reboot (the default only logs)
+    };
+    ESP_ERROR_CHECK(esp_task_wdt_reconfigure(&wdt_config));
     ESP_ERROR_CHECK(esp_task_wdt_add(NULL));   // watch this loop: no esp_task_wdt_reset() for 5 s -> the task watchdog fires
     while (true) {
         bool state = is_relay_on;   // one read per pass: the ISR may change it at any moment
