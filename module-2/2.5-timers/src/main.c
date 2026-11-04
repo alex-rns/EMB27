@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include "driver/gpio.h"
 #include "driver/gptimer.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #define RELAY_PIN GPIO_NUM_7
 #define FAN_PERIOD_S  8   // full cycle; 3600 for 1 hour
 #define FAN_ON_S      2   // fan on; 900 for 15 min
 
-static bool is_relay_on = false;
+volatile static bool is_relay_on = false;
 
 static bool on_alarm(gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_ctx)
 {
@@ -56,5 +58,14 @@ void app_main(void)
 
     ESP_ERROR_CHECK(gptimer_enable(timer));
     ESP_ERROR_CHECK(gptimer_start(timer));
-    // app_main returns here and its task ends; the timer keeps running and calling on_alarm()
+    
+    bool printed = is_relay_on;   // the state already reported
+    while (true) {
+        bool state = is_relay_on;   // one read per pass: the ISR may change it at any moment
+        if (state != printed) {
+            printf("fan %s\n", state ? "ON" : "OFF");
+            printed = state;        // report each change once
+        }
+        vTaskDelay(pdMS_TO_TICKS(10));   // pause so the idle task feeds the task watchdog (as in 2.4)
+    }
 }
