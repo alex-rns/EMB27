@@ -3,6 +3,7 @@
 #include "driver/gptimer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_task_wdt.h"
 
 #define RELAY_PIN GPIO_NUM_7
 #define FAN_PERIOD_S  8   // full cycle; 3600 for 1 hour
@@ -60,6 +61,8 @@ void app_main(void)
     ESP_ERROR_CHECK(gptimer_start(timer));
     
     bool printed = is_relay_on;   // the state already reported
+
+    ESP_ERROR_CHECK(esp_task_wdt_add(NULL));   // watch this loop: no esp_task_wdt_reset() for 5 s -> the task watchdog fires
     while (true) {
         bool state = is_relay_on;   // one read per pass: the ISR may change it at any moment
         if (state != printed) {
@@ -67,5 +70,6 @@ void app_main(void)
             printed = state;        // report each change once
         }
         vTaskDelay(pdMS_TO_TICKS(10));   // pause so the idle task feeds the task watchdog (as in 2.4)
+        esp_task_wdt_reset();            // feed the watchdog: this loop is alive
     }
 }
