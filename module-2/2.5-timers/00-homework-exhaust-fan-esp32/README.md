@@ -80,10 +80,15 @@ Flashed over the UART port, the log read at 115200 baud; the times are from the 
 ```
 
 - With `FAN_PERIOD_S 8` and `FAN_ON_S 2` the relay clicks on after 6 s off, stays on 2 s, and the cycle repeats.
+  Video of the cycle on the board: https://photos.app.goo.gl/rWzwNd6kFBEWbZaG8
 - ba62dec: the log shows `Returned from app_main()` and the relay kept switching every 2 s: the timer works with no task.
 - With the task watchdog on (d686e3b, 51fb993): a 12 s run printed no `task_wdt` line and no reboot.
 - **Not tried on the board:** the reboot itself on a watchdog timeout and the `started after a task watchdog reset`
   line. They follow from the code and the configuration only.
+
+The setup: the ESP32-S3 board, the BC547 stage on the breadboard and the relay module.
+
+![The ESP32-S3 board, the BC547 stage on the breadboard and the relay module](img/board.jpg)
 
 Build: every commit builds with 0 warnings (`-Wall -Wextra`; espressif32 7.1.3, ESP-IDF 6.1.0, GCC 15.2). The final
 code uses 15488 bytes of RAM and 184085 bytes of flash.
