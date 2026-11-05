@@ -31,7 +31,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define BUZZER_START_ARR  999   // TIM3 ticks at 1 MHz: ARR 999 = a 1000 us period = 1 kHz
+#define BUZZER_ARR_STEP   10    // ARR added per encoder count: each count lowers the tone a little
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -93,9 +94,8 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_3);
-  HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
-
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);         // the buzzer: TIM3 drives PB0 by itself from now on
+  HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);   // the knob: TIM4 counts PB6/PB7 edges up or down by itself
 
   /* USER CODE END 2 */
 
@@ -106,6 +106,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    uint32_t knob_position = __HAL_TIM_GET_COUNTER(&htim4);   // TIM4's counter = where the knob is
+    uint32_t buzzer_arr = BUZZER_START_ARR + knob_position * BUZZER_ARR_STEP;   // bigger ARR = longer period = lower tone
+    __HAL_TIM_SET_AUTORELOAD(&htim3, buzzer_arr);   // preload on: the new ARR starts when the current period ends
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, (buzzer_arr + 1) / 2);   // high for half the period: 50 % duty
   }
   /* USER CODE END 3 */
 }
