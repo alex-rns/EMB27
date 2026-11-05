@@ -113,7 +113,14 @@ current has a path at every edge, and the resistor limits it.
 - 72befaf: the tone follows the knob.
 - 459a1c3: about 3 turns in the direction that counts down gave `CNT` = 65428 (−108), ARR = 1539 and CCR3 = 770, as the
   formula says (999 + 108 × 5, then (1539 + 1) / 2), and a lower tone. So about 36 counts per turn (108 in about 3).
-- **Not checked on the board:** the melody (120 counts up) and the top of the range.
+  Turned the other way, past the start and up to 120, the knob starts the melody.
+
+Video of the board: https://photos.app.goo.gl/iEuqeyxKkESbmZxp7
+
+The setup: the Black Pill (right), the encoder module at the left end of the breadboard, the buzzer module in hand,
+the ST-Link V2 (top right).
+
+![The Black Pill, the encoder module on the breadboard and the buzzer module](img/board.jpg)
 
 Build (Debug, `-O0 -g3`): 0 errors, 0 warnings with CubeIDE's flags and with `-Wextra` (`build-stm32.sh`).
 `arm-none-eabi-size`: `text` 9712, `data` 12, `bss` 1716 bytes. The note table takes 204 bytes (51 × 4) in `.rodata`,
