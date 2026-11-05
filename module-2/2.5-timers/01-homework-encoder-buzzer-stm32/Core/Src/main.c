@@ -31,8 +31,25 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define BUZZER_START_ARR  999   // TIM3 ticks at 1 MHz: ARR 999 = a 1000 us period = 1 kHz
-#define BUZZER_ARR_STEP   10    // ARR added per encoder count: each count lowers the tone a little
+#define BUZZER_TICK_HZ    1000000   // TIM3 counts at 1 MHz (100 MHz / (PSC 99 + 1))
+#define BUZZER_START_ARR  999       // ARR 999 = a 1000 us period = 1 kHz
+#define BUZZER_ARR_STEP   5         // ARR taken off per encoder count: counting up raises the tone, down lowers it
+#define MELODY_POSITION   120       // about 3.3 turns up (measured: 108 counts in 3 turns): 2.5 kHz, then the melody
+#define NOTE_GAP_MS       30        // silence after each note, so repeated notes (E E E) don't merge into one
+
+// Notes of the 6th octave, in Hz
+#define NOTE_C6  1047
+#define NOTE_D6  1175
+#define NOTE_E6  1319
+#define NOTE_F6  1397
+#define NOTE_G6  1568
+
+// Note lengths, in ms
+#define QUARTER         300
+#define DOTTED_QUARTER  450
+#define EIGHTH          150
+#define HALF            600
+#define WHOLE          1200
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -59,7 +76,48 @@ static void MX_TIM4_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+typedef struct {
+  uint16_t hz;   // pitch
+  uint16_t ms;   // length, the gap after it included
+} Note;
 
+// "Jingle Bells" (1857, public domain), the chorus twice
+static const Note jingle_bells[] = {
+  {NOTE_E6, QUARTER}, {NOTE_E6, QUARTER}, {NOTE_E6, HALF},
+  {NOTE_E6, QUARTER}, {NOTE_E6, QUARTER}, {NOTE_E6, HALF},
+  {NOTE_E6, QUARTER}, {NOTE_G6, QUARTER}, {NOTE_C6, DOTTED_QUARTER}, {NOTE_D6, EIGHTH},
+  {NOTE_E6, WHOLE},
+  {NOTE_F6, QUARTER}, {NOTE_F6, QUARTER}, {NOTE_F6, DOTTED_QUARTER}, {NOTE_F6, EIGHTH},
+  {NOTE_F6, QUARTER}, {NOTE_E6, QUARTER}, {NOTE_E6, QUARTER}, {NOTE_E6, EIGHTH}, {NOTE_E6, EIGHTH},
+  {NOTE_E6, QUARTER}, {NOTE_D6, QUARTER}, {NOTE_D6, QUARTER}, {NOTE_E6, QUARTER},
+  {NOTE_D6, HALF}, {NOTE_G6, HALF},
+  {NOTE_E6, QUARTER}, {NOTE_E6, QUARTER}, {NOTE_E6, HALF},
+  {NOTE_E6, QUARTER}, {NOTE_E6, QUARTER}, {NOTE_E6, HALF},
+  {NOTE_E6, QUARTER}, {NOTE_G6, QUARTER}, {NOTE_C6, DOTTED_QUARTER}, {NOTE_D6, EIGHTH},
+  {NOTE_E6, WHOLE},
+  {NOTE_F6, QUARTER}, {NOTE_F6, QUARTER}, {NOTE_F6, QUARTER}, {NOTE_F6, QUARTER},
+  {NOTE_F6, QUARTER}, {NOTE_E6, QUARTER}, {NOTE_E6, QUARTER}, {NOTE_E6, EIGHTH}, {NOTE_E6, EIGHTH},
+  {NOTE_G6, QUARTER}, {NOTE_G6, QUARTER}, {NOTE_F6, QUARTER}, {NOTE_D6, QUARTER},
+  {NOTE_C6, WHOLE},
+};
+
+// Sets the buzzer's period in TIM3 ticks (1 us each) and keeps the duty at 50 %
+static void buzzer_set_arr(uint32_t arr)
+{
+  __HAL_TIM_SET_AUTORELOAD(&htim3, arr);                          // preload on: starts when the current period ends
+  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, (arr + 1) / 2);    // high for half the period
+}
+
+// Plays the whole melody; blocks for about 19 s, while TIM4 keeps counting the knob by itself
+static void play_melody(void)
+{
+  for (uint32_t i = 0; i < sizeof(jingle_bells) / sizeof(jingle_bells[0]); i++) {
+    buzzer_set_arr(BUZZER_TICK_HZ / jingle_bells[i].hz - 1);   // f = 1 MHz / (ARR + 1)
+    HAL_Delay(jingle_bells[i].ms - NOTE_GAP_MS);
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, 0);           // CCR 0: PB0 stays low, silence
+    HAL_Delay(NOTE_GAP_MS);
+  }
+}
 /* USER CODE END 0 */
 
 /**
@@ -106,10 +164,13 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    uint32_t knob_position = __HAL_TIM_GET_COUNTER(&htim4);   // TIM4's counter = where the knob is
-    uint32_t buzzer_arr = BUZZER_START_ARR + knob_position * BUZZER_ARR_STEP;   // bigger ARR = longer period = lower tone
-    __HAL_TIM_SET_AUTORELOAD(&htim3, buzzer_arr);   // preload on: the new ARR starts when the current period ends
-    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, (buzzer_arr + 1) / 2);   // high for half the period: 50 % duty
+    // TIM4's counter = where the knob is. Read as signed: one count below the start is -1, not 65535
+    int16_t knob_position = (int16_t)__HAL_TIM_GET_COUNTER(&htim4);
+    if (knob_position >= MELODY_POSITION) {
+      play_melody();   // and again on the next pass, while the knob stays there
+    } else {
+      buzzer_set_arr(BUZZER_START_ARR - knob_position * BUZZER_ARR_STEP);   // smaller ARR = shorter period = higher tone
+    }
   }
   /* USER CODE END 3 */
 }
