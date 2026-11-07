@@ -5,8 +5,8 @@
       "name": "EMB27 (repo)"
     },
     {
-      "name": "00-homework-exhaust-fan-esp32",
-      "path": "module-2/2.5-timers/00-homework-exhaust-fan-esp32"
+      "name": "2.6-debounce-timers (draft)",
+      "path": "module-2/2.6-debounce-timers"
     }
   ],
   "settings": {
