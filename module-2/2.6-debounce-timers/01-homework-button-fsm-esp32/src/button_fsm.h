@@ -10,18 +10,24 @@ typedef enum {
     BUTTON_STUCK
 } button_event_t;
 
+typedef enum {
+    IDLE,
+    HELD,
+    WAIT_SECOND,
+    SECOND_HELD,
+    LONG_HELD,
+    STUCK_HELD,
+} button_state_t;
+
 typedef void (*button_event_cb_t)(button_event_t event, void *ctx);
 
 typedef struct {
     bool raw_prev;
     bool stable_pressed;
-    bool long_emitted;
-    bool stuck_emitted;
-    bool pending_single;
-    bool second_press;
     int64_t raw_change_us;
     int64_t press_start_us;
     int64_t first_release_us;
+    button_state_t state;
 } button_fsm_t;
 
 // All timestamps in microseconds, monotonic, provided by caller.
