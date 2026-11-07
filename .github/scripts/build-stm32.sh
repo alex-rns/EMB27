@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# Build every STM32CubeIDE project in the repo (a folder with a .cproject) without CubeIDE:
-# the same arm-none-eabi-gcc flags CubeIDE 2.2.0 uses for its Debug build, plus -Wextra for our code.
+# Build every STM32CubeIDE project in the repo (a folder with a .cproject) without CubeIDE; on a pull request only the
+# ones it changes (only-changed.sh). The same arm-none-eabi-gcc flags CubeIDE 2.2.0 uses for its Debug build, plus
+# -Wextra for our code.
 # Fails on a build error or on a compiler warning in Core/ (our code and CubeMX's); the HAL in Drivers/ is
 # compiled without warning flags, like the framework in PlatformIO steps.
 # Local run, with the compiler inside CubeIDE:
 #   ARM_GCC_BIN="$(ls -d /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/*gnu-tools-for-stm32*macos*/tools/bin)" \
 #     bash .github/scripts/build-stm32.sh
 set -u
+. "$(dirname "$0")/only-changed.sh"
 BIN=${ARM_GCC_BIN:+$ARM_GCC_BIN/}
 CC="${BIN}arm-none-eabi-gcc"
 CXX="${BIN}arm-none-eabi-g++"
@@ -62,8 +64,7 @@ build() {  # $1 = project folder; prints the log, returns non-zero on an error o
   return $err
 }
 
-while IFS= read -r cproject; do
-  dir=$(dirname "$cproject")
+while IFS= read -r dir; do
   echo "::group::$dir"
   build "$dir"
   case $? in
@@ -72,6 +73,6 @@ while IFS= read -r cproject; do
     *) summary="$summary"$'\n'"FAIL  $dir"; fail=1 ;;
   esac
   echo "::endgroup::"
-done < <(find module-* -name .cproject -not -path '*/Debug/*' | sort)
-echo "$summary"
+done < <(find module-* -name .cproject -not -path '*/Debug/*' -exec dirname {} \; | sort | only_changed)
+echo "${summary:-no project changed: nothing to build}"
 exit $fail
