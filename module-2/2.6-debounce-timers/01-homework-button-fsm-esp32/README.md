@@ -1,8 +1,9 @@
 # 01 — Homework (extra): the button state machine as a switch-case, with a callback per event
 
 The teacher's extra task for lesson 2.6, on the lecture's button state machine (step
-[00](../00-lecture-button-fsm-esp32/)). ESP-IDF in C. The first commit of this folder is the lecture code unchanged,
-so each later commit shows only what this homework changes.
+[00](../00-lecture-button-fsm-esp32/)). ESP-IDF in C. The folder starts from the lecture code unchanged (its first
+commit, on `main` since pull request #25), so the homework's pull request and each later commit show only what this
+homework changes.
 
 ## Assignment
 
