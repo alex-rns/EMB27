@@ -5,8 +5,8 @@
       "name": "EMB27 (repo)"
     },
     {
-      "name": "2.6-debounce-timers (draft)",
-      "path": "module-2/2.6-debounce-timers"
+      "name": "01-homework-button-fsm-esp32",
+      "path": "module-2/2.6-debounce-timers/01-homework-button-fsm-esp32"
     }
   ],
   "settings": {
