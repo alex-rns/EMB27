@@ -59,6 +59,14 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define LED_Pin GPIO_PIN_13
 #define LED_GPIO_Port GPIOC
+#define RELAY_Pin GPIO_PIN_0
+#define RELAY_GPIO_Port GPIOB
+#define BUZZER_Pin GPIO_PIN_1
+#define BUZZER_GPIO_Port GPIOB
+#define LED_LEFT_Pin GPIO_PIN_8
+#define LED_LEFT_GPIO_Port GPIOB
+#define LED_RIGHT_Pin GPIO_PIN_9
+#define LED_RIGHT_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
