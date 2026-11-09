@@ -23,3 +23,11 @@ void load_led_right_set(bool on)
 {
 	HAL_GPIO_WritePin(LED_RIGHT_GPIO_Port, LED_RIGHT_Pin, on ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
+
+/* A short beep. Blocking for now: the whole superloop waits; step 9 makes it non-blocking */
+void load_buzzer_chirp(uint32_t ms)
+{
+	load_buzzer_set(true);
+	HAL_Delay(ms);
+	load_buzzer_set(false);
+}
