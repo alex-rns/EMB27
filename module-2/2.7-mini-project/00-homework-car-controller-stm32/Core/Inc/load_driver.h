@@ -14,6 +14,7 @@ void load_buzzer_tick(bool high); /* the flasher click: the buzzer pin held HIGH
 
 /* Non-blocking: these start and return at once; load_driver_update() ends them */
 void load_buzzer_chirp(uint32_t ms); /* a beep of ms */
+void load_buzzer_chirps(uint32_t ms, uint8_t count); /* count beeps of ms, with gaps of ms between them */
 void load_relay_pulse(uint32_t ms);  /* the relay on for ms, then back to the load_relay_set() level */
 void load_driver_update(void);       /* call on every superloop pass */
 

@@ -77,7 +77,11 @@ static void handle_lock_button(button_event_t ev)
 	if (ev == BTN_EVENT_SHORT_PRESS) {
 		s_locked = !s_locked;
 		load_relay_set(s_locked); /* the relay = the door lock */
-		load_buzzer_chirp(s_locked ? 80u : 40u); /* a different beep for lock and unlock */
+		if (s_locked) {
+			load_buzzer_chirp(80u); /* lock: one beep */
+		} else {
+			load_buzzer_chirps(60u, 2u); /* unlock: two beeps, like a car */
+		}
 	} else if (ev == BTN_EVENT_LONG_PRESS) {
 		s_valet_mode = !s_valet_mode;
 		load_buzzer_chirp(300u);

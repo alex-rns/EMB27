@@ -15,8 +15,10 @@ void load_driver_init(void)
 
 /* The non-blocking timers: when a beep or a relay pulse started and how long it lasts */
 static bool s_chirp_active = false;
-static uint32_t s_chirp_start_ms;
-static uint32_t s_chirp_len_ms;
+static bool s_chirp_tone_on = false; /* inside a series: a beep (true) or the gap after it (false) */
+static uint8_t s_chirp_left = 0;     /* beeps left in the series, the current one included */
+static uint32_t s_chirp_start_ms;    /* when the current beep or gap began */
+static uint32_t s_chirp_len_ms;      /* one beep, and one gap, lasts this long */
 
 static bool s_relay_level = false; /* what load_relay_set() asked for: the lock state */
 static bool s_pulse_active = false;
@@ -65,13 +67,23 @@ void load_led_right_set(bool on)
 	HAL_GPIO_WritePin(LED_RIGHT_GPIO_Port, LED_RIGHT_Pin, on ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
-/* A beep: switch the tone on, remember when, return at once; load_driver_update() switches it off */
-void load_buzzer_chirp(uint32_t ms)
+/* A series of beeps: switch the tone on, remember when, return at once; load_driver_update() does the rest */
+void load_buzzer_chirps(uint32_t ms, uint8_t count)
 {
+	if (count == 0u) {
+		return;
+	}
 	load_buzzer_set(true);
 	s_chirp_active = true;
+	s_chirp_tone_on = true;
+	s_chirp_left = count;
 	s_chirp_start_ms = HAL_GetTick();
 	s_chirp_len_ms = ms;
+}
+
+void load_buzzer_chirp(uint32_t ms)
+{
+	load_buzzer_chirps(ms, 1u);
 }
 
 void load_relay_pulse(uint32_t ms)
@@ -89,8 +101,18 @@ void load_driver_update(void)
 	uint32_t now = HAL_GetTick();
 
 	if (s_chirp_active && now - s_chirp_start_ms >= s_chirp_len_ms) {
-		load_buzzer_set(false);
-		s_chirp_active = false;
+		s_chirp_start_ms = now;
+		if (s_chirp_tone_on) { /* a beep just ended: silence; a gap follows if beeps are left */
+			load_buzzer_set(false);
+			s_chirp_tone_on = false;
+			s_chirp_left--;
+			if (s_chirp_left == 0u) {
+				s_chirp_active = false;
+			}
+		} else { /* the gap ended: the next beep */
+			load_buzzer_set(true);
+			s_chirp_tone_on = true;
+		}
 	}
 	if (s_pulse_active && now - s_pulse_start_ms >= s_pulse_len_ms) {
 		relay_write(s_relay_level); /* back to the lock state */
