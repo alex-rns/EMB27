@@ -65,6 +65,14 @@ void Error_Handler(void);
 #define RELAY_GPIO_Port GPIOB
 #define BUZZER_Pin GPIO_PIN_1
 #define BUZZER_GPIO_Port GPIOB
+#define BTN_LOCK_Pin GPIO_PIN_12
+#define BTN_LOCK_GPIO_Port GPIOB
+#define BTN_LEFT_Pin GPIO_PIN_13
+#define BTN_LEFT_GPIO_Port GPIOB
+#define BTN_RIGHT_Pin GPIO_PIN_14
+#define BTN_RIGHT_GPIO_Port GPIOB
+#define BTN_HAZARD_Pin GPIO_PIN_15
+#define BTN_HAZARD_GPIO_Port GPIOB
 #define LED_LEFT_Pin GPIO_PIN_8
 #define LED_LEFT_GPIO_Port GPIOB
 #define LED_RIGHT_Pin GPIO_PIN_9

@@ -240,6 +240,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : BTN_LOCK_Pin BTN_LEFT_Pin BTN_RIGHT_Pin BTN_HAZARD_Pin */
+  GPIO_InitStruct.Pin = BTN_LOCK_Pin|BTN_LEFT_Pin|BTN_RIGHT_Pin|BTN_HAZARD_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
   /* USER CODE END MX_GPIO_Init_2 */
