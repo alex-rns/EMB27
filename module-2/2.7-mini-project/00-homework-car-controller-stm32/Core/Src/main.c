@@ -50,6 +50,13 @@ TIM_HandleTypeDef htim3;
 /* The four FSM buttons; the crash sensor is not here, it has its own interrupt */
 enum { IDX_LOCK, IDX_LEFT, IDX_RIGHT, IDX_HAZARD, N_FSM_BUTTONS };
 static button_fsm_t s_buttons[N_FSM_BUTTONS];
+
+/* The car's state: plain flags are enough here */
+static bool s_locked = false;
+static bool s_valet_mode = false;
+static bool s_turn_l_on = false;
+static bool s_turn_r_on = false;
+static bool s_hazard_on = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -63,7 +70,56 @@ static void MX_ADC1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/* The glue: the only place where the buttons meet the loads. One small handler per button;
+   each ignores BTN_EVENT_NONE, because no branch matches it */
+static void handle_lock_button(button_event_t ev)
+{
+	if (ev == BTN_EVENT_SHORT_PRESS) {
+		s_locked = !s_locked;
+		load_relay_set(s_locked); /* the relay = the door lock */
+		load_buzzer_chirp(s_locked ? 80u : 40u); /* a different beep for lock and unlock */
+	} else if (ev == BTN_EVENT_LONG_PRESS) {
+		s_valet_mode = !s_valet_mode;
+		load_buzzer_chirp(300u);
+	}
+}
 
+/* left = true for LEFT, false for RIGHT. One side at a time: switching one on switches the other off */
+static void handle_turn_button(button_event_t ev, bool left)
+{
+	if (ev == BTN_EVENT_SHORT_PRESS) {
+		if (left) {
+			s_turn_l_on = !s_turn_l_on;
+			if (s_turn_l_on) {
+				s_turn_r_on = false;
+			}
+		} else {
+			s_turn_r_on = !s_turn_r_on;
+			if (s_turn_r_on) {
+				s_turn_l_on = false;
+			}
+		}
+	}
+	/* LONG = the lane change (3 blinks): challenge 1, nothing yet */
+}
+
+static void handle_hazard_button(button_event_t ev)
+{
+	if (ev == BTN_EVENT_SHORT_PRESS) {
+		s_hazard_on = !s_hazard_on;
+	} else if (ev == BTN_EVENT_LONG_PRESS) {
+		load_relay_pulse(200u); /* diagnostics: the relay and the buzzer together for 200 ms */
+		load_buzzer_chirp(200u);
+	}
+}
+
+/* The crash is a safety event: it wins over the user's buttons */
+static void handle_crash(void)
+{
+	s_hazard_on = true;
+	load_relay_pulse(150u);
+	load_buzzer_chirp(150u);
+}
 /* USER CODE END 0 */
 
 /**
@@ -103,7 +159,6 @@ int main(void)
   button_fsm_init(&s_buttons[IDX_LEFT], BTN_LEFT_GPIO_Port, BTN_LEFT_Pin);
   button_fsm_init(&s_buttons[IDX_RIGHT], BTN_RIGHT_GPIO_Port, BTN_RIGHT_Pin);
   button_fsm_init(&s_buttons[IDX_HAZARD], BTN_HAZARD_GPIO_Port, BTN_HAZARD_Pin);
-  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET); /* step 8 test: the onboard LED starts off (it is lit on LOW) */
   uint32_t last_fsm_ms = 0; /* HAL_GetTick() when each superloop slot ran last */
   uint32_t last_pot_ms = 0;
   /* USER CODE END 2 */
@@ -119,16 +174,15 @@ int main(void)
 
 	  if (now - last_fsm_ms >= BTN_FSM_TICK_MS) { /* every 10 ms: the buttons; unsigned subtraction survives the wrap */
 		  last_fsm_ms = now;
-		  for (int i = 0; i < N_FSM_BUTTONS; i++) {
-			  button_event_t ev = button_fsm_tick(&s_buttons[i], now);
-			  /* Step 8 test until step 9: one press must flip the LEDs exactly once */
-			  if (ev == BTN_EVENT_SHORT_PRESS) {
-				  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-			  } else if (ev == BTN_EVENT_LONG_PRESS) {
-				  HAL_GPIO_TogglePin(LED_LEFT_GPIO_Port, LED_LEFT_Pin);
-				  HAL_GPIO_TogglePin(LED_RIGHT_GPIO_Port, LED_RIGHT_Pin);
-			  }
-		  }
+		  handle_lock_button(button_fsm_tick(&s_buttons[IDX_LOCK], now));
+		  handle_turn_button(button_fsm_tick(&s_buttons[IDX_LEFT], now), true);
+		  handle_turn_button(button_fsm_tick(&s_buttons[IDX_RIGHT], now), false);
+		  handle_hazard_button(button_fsm_tick(&s_buttons[IDX_HAZARD], now));
+
+		  /* The state on the LEDs instead of the PDF's status log; step 10 makes the turn LEDs blink */
+		  load_led_left_set(s_hazard_on || s_turn_l_on); /* the hazard wins; the turn flag stays and comes back */
+		  load_led_right_set(s_hazard_on || s_turn_r_on);
+		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, s_valet_mode ? GPIO_PIN_RESET : GPIO_PIN_SET); /* valet; lit on LOW */
 	  }
 
 	  if (now - last_pot_ms >= POT_SAMPLE_MS) { /* every 50 ms: the potentiometer */
@@ -137,7 +191,7 @@ int main(void)
 	  }
 
 	  if (crash_sensor_take()) { /* every pass: the interrupt already caught it, only react here */
-		  load_buzzer_chirp(150); /* step 6 test: a beep per crash; step 9 adds the hazard and the relay */
+		  handle_crash();
 	  }
 
 	  load_driver_update(); /* every pass: ends a beep or a relay pulse whose time is up */
