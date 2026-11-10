@@ -93,6 +93,8 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   load_driver_init();
+  uint32_t last_fsm_ms = 0; /* HAL_GetTick() when each superloop slot ran last */
+  uint32_t last_pot_ms = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -102,12 +104,21 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  /* Step 5 test: the raw LOCK level on the onboard LED, no debounce yet (step 8 replaces it) */
-	  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, HAL_GPIO_ReadPin(BTN_LOCK_GPIO_Port, BTN_LOCK_Pin)); /* pressed = LOW = LED on */
-	  if (crash_sensor_take()) {
-		  load_buzzer_chirp(150); /* step 6 test: a beep per crash; step 9 adds the hazard and the relay */
+	  uint32_t now = HAL_GetTick(); /* ms since start; each slot below runs when its period has passed, nothing waits */
+
+	  if (now - last_fsm_ms >= BTN_FSM_TICK_MS) { /* every 10 ms: the buttons; unsigned subtraction survives the wrap */
+		  last_fsm_ms = now;
+		  /* Step 5 test: the raw LOCK level on the onboard LED, no debounce yet (step 8 replaces it) */
+		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, HAL_GPIO_ReadPin(BTN_LOCK_GPIO_Port, BTN_LOCK_Pin)); /* pressed = LOW = LED on */
 	  }
-	  HAL_Delay(5); /* poll fast on purpose, to catch the bounce */
+
+	  if (now - last_pot_ms >= POT_SAMPLE_MS) { /* every 50 ms: the potentiometer (step 7.2) */
+		  last_pot_ms = now;
+	  }
+
+	  if (crash_sensor_take()) { /* every pass: the interrupt already caught it, only react here */
+		  load_buzzer_chirp(150); /* step 6 test: a beep per crash; blocking for now, step 9 makes it non-blocking */
+	  }
   }
   /* USER CODE END 3 */
 }
