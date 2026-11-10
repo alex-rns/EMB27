@@ -10,6 +10,7 @@ void load_relay_set(bool on);   /* the steady relay level (the lock state) */
 void load_buzzer_set(bool on);
 void load_led_left_set(bool on);
 void load_led_right_set(bool on);
+void load_buzzer_tick(bool high); /* the flasher click: the buzzer pin held HIGH or LOW; skipped during a chirp */
 
 /* Non-blocking: these start and return at once; load_driver_update() ends them */
 void load_buzzer_chirp(uint32_t ms); /* a beep of ms */

@@ -44,6 +44,17 @@ void load_buzzer_set(bool on)
 	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, on ? BUZZER_CCR_TONE : 0u);
 }
 
+/* The flasher "tick-tock": a passive buzzer clicks only when its level changes, so hold the pin steady.
+   CCR above ARR keeps the PWM output HIGH for the whole period, CCR 0 keeps it LOW.
+   While HIGH, at most 15 mA flows (3.3 V / 220 ohm): within the pin's limit */
+void load_buzzer_tick(bool high)
+{
+	if (s_chirp_active) {
+		return; /* don't cut a beep; the next tick sets the level */
+	}
+	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, high ? __HAL_TIM_GET_AUTORELOAD(&htim3) + 1u : 0u);
+}
+
 void load_led_left_set(bool on)
 {
 	HAL_GPIO_WritePin(LED_LEFT_GPIO_Port, LED_LEFT_Pin, on ? GPIO_PIN_SET : GPIO_PIN_RESET);

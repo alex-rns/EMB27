@@ -161,6 +161,8 @@ int main(void)
   button_fsm_init(&s_buttons[IDX_HAZARD], BTN_HAZARD_GPIO_Port, BTN_HAZARD_Pin);
   uint32_t last_fsm_ms = 0; /* HAL_GetTick() when each superloop slot ran last */
   uint32_t last_pot_ms = 0;
+  uint32_t last_blink_ms = 0;
+  bool blink_phase = false; /* the flasher's half period: the turn LEDs on or off */
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -179,15 +181,24 @@ int main(void)
 		  handle_turn_button(button_fsm_tick(&s_buttons[IDX_RIGHT], now), false);
 		  handle_hazard_button(button_fsm_tick(&s_buttons[IDX_HAZARD], now));
 
-		  /* The state on the LEDs instead of the PDF's status log; step 10 makes the turn LEDs blink */
-		  load_led_left_set(s_hazard_on || s_turn_l_on); /* the hazard wins; the turn flag stays and comes back */
-		  load_led_right_set(s_hazard_on || s_turn_r_on);
+		  /* The state on the LEDs instead of the PDF's status log: the turn LEDs blink in the flasher's phase */
+		  load_led_left_set(blink_phase && (s_hazard_on || s_turn_l_on)); /* the hazard wins; the turn flag stays and comes back */
+		  load_led_right_set(blink_phase && (s_hazard_on || s_turn_r_on));
 		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, s_valet_mode ? GPIO_PIN_RESET : GPIO_PIN_SET); /* valet; lit on LOW */
 	  }
 
 	  if (now - last_pot_ms >= POT_SAMPLE_MS) { /* every 50 ms: the potentiometer */
 		  last_pot_ms = now;
 		  pot_sensor_update();
+	  }
+
+	  /* The flasher: the pot sets the period, 200..800 ms (integer map, no float); 4095 * 600 fits in 32 bits */
+	  uint32_t blink_period_ms = 200u + ((uint32_t)pot_sensor_get_raw() * 600u) / 4095u;
+	  if (now - last_blink_ms >= blink_period_ms / 2u) { /* every half period the LEDs and the click change */
+		  last_blink_ms = now;
+		  bool blinking = s_hazard_on || s_turn_l_on || s_turn_r_on;
+		  blink_phase = blinking ? !blink_phase : false;
+		  load_buzzer_tick(blink_phase); /* tick on, tock off: each change clicks the passive buzzer */
 	  }
 
 	  if (crash_sensor_take()) { /* every pass: the interrupt already caught it, only react here */
