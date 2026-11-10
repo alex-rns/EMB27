@@ -47,7 +47,9 @@ ADC_HandleTypeDef hadc1;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-
+/* The four FSM buttons; the crash sensor is not here, it has its own interrupt */
+enum { IDX_LOCK, IDX_LEFT, IDX_RIGHT, IDX_HAZARD, N_FSM_BUTTONS };
+static button_fsm_t s_buttons[N_FSM_BUTTONS];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -97,6 +99,11 @@ int main(void)
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   load_driver_init();
+  button_fsm_init(&s_buttons[IDX_LOCK], BTN_LOCK_GPIO_Port, BTN_LOCK_Pin); /* &: pass the struct's address, init fills it */
+  button_fsm_init(&s_buttons[IDX_LEFT], BTN_LEFT_GPIO_Port, BTN_LEFT_Pin);
+  button_fsm_init(&s_buttons[IDX_RIGHT], BTN_RIGHT_GPIO_Port, BTN_RIGHT_Pin);
+  button_fsm_init(&s_buttons[IDX_HAZARD], BTN_HAZARD_GPIO_Port, BTN_HAZARD_Pin);
+  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET); /* step 8 test: the onboard LED starts off (it is lit on LOW) */
   uint32_t last_fsm_ms = 0; /* HAL_GetTick() when each superloop slot ran last */
   uint32_t last_pot_ms = 0;
   /* USER CODE END 2 */
@@ -112,8 +119,16 @@ int main(void)
 
 	  if (now - last_fsm_ms >= BTN_FSM_TICK_MS) { /* every 10 ms: the buttons; unsigned subtraction survives the wrap */
 		  last_fsm_ms = now;
-		  /* Step 5 test: the raw LOCK level on the onboard LED, no debounce yet (step 8 replaces it) */
-		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, HAL_GPIO_ReadPin(BTN_LOCK_GPIO_Port, BTN_LOCK_Pin)); /* pressed = LOW = LED on */
+		  for (int i = 0; i < N_FSM_BUTTONS; i++) {
+			  button_event_t ev = button_fsm_tick(&s_buttons[i], now);
+			  /* Step 8 test until step 9: one press must flip the LEDs exactly once */
+			  if (ev == BTN_EVENT_SHORT_PRESS) {
+				  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+			  } else if (ev == BTN_EVENT_LONG_PRESS) {
+				  HAL_GPIO_TogglePin(LED_LEFT_GPIO_Port, LED_LEFT_Pin);
+				  HAL_GPIO_TogglePin(LED_RIGHT_GPIO_Port, LED_RIGHT_Pin);
+			  }
+		  }
 	  }
 
 	  if (now - last_pot_ms >= POT_SAMPLE_MS) { /* every 50 ms: the potentiometer */
