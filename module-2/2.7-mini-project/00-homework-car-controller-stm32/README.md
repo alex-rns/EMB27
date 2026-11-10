@@ -187,6 +187,18 @@ The pins avoid PA4–PA7 (the board's SPI flash), PB2 (BOOT1) and PB11 (not bond
 The Black Pill's `5V` pin is dead while the board runs from the ST-Link (it comes from the board's own USB-C through
 a diode), hence the breadboard supply for the relay.
 
+**Falstad** simulates the relay stage, twice side by side: [open the circuit in Falstad](https://www.falstad.com/circuit/circuitjs.html?ctz=CQAgjCAMB0lwrOGAmOyDs6DMkAcyA2ATiPRHknPMvgFMBaMMAKACURlkAWcdA8Isl79KQiGGgFEEqVCjR4zAO4duwjrlzrIzVGWSb1BrZx48ACgCFIAfQD2Aa2YAnDVrB8QWXDw8ikcDp6Xj7q3r4GIDyW9k4ALiG+nlxg-H5yEJSUOJQAJrQAZgCGAK4ANnHKUakCQin83FnMAObVDVyU9RzoQk3sXQRmNVi9ch3k0MiZcjCKrgNDaQRZAXBVXak0kZtQupBk8NvL5JGoWjwAkgBysS4n7sfLDytggcwJT+CP4zuUjDMcOAgfLFcqVFSDShgLg8SEgIgiNggOEI5HjQYA8bwSbTLIKKpw9Jwxq7CHjEkEHoccY6CFUknoSA8Ek6DxaRnMvAgPgmLm+eSjGCQaSBUVAoXwHiM+RwMhC4Wk7kEEzjHndXotJUmKlqnA8Jq5ZH0wyUoQkoQg0oVTWmtxGoQjFY6VzE9HjPUZN6pIRwj2+5UAzI290BuEdJ3MADyiTCh3AYDEu2jh2e93haV27CIMPURAT2g44HAkmkJZm+JU2aSaTg7k8QX2ATrNa5piiICstmctAAbndXlz0kwmQWB2tgsPq-GRwnziAYt2+wlJ+omFg0p5xACcsDClbwfH17VD+0mq016eT+qZkiL2iryNMTQcQDZv2wEeMXffqtaVedgmXCpg2ZCAamYGAnO1w2Iu-bcOBIzAas7zgIhXxQuuULHH8uKAnke5glUH7HNCviYemmaoccqLEZQGIrFiL5OhWVFQpu5EskRHE-FggjUk0KgfnxJLQmonFsuAXBiYOQG8nOmSTOWCpjmKeLClKamNvKiB-tChgibJ146OehkYGIhkegaqHCYYQlmuSu6gta568WatmuV4qA3q4tH8axXgjlCXoEGI5Eer565aC8uwucckX+eGN7RiuQ77GI+ZBsl8HoeA2U0bsAAeXwgPQj5OsVAAytAAM7VXYAB2HDQGQ3ZlEUACeIDVXERTNLQABcHbWCAAAUEAABIAF4ADRyAA9F40BYCAABqACUJUAHxICADiRgAFgAtlt84AMKSuglgnYddi5OUtAgNcs2vLtB3HQADuUZT0CU70gHEdhUCtzBFagnRAa+klnRdV1xPtD3OAAls0+0JEoHUgM4dglPVuSDdcQMgAAPPQ21FAARtjCSUCts1wwjtBtZ1ADGZSI8zDjVSD8JeTCUWBjwVO0K4ZS0M01Vdej73vbQhojadIBFLjIAAKKY72wvVbLa341cID7UUzi5GUnU3T2NV0-D6tM11PXtRLdgFAU3OHJ0qLlfmrUYzdd2iyAiP1dViP5KNEB7Uds3mFc5izdKb0gMzdiI2Us25Ijt20LNFUqwAIjr-3te97NFGUIA9iXJQWyA9V2Akh20EU1UlN2uTMEAA)
+(or File → Import From Text with [`falstad.txt`](falstad.txt)). PB0 is a 1 Hz square wave, 0 / 3.3 V. On the left
+the BC547B sits the right way round: with PB0 high the base is at 0.64 V, `IN` falls to 0.08 V and the relay pulls
+in (73 mA through the coil). On the right its outer legs are swapped, as they first were on the breadboard: the base
+is at 0.56 V, `IN` only falls to 4.33 V, the coil gets 36 mA and the relay stays off (on the board: 0.54 V and
+4.56 V, and the relay stayed silent). Model values: default transistors (β 300 and 200; reversed, a transistor amplifies far
+less, so the same base current lets little current through), the module's inside as in lesson 1.7 (1 kΩ base resistor, PNP, a 70 Ω coil that pulls in at
+54 mA, flyback diode, LED): typical values, not measured on this module. In the model the module's LED glows
+faintly in the reversed case; on the board it stayed dark.
+
+![The relay stage in Falstad](falstad.svg)
+
 ## Notes
 
 - **The transistor's legs.** With the flat side facing, this kit's BC547B stage only worked with the outer legs
