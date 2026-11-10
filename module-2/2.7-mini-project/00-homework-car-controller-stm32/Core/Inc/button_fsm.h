@@ -38,4 +38,7 @@ void button_fsm_init(button_fsm_t *btn, GPIO_TypeDef *port, uint16_t pin);
 /* Advance one button's FSM; returns an event once per press, otherwise BTN_EVENT_NONE */
 button_event_t button_fsm_tick(button_fsm_t *btn, uint32_t now_ms);
 
+/* The crash sensor (PA8, an interrupt on the falling edge): true once per crash, then the flag is cleared */
+bool crash_sensor_take(void);
+
 #endif /* INC_BUTTON_FSM_H_ */

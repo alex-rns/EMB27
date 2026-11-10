@@ -104,6 +104,9 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  /* Step 5 test: the raw LOCK level on the onboard LED, no debounce yet (step 8 replaces it) */
 	  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, HAL_GPIO_ReadPin(BTN_LOCK_GPIO_Port, BTN_LOCK_Pin)); /* pressed = LOW = LED on */
+	  if (crash_sensor_take()) {
+		  load_buzzer_chirp(150); /* step 6 test: a beep per crash; step 9 adds the hazard and the relay */
+	  }
 	  HAL_Delay(5); /* poll fast on purpose, to catch the bounce */
   }
   /* USER CODE END 3 */
