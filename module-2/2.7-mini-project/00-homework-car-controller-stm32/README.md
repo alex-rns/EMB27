@@ -172,6 +172,8 @@ The pins avoid PA4–PA7 (the board's SPI flash), PB2 (BOOT1) and PB11 (not bond
 
 ## Wiring
 
+![Schematic](schematic.svg)
+
 | Part | Connection |
 |---|---|
 | Relay stage | PB0 → 10 kΩ → BC547B base; emitter → GND; collector → the module's `IN`, which also has a 10 kΩ pull-up to +5 V; module `VCC` → +5 V, `GND` → GND |
