@@ -137,8 +137,10 @@ int main(void)
 	  }
 
 	  if (crash_sensor_take()) { /* every pass: the interrupt already caught it, only react here */
-		  load_buzzer_chirp(150); /* step 6 test: a beep per crash; blocking for now, step 9 makes it non-blocking */
+		  load_buzzer_chirp(150); /* step 6 test: a beep per crash; step 9 adds the hazard and the relay */
 	  }
+
+	  load_driver_update(); /* every pass: ends a beep or a relay pulse whose time is up */
   }
   /* USER CODE END 3 */
 }

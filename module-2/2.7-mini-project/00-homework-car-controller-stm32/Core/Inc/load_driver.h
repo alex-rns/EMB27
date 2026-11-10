@@ -6,10 +6,14 @@
 #include <stdint.h>
 
 void load_driver_init(void); /* call once after MX_TIM3_Init(): starts the buzzer timer, silent */
-void load_relay_set(bool on);
+void load_relay_set(bool on);   /* the steady relay level (the lock state) */
 void load_buzzer_set(bool on);
 void load_led_left_set(bool on);
 void load_led_right_set(bool on);
-void load_buzzer_chirp(uint32_t ms);
+
+/* Non-blocking: these start and return at once; load_driver_update() ends them */
+void load_buzzer_chirp(uint32_t ms); /* a beep of ms */
+void load_relay_pulse(uint32_t ms);  /* the relay on for ms, then back to the load_relay_set() level */
+void load_driver_update(void);       /* call on every superloop pass */
 
 #endif /* INC_LOAD_DRIVER_H_ */
