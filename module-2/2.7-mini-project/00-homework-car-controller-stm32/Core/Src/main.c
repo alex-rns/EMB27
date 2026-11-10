@@ -103,7 +103,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  /* Step 5 test: the raw LOCK level on the onboard LED, no debounce yet (step 8 replaces it) */
-	  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, HAL_GPIO_ReadPin(BTN_LOCK_GPIO_Port, BTN_LOCK_Pin)); /* pressed = LOW = LED on */
+	  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, HAL_GPIO_ReadPin(BTN_LOCKтак_GPIO_Port, BTN_LOCK_Pin)); /* pressed = LOW = LED on */
 	  HAL_Delay(5); /* poll fast on purpose, to catch the bounce */
   }
   /* USER CODE END 3 */
@@ -246,6 +246,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : CRASH_Pin */
+  GPIO_InitStruct.Pin = CRASH_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(CRASH_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

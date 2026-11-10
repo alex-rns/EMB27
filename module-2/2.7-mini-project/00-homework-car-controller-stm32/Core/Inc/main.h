@@ -73,6 +73,9 @@ void Error_Handler(void);
 #define BTN_RIGHT_GPIO_Port GPIOB
 #define BTN_HAZARD_Pin GPIO_PIN_15
 #define BTN_HAZARD_GPIO_Port GPIOB
+#define CRASH_Pin GPIO_PIN_8
+#define CRASH_GPIO_Port GPIOA
+#define CRASH_EXTI_IRQn EXTI9_5_IRQn
 #define LED_LEFT_Pin GPIO_PIN_8
 #define LED_LEFT_GPIO_Port GPIOB
 #define LED_RIGHT_Pin GPIO_PIN_9
