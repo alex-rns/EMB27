@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+void load_driver_init(void); /* call once after MX_TIM3_Init(): starts the buzzer timer, silent */
 void load_relay_set(bool on);
 void load_buzzer_set(bool on);
 void load_led_left_set(bool on);

@@ -2,16 +2,28 @@
 #include "load_driver.h"
 #include "main.h" /* the pin names from CubeMX: RELAY_Pin, RELAY_GPIO_Port, ... */
 
-/* on = true drives the pin HIGH: each load is switched by an NPN transistor or lit straight from the pin */
+extern TIM_HandleTypeDef htim3; /* defined by CubeMX in main.c; TIM3 CH4 = the passive buzzer on PB1 */
+
+/* The buzzer tone: TIM3 counts 0..1249 at 1 MHz = 800 Hz. CCR sets how long the pin stays HIGH each period:
+   0 = silent, more = louder (up to half of the period, 625) */
+#define BUZZER_CCR_TONE 156u /* about 1/8 of the period: a soft beep */
+
+void load_driver_init(void)
+{
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4); /* CCR is 0 from CubeMX, so it starts silent */
+}
+
+/* on = true drives the pin HIGH: the relay through an NPN transistor, the LEDs straight from the pin */
 
 void load_relay_set(bool on)
 {
 	HAL_GPIO_WritePin(RELAY_GPIO_Port, RELAY_Pin, on ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
+/* on = the tone, off = silence (the timer keeps running, only CCR changes) */
 void load_buzzer_set(bool on)
 {
-	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, on ? GPIO_PIN_SET : GPIO_PIN_RESET);
+	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, on ? BUZZER_CCR_TONE : 0u);
 }
 
 void load_led_left_set(bool on)
