@@ -116,8 +116,9 @@ int main(void)
 		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, HAL_GPIO_ReadPin(BTN_LOCK_GPIO_Port, BTN_LOCK_Pin)); /* pressed = LOW = LED on */
 	  }
 
-	  if (now - last_pot_ms >= POT_SAMPLE_MS) { /* every 50 ms: the potentiometer (step 7.2) */
+	  if (now - last_pot_ms >= POT_SAMPLE_MS) { /* every 50 ms: the potentiometer */
 		  last_pot_ms = now;
+		  pot_sensor_update();
 	  }
 
 	  if (crash_sensor_take()) { /* every pass: the interrupt already caught it, only react here */
