@@ -2,9 +2,11 @@
 
 The lesson 2.7 mini project: project 2 of the three offered, the automotive Body Control Module (central lock, turn
 signals, hazard lights, crash sensor), built on the WeAct Black Pill (STM32F411CEU6) instead of the ESP32-S3 the
-course PDF uses. A superloop in C without FreeRTOS; CubeMX generates the project, our code lives in three modules
-(`button_fsm`, `load_driver`, `pot_sensor`) and in the `USER CODE` blocks of `main.c`, which glues them together.
-The git history of this folder follows the PDF's steps one change per commit.
+course PDF uses. A superloop in C without FreeRTOS; CubeMX generates the project, our code lives in five modules:
+`app` (the car's logic, gluing the others together), `button_fsm`, `crash_sensor`, `load_driver` and `pot_sensor`.
+CubeMX's `main.c` only calls `app_init()` and `app_loop()` from its `USER CODE` blocks.
+The git history of this folder follows the PDF's steps one change per commit, then the review's changes (the
+module layout, named constants, checked HAL return values), again one per commit.
 
 ## Assignment
 
@@ -88,8 +90,10 @@ logic, and changes what the board, the kit or the topics covered so far require:
 |---|---|---|
 | ESP32-S3, ESP-IDF, `idf.py` | Black Pill STM32F411CE, CubeMX + HAL, STM32CubeIDE | the author's choice of board for this project |
 | FreeRTOS tasks, two `esp_timer`s, a queue | one superloop: `HAL_GetTick()` slots every 10 ms (buttons), 50 ms (pot) and half a blink period (flasher) | no RTOS yet in the course; the slots never wait, so nothing blocks |
-| crash ISR → queue → `crash_task` → callback | EXTI interrupt → `volatile` flag → `crash_sensor_take()` in the superloop → `handle_crash()` in `main.c` | the same split (the ISR only signals, the reaction runs outside it) without a task; `button_fsm` still knows nothing about the loads |
-| internal pull-down, pressed = HIGH, interrupt on the rising edge | internal pull-up, pressed = LOW, interrupt on the falling edge | the usual STM32 wiring (button to GND); `raw_pressed()` hides it, as the PDF intends. In the toy car the crash button needs only two wires, PA8 and GND |
+| `app_main.c` holds the glue | `main.c` only calls `app_init()` / `app_loop()`; the glue is `app.c`, one function per superloop slot | the teacher's review: CubeMX's file stays CubeMX's, and the loop reads as a list of slots |
+| `button_fsm_t` holds the pin, the FSM reads it | the FSM gets "pressed or not" as a parameter; the pins sit in a `const` table of `{port, pin}` structs in `app.c` | the teacher's review: the FSM doesn't need to know the wiring |
+| crash ISR → queue → `crash_task` → callback, in `button_fsm` | EXTI interrupt → `volatile` flag → `crash_sensor_take()` in the superloop → `handle_crash()` in `app.c`, the interrupt in its own `crash_sensor` module | the same split (the ISR only signals, the reaction runs outside it) without a task; the teacher's review: an interrupt doesn't belong in the FSM module |
+| internal pull-down, pressed = HIGH, interrupt on the rising edge | internal pull-up, pressed = LOW, interrupt on the falling edge | the usual STM32 wiring (button to GND); `button_tick()` in `app.c` hides it, the FSM only sees "pressed". In the toy car the crash button needs only two wires, PA8 and GND |
 | 3 FSM buttons (LOCK, TURN_L, HAZARD) + crash; no LEDs | 4 FSM buttons (+ RIGHT) + crash, 4 turn LEDs (left pair, right pair) | the author's addition: the controller sits in a wooden toy car, the LEDs at its corners |
 | active buzzer through a BC547B | passive buzzer on TIM3 CH4 PWM (PB1 → 220 Ω → buzzer → GND, no transistor) | the active one was too loud; the passive one plays a soft 800 Hz beep and also clicks like a flasher relay |
 | relay module IN straight from a 3.3 V GPIO | relay module through a BC547B with a 10 kΩ pull-up to 5 V, the module fed with 5 V from the breadboard supply | this kit's module has a 5 V coil and a PNP input stage that a 3.3 V high doesn't turn off (as in lesson 2.2) |
@@ -104,14 +108,14 @@ Not done: the mini tasks of every step and the logic analyzer measurements (the 
 
 | Goal / final check | Where |
 |---|---|
-| 1. Modules, no 1000-line `main.c` | `Core/Inc` + `Core/Src`: `button_fsm`, `load_driver`, `pot_sensor`; `main.c` holds only the glue (the state flags and four small handlers) |
-| 2. Four FSM buttons, short < 2 s / long ≥ 2 s | `button_fsm_tick()` in `button_fsm.c`: the PDF's 4-state FSM, 50 ms debounce on press and release, `BTN_EVENT_LONG_PRESS` once while still held; `s_buttons[4]` in `main.c`, ticked every 10 ms |
-| 3. Crash sensor on a hardware interrupt | PA8 = EXTI line 8 (CubeMX), `HAL_GPIO_EXTI_Callback()` in `button_fsm.c` only sets `s_crash_flag`; `crash_sensor_take()` hands it to the superloop once |
-| 4. Two periodic "timers" without blocking | the 10 ms and 50 ms slots in the superloop (`now - last >= period`), no `HAL_Delay` anywhere |
+| 1. Modules, no 1000-line `main.c` | `Core/Inc` + `Core/Src`: `app`, `button_fsm`, `crash_sensor`, `load_driver`, `pot_sensor`; `main.c` holds two calls, `app.c` the glue (the state flags, four small handlers, the slots) |
+| 2. Four FSM buttons, short < 2 s / long ≥ 2 s | `button_fsm_tick()` in `button_fsm.c`: the PDF's 4-state FSM, 50 ms debounce on press and release, `BTN_EVENT_LONG_PRESS` once while still held; `s_buttons[4]` and the pin table in `app.c`, ticked every 10 ms |
+| 3. Crash sensor on a hardware interrupt | PA8 = EXTI line 8 (CubeMX), `HAL_GPIO_EXTI_Callback()` in `crash_sensor.c` only sets `s_crash_flag`; `crash_sensor_take()` hands it to the superloop once |
+| 4. Two periodic "timers" without blocking | `buttons_slot()` (10 ms) and `pot_slot()` (50 ms) in `app.c` (`now - last >= period`), no `HAL_Delay` anywhere |
 | 5. Relay and buzzer driver | `load_driver.c`: the relay through the BC547B stage, the buzzer through TIM3 PWM (see Notes for why no transistor is needed there) |
 | 6. Analyzer captures | not done (see above); the debounce was checked by eye: one press = one toggle |
-| 7. The scenario | `handle_lock_button()`, `handle_turn_button()`, `handle_hazard_button()`, `handle_crash()` in `main.c`; the table below |
-| The pot sets the blink rate | `pot_sensor.c` (ADC1, PA1); in `main.c` period = 200 + raw × 600 / 4095 ms |
+| 7. The scenario | `handle_lock_button()`, `handle_turn_button()`, `handle_hazard_button()`, `handle_crash()` in `app.c`; the table below |
+| The pot sets the blink rate | `pot_sensor.c` (ADC1, PA1); `flasher_slot()` in `app.c`: period = 200 + raw × 600 / 4095 ms |
 | The dependency diagram | [Architecture](#architecture) |
 
 ### What each button does
@@ -132,22 +136,32 @@ diagnostics or crash pulse doesn't click it (the author kept it that way).
 ## Architecture
 
 ```
-                    ┌────────────────────────────────────────┐
-                    │ main.c: the glue (all the car's logic) │
-                    │ superloop, HAL_GetTick() slots         │
-                    └───┬───────────────┬────────────────┬───┘
-                        │               │                │
-      ┌─────────────────▼───┐   ┌───────▼───────┐   ┌────▼─────────────────┐
-      │ button_fsm          │   │ pot_sensor    │   │ load_driver          │
-      │ • 4 FSMs, 10 ms     │   │ • ADC1, PA1   │   │ • relay PB0 (BC547B) │
-      │ • CRASH: EXTI, PA8  │   │ • every 50 ms │   │ • buzzer PB1 (TIM3)  │
-      │   → a flag          │   │               │   │ • LEDs PB8 / PB9     │
-      └─────────────────────┘   └───────────────┘   └──────────────────────┘
+            ┌──────────────────────────────────────────────┐
+            │ main.c (CubeMX): init, then app_loop() again │
+            │ and again in while (1)                       │
+            └──────────────────────┬───────────────────────┘
+                                   │
+            ┌──────────────────────▼───────────────────────┐
+            │ app.c: the glue (all the car's logic)        │
+            │ the state flags, the button handlers,        │
+            │ the button pin table, HAL_GetTick() slots:   │
+            │ buttons 10 ms, pot 50 ms, flasher, crash     │
+            └───┬────────────┬─────────────┬───────────┬───┘
+                │            │             │           │
+   ┌────────────▼───┐ ┌──────▼───────┐ ┌───▼────────┐ ┌▼─────────────────────┐
+   │ button_fsm     │ │ crash_sensor │ │ pot_sensor │ │ load_driver          │
+   │ • the FSM only │ │ • EXTI, PA8  │ │ • ADC1,    │ │ • relay PB0 (BC547B) │
+   │ • no pins,     │ │   → a flag   │ │   PA1      │ │ • buzzer PB1 (TIM3)  │
+   │   no HAL       │ │              │ │            │ │ • LEDs PB8 / PB9,    │
+   │                │ │              │ │            │ │   valet PC13         │
+   └────────────────┘ └──────────────┘ └────────────┘ └──────────────────────┘
 ```
 
-No module includes another one: each sees only its own header and CubeMX's `main.h` (the pin names). `button_fsm`
-and `load_driver` don't know each other; only `main.c` connects a button event to a load. One clock, `HAL_GetTick()`
-(SysTick, 1 ms), feeds every slot; the crash interrupt doesn't wait for any of them.
+No module includes another one: each sees only its own header. `button_fsm` doesn't even see CubeMX's `main.h`: it
+gets "pressed or not" from `app.c`, which reads the pins from its table, so it knows nothing about the wiring.
+`crash_sensor`, `pot_sensor` and `load_driver` own their pins. The modules don't know each other; only `app.c`
+connects a button event to a load. One clock, `HAL_GetTick()` (SysTick, 1 ms), feeds every slot; the crash interrupt
+doesn't wait for any of them.
 
 ## Project
 
@@ -221,7 +235,12 @@ faintly in the reversed case; on the board it stayed dark.
   would have `start > now`, and `now - start` would wrap to about 4.3 billion and end the beep at once.
 - **The ADC needs time to sample.** Its internal capacitor charges through the source: a 10 kΩ potentiometer is up to
   2.5 kΩ in the middle. With the datasheet's formula (Table 65, Equation 1) 3 cycles are not enough even for a 0 Ω
-  source, 84 cycles allow about 43 kΩ. One conversion then takes about 4 µs, so polling it is fine.
+  source, 84 cycles allow about 43 kΩ. One conversion then takes (84 + 12) / 25 MHz = 3.84 µs, so polling it is fine.
+  The poll's timeout, `POT_ADC_TIMEOUT_MS` = 1 ms (HAL counts milliseconds, not seconds), never runs out on a working
+  ADC: it only keeps the superloop from hanging if a conversion never ends, as `HAL_MAX_DELAY` would.
+- **Why the FSM ticks every 10 ms.** The debounce needs 50 ms of a steady level, and the FSM sees the pin only when it
+  ticks: 10 ms gives about 5 checks in that window. At 20 ms only 2–3, and a 5–10 ms bounce pulse slips between them
+  more easily; at 5 ms the press is accepted at most 5 ms sooner, which no hand feels.
 - **The pot must sit on 3.3 V,** not on the breadboard's 5 V rail: an analog pin is not 5 V tolerant.
 - **`volatile` only where an interrupt writes.** `s_crash_flag` is written in the interrupt and read in the loop;
   the pot value is written and read by the loop only, so it needs none.
@@ -240,9 +259,12 @@ faintly in the reversed case; on the board it stayed dark.
   2 s, while still held, and the release gave no short press.
 - **The scenario:** every row of the button table above, the flasher speed from fast (200 ms) to slow (800 ms) with
   the knob.
+- **After the review:** the five commits that move the code into `app` and `crash_sensor`, name the constants and
+  check the HAL return values were built (each one without warnings) and checked with cppcheck, not on the board.
 
 Build (Debug, `-O0 -g3`): 0 errors, 0 warnings with `-Wall -Wextra` (CI's `build-stm32.sh`). `arm-none-eabi-size`:
-`text` 13008, `data` 12, `bss` 1812 bytes.
+`text` 13260, `data` 12, `bss` 1812 bytes. cppcheck 2.22 with all checks on our five modules: nothing but a false
+"never used" for `HAL_GPIO_EXTI_Callback` (the HAL calls it).
 
 Commit 0573a91 (the CubeMX setup of PA8) doesn't build: a word typed into the editor by accident landed in `main.c`;
 0a9d29a removes it.
