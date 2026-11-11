@@ -77,6 +77,60 @@ static void handle_crash(void)
 	load_buzzer_chirp(150u);
 }
 
+/* The state on the LEDs instead of the PDF's status log: the turn LEDs blink in the flasher's phase */
+static void lamps_update(void)
+{
+	load_led_left_set(s_blink_phase && (s_hazard_on || s_turn_l_on)); /* the hazard wins; the turn flag stays and comes back */
+	load_led_right_set(s_blink_phase && (s_hazard_on || s_turn_r_on));
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, s_valet_mode ? GPIO_PIN_RESET : GPIO_PIN_SET); /* valet; lit on LOW */
+}
+
+/* Each slot below runs its work when its period has passed and returns at once otherwise: nothing waits.
+   The unsigned subtraction now - last survives the HAL_GetTick() wrap */
+
+/* Every 10 ms: the buttons, then the LEDs, so a press shows at once */
+static void buttons_slot(uint32_t now)
+{
+	if (now - s_last_fsm_ms >= BTN_FSM_TICK_MS) {
+		s_last_fsm_ms = now;
+		handle_lock_button(button_fsm_tick(&s_buttons[IDX_LOCK], now));
+		handle_turn_button(button_fsm_tick(&s_buttons[IDX_LEFT], now), true);
+		handle_turn_button(button_fsm_tick(&s_buttons[IDX_RIGHT], now), false);
+		handle_hazard_button(button_fsm_tick(&s_buttons[IDX_HAZARD], now));
+		lamps_update();
+	}
+}
+
+/* Every 50 ms: the potentiometer */
+static void pot_slot(uint32_t now)
+{
+	if (now - s_last_pot_ms >= POT_SAMPLE_MS) {
+		s_last_pot_ms = now;
+		pot_sensor_update();
+	}
+}
+
+/* Every half flasher period: the LED phase and the click change */
+static void flasher_slot(uint32_t now)
+{
+	/* the pot sets the period, 200..800 ms (integer map, no float); 4095 * 600 fits in 32 bits */
+	uint32_t blink_period_ms = 200u + ((uint32_t)pot_sensor_get_raw() * 600u) / 4095u;
+	if (now - s_last_blink_ms >= blink_period_ms / 2u) {
+		s_last_blink_ms = now;
+		bool blinking = s_hazard_on || s_turn_l_on || s_turn_r_on;
+		s_blink_phase = blinking ? !s_blink_phase : false;
+		load_buzzer_tick(s_blink_phase); /* tick on, tock off: each change clicks the passive buzzer */
+	}
+}
+
+/* Every pass: the interrupt already caught the crash, only react here */
+static void crash_slot(void)
+{
+	if (crash_sensor_take()) {
+		handle_crash();
+	}
+}
+
 void app_init(void)
 {
 	load_driver_init();
@@ -88,38 +142,11 @@ void app_init(void)
 
 void app_loop(void)
 {
-	uint32_t now = HAL_GetTick(); /* ms since start; each slot below runs when its period has passed, nothing waits */
+	uint32_t now = HAL_GetTick(); /* ms since start, one value for the whole pass */
 
-	if (now - s_last_fsm_ms >= BTN_FSM_TICK_MS) { /* every 10 ms: the buttons; unsigned subtraction survives the wrap */
-		s_last_fsm_ms = now;
-		handle_lock_button(button_fsm_tick(&s_buttons[IDX_LOCK], now));
-		handle_turn_button(button_fsm_tick(&s_buttons[IDX_LEFT], now), true);
-		handle_turn_button(button_fsm_tick(&s_buttons[IDX_RIGHT], now), false);
-		handle_hazard_button(button_fsm_tick(&s_buttons[IDX_HAZARD], now));
-
-		/* The state on the LEDs instead of the PDF's status log: the turn LEDs blink in the flasher's phase */
-		load_led_left_set(s_blink_phase && (s_hazard_on || s_turn_l_on)); /* the hazard wins; the turn flag stays and comes back */
-		load_led_right_set(s_blink_phase && (s_hazard_on || s_turn_r_on));
-		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, s_valet_mode ? GPIO_PIN_RESET : GPIO_PIN_SET); /* valet; lit on LOW */
-	}
-
-	if (now - s_last_pot_ms >= POT_SAMPLE_MS) { /* every 50 ms: the potentiometer */
-		s_last_pot_ms = now;
-		pot_sensor_update();
-	}
-
-	/* The flasher: the pot sets the period, 200..800 ms (integer map, no float); 4095 * 600 fits in 32 bits */
-	uint32_t blink_period_ms = 200u + ((uint32_t)pot_sensor_get_raw() * 600u) / 4095u;
-	if (now - s_last_blink_ms >= blink_period_ms / 2u) { /* every half period the LEDs and the click change */
-		s_last_blink_ms = now;
-		bool blinking = s_hazard_on || s_turn_l_on || s_turn_r_on;
-		s_blink_phase = blinking ? !s_blink_phase : false;
-		load_buzzer_tick(s_blink_phase); /* tick on, tock off: each change clicks the passive buzzer */
-	}
-
-	if (crash_sensor_take()) { /* every pass: the interrupt already caught it, only react here */
-		handle_crash();
-	}
-
+	buttons_slot(now);
+	pot_slot(now);
+	flasher_slot(now);
+	crash_slot();
 	load_driver_update(); /* every pass: ends a beep or a relay pulse whose time is up */
 }
