@@ -67,6 +67,12 @@ void load_led_right_set(bool on)
 	HAL_GPIO_WritePin(LED_RIGHT_GPIO_Port, LED_RIGHT_Pin, on ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
+/* The Black Pill's onboard LED (PC13) shows the valet mode; its anode is on 3V3, so it is lit on LOW */
+void load_led_valet_set(bool on)
+{
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, on ? GPIO_PIN_RESET : GPIO_PIN_SET);
+}
+
 /* A series of beeps: switch the tone on, remember when, return at once; load_driver_update() does the rest */
 void load_buzzer_chirps(uint32_t ms, uint8_t count)
 {

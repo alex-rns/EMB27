@@ -1,13 +1,28 @@
 /* app: the car's logic (the glue between the buttons, the sensors and the loads) and the superloop's time slots */
 #include "app.h"
-#include "main.h" /* the pin names from CubeMX: BTN_LOCK_Pin, LED_Pin, ... */
+#include "main.h" /* the pin names from CubeMX: BTN_LOCK_Pin, BTN_LOCK_GPIO_Port, ... */
 #include "button_fsm.h"
+#include "crash_sensor.h"
 #include "load_driver.h"
 #include "pot_sensor.h"
 
 /* The four FSM buttons; the crash sensor is not here, it has its own interrupt */
-enum { IDX_LOCK, IDX_LEFT, IDX_RIGHT, IDX_HAZARD, N_FSM_BUTTONS };
-static button_fsm_t s_buttons[N_FSM_BUTTONS];
+typedef enum { IDX_LOCK, IDX_LEFT, IDX_RIGHT, IDX_HAZARD, N_FSM_BUTTONS } button_idx_t;
+
+/* Where a button is wired: the FSM never sees this, it only gets "pressed or not" */
+typedef struct {
+	GPIO_TypeDef *port; /* GPIO port, e.g. GPIOB */
+	uint16_t pin;       /* pin mask, e.g. GPIO_PIN_12 */
+} button_pin_t;
+
+/* const: the table never changes, so it stays in flash and takes no RAM. [IDX_...] = names the row it fills */
+static const button_pin_t k_button_pins[N_FSM_BUTTONS] = {
+	[IDX_LOCK]   = { BTN_LOCK_GPIO_Port, BTN_LOCK_Pin },
+	[IDX_LEFT]   = { BTN_LEFT_GPIO_Port, BTN_LEFT_Pin },
+	[IDX_RIGHT]  = { BTN_RIGHT_GPIO_Port, BTN_RIGHT_Pin },
+	[IDX_HAZARD] = { BTN_HAZARD_GPIO_Port, BTN_HAZARD_Pin },
+};
+static button_fsm_t s_buttons[N_FSM_BUTTONS]; /* each button's FSM memory, in the same order */
 
 /* The car's state: plain flags are enough here */
 static bool s_locked = false;
@@ -77,12 +92,21 @@ static void handle_crash(void)
 	load_buzzer_chirp(150u);
 }
 
+/* Read one button and advance its FSM. No pin setup here: CubeMX made the pins inputs with a pull-up,
+   the button goes to GND, so pressed = LOW */
+static button_event_t button_tick(button_idx_t idx, uint32_t now)
+{
+	const button_pin_t *p = &k_button_pins[idx];
+	bool pressed = (HAL_GPIO_ReadPin(p->port, p->pin) == GPIO_PIN_RESET);
+	return button_fsm_tick(&s_buttons[idx], pressed, now);
+}
+
 /* The state on the LEDs instead of the PDF's status log: the turn LEDs blink in the flasher's phase */
 static void lamps_update(void)
 {
 	load_led_left_set(s_blink_phase && (s_hazard_on || s_turn_l_on)); /* the hazard wins; the turn flag stays and comes back */
 	load_led_right_set(s_blink_phase && (s_hazard_on || s_turn_r_on));
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, s_valet_mode ? GPIO_PIN_RESET : GPIO_PIN_SET); /* valet; lit on LOW */
+	load_led_valet_set(s_valet_mode);
 }
 
 /* Each slot below runs its work when its period has passed and returns at once otherwise: nothing waits.
@@ -93,10 +117,10 @@ static void buttons_slot(uint32_t now)
 {
 	if (now - s_last_fsm_ms >= BTN_FSM_TICK_MS) {
 		s_last_fsm_ms = now;
-		handle_lock_button(button_fsm_tick(&s_buttons[IDX_LOCK], now));
-		handle_turn_button(button_fsm_tick(&s_buttons[IDX_LEFT], now), true);
-		handle_turn_button(button_fsm_tick(&s_buttons[IDX_RIGHT], now), false);
-		handle_hazard_button(button_fsm_tick(&s_buttons[IDX_HAZARD], now));
+		handle_lock_button(button_tick(IDX_LOCK, now));
+		handle_turn_button(button_tick(IDX_LEFT, now), true);
+		handle_turn_button(button_tick(IDX_RIGHT, now), false);
+		handle_hazard_button(button_tick(IDX_HAZARD, now));
 		lamps_update();
 	}
 }
@@ -134,10 +158,9 @@ static void crash_slot(void)
 void app_init(void)
 {
 	load_driver_init();
-	button_fsm_init(&s_buttons[IDX_LOCK], BTN_LOCK_GPIO_Port, BTN_LOCK_Pin); /* &: pass the struct's address, init fills it */
-	button_fsm_init(&s_buttons[IDX_LEFT], BTN_LEFT_GPIO_Port, BTN_LEFT_Pin);
-	button_fsm_init(&s_buttons[IDX_RIGHT], BTN_RIGHT_GPIO_Port, BTN_RIGHT_Pin);
-	button_fsm_init(&s_buttons[IDX_HAZARD], BTN_HAZARD_GPIO_Port, BTN_HAZARD_Pin);
+	for (int i = 0; i < N_FSM_BUTTONS; i++) {
+		button_fsm_init(&s_buttons[i]); /* &: pass the struct's address, init fills it */
+	}
 }
 
 void app_loop(void)

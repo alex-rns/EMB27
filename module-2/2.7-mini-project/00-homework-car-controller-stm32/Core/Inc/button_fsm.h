@@ -1,9 +1,9 @@
-/* button_fsm: the buttons (debounce FSM) and the crash sensor input */
+/* button_fsm: the debounce FSM of one button. Pure logic: it never reads a pin. The caller passes "pressed or not",
+   so the FSM doesn't know the wiring (port, pin, pull-up) and works for any button on any board */
 #ifndef INC_BUTTON_FSM_H_
 #define INC_BUTTON_FSM_H_
 #include <stdint.h>
 #include <stdbool.h>
-#include "stm32f4xx_hal.h"
 
 typedef enum {
 	BTN_STATE_IDLE,
@@ -20,8 +20,6 @@ typedef enum {
 
 /* One button's memory between two button_fsm_tick() calls */
 typedef struct {
-	GPIO_TypeDef *port;      /* GPIO port, e.g. GPIOB */
-	uint16_t pin;            /* pin mask, e.g. GPIO_PIN_12 */
 	button_state_t state;    /* current FSM state */
 	uint32_t state_enter_ms; /* HAL_GetTick() when the current state began */
 	bool long_fired;         /* LONG already reported for this press: report it once */
@@ -32,13 +30,10 @@ typedef struct {
 #define BTN_LONG_PRESS_MS 2000u /* held this long = LONG */
 #define BTN_FSM_TICK_MS   10u   /* how often the superloop calls button_fsm_tick() */
 
-/* Set up one button: remember its pin, start in IDLE */
-void button_fsm_init(button_fsm_t *btn, GPIO_TypeDef *port, uint16_t pin);
+/* Start one button in IDLE */
+void button_fsm_init(button_fsm_t *btn);
 
-/* Advance one button's FSM; returns an event once per press, otherwise BTN_EVENT_NONE */
-button_event_t button_fsm_tick(button_fsm_t *btn, uint32_t now_ms);
-
-/* The crash sensor (PA8, an interrupt on the falling edge): true once per crash, then the flag is cleared */
-bool crash_sensor_take(void);
+/* Advance one button's FSM with the level read just now; returns an event once per press, otherwise BTN_EVENT_NONE */
+button_event_t button_fsm_tick(button_fsm_t *btn, bool pressed, uint32_t now_ms);
 
 #endif /* INC_BUTTON_FSM_H_ */

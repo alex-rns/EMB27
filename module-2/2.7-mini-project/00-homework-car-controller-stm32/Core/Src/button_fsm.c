@@ -1,28 +1,16 @@
-/* button_fsm: the buttons (debounce FSM) and the crash sensor input */
+/* button_fsm: the debounce FSM of one button (pure logic: no pins, no HAL) */
 #include "button_fsm.h"
-#include "main.h" /* the pin names from CubeMX: CRASH_Pin, ... */
 
-/* The only place that knows the wiring: internal pull-up, the button to GND, so pressed = LOW.
-   The FSM below works with "pressed or not" only */
-static bool raw_pressed(const button_fsm_t *btn)
+void button_fsm_init(button_fsm_t *btn)
 {
-	return HAL_GPIO_ReadPin(btn->port, btn->pin) == GPIO_PIN_RESET;
-}
-
-/* No pin setup here: CubeMX already made the pin an input with a pull-up in MX_GPIO_Init() */
-void button_fsm_init(button_fsm_t *btn, GPIO_TypeDef *port, uint16_t pin)
-{
-	btn->port = port; /* btn points to the caller's struct: these lines fill that struct, not a copy */
-	btn->pin = pin;
-	btn->state = BTN_STATE_IDLE;
+	btn->state = BTN_STATE_IDLE; /* btn points to the caller's struct: these lines fill that struct, not a copy */
 	btn->state_enter_ms = 0;
 	btn->long_fired = false;
 }
 
-/* Called every BTN_FSM_TICK_MS (10 ms) by the superloop; returns an event or BTN_EVENT_NONE */
-button_event_t button_fsm_tick(button_fsm_t *btn, uint32_t now_ms)
+/* Called every BTN_FSM_TICK_MS (10 ms) by the superloop; pressed = the button's level read just now */
+button_event_t button_fsm_tick(button_fsm_t *btn, bool pressed, uint32_t now_ms)
 {
-	bool pressed = raw_pressed(btn);
 	button_event_t event = BTN_EVENT_NONE;
 
 	switch (btn->state) { /* a switch on the enum: -Wswitch warns if a new state is left unhandled */
@@ -68,25 +56,4 @@ button_event_t button_fsm_tick(button_fsm_t *btn, uint32_t now_ms)
 	}
 
 	return event;
-}
-
-/* Set by the interrupt, read by the superloop: volatile, so the compiler re-reads it every time */
-static volatile bool s_crash_flag = false;
-
-/* HAL calls this from EXTI9_5_IRQHandler(), inside the interrupt; it replaces HAL's empty __weak version.
-   Only set the flag: no HAL_Delay here (SysTick can't run during this higher-priority interrupt, so it would hang) */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	if (GPIO_Pin == CRASH_Pin) {
-		s_crash_flag = true;
-	}
-}
-
-bool crash_sensor_take(void)
-{
-	if (!s_crash_flag) {
-		return false;
-	}
-	s_crash_flag = false; /* an interrupt between the read and this line merges two crashes into one: same reaction */
-	return true;
 }
