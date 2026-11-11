@@ -6,6 +6,18 @@
 #include "load_driver.h"
 #include "pot_sensor.h"
 
+/* The feedback, in ms: how long each beep and relay pulse lasts */
+#define LOCK_BEEP_MS   80u  /* lock: one short beep */
+#define UNLOCK_BEEP_MS 60u  /* unlock: two beeps, like a car; the gap between them is as long */
+#define UNLOCK_BEEPS   2u
+#define VALET_BEEP_MS  300u /* valet mode on or off: one long beep */
+#define DIAG_PULSE_MS  200u /* HAZARD long press, the diagnostics: the relay and the buzzer together */
+#define CRASH_PULSE_MS 150u /* crash: the relay and the buzzer together */
+
+/* The flasher period follows the pot: from 200 ms (pot at 0) to 800 ms (pot at full) */
+#define FLASH_PERIOD_MIN_MS 200u
+#define FLASH_PERIOD_MAX_MS 800u
+
 /* The four FSM buttons; the crash sensor is not here, it has its own interrupt */
 typedef enum { IDX_LOCK, IDX_LEFT, IDX_RIGHT, IDX_HAZARD, N_FSM_BUTTONS } button_idx_t;
 
@@ -45,13 +57,13 @@ static void handle_lock_button(button_event_t ev)
 		s_locked = !s_locked;
 		load_relay_set(s_locked); /* the relay = the door lock */
 		if (s_locked) {
-			load_buzzer_chirp(80u); /* lock: one beep */
+			load_buzzer_chirp(LOCK_BEEP_MS);
 		} else {
-			load_buzzer_chirps(60u, 2u); /* unlock: two beeps, like a car */
+			load_buzzer_chirps(UNLOCK_BEEP_MS, UNLOCK_BEEPS);
 		}
 	} else if (ev == BTN_EVENT_LONG_PRESS) {
 		s_valet_mode = !s_valet_mode;
-		load_buzzer_chirp(300u);
+		load_buzzer_chirp(VALET_BEEP_MS);
 	}
 }
 
@@ -79,8 +91,8 @@ static void handle_hazard_button(button_event_t ev)
 	if (ev == BTN_EVENT_SHORT_PRESS) {
 		s_hazard_on = !s_hazard_on;
 	} else if (ev == BTN_EVENT_LONG_PRESS) {
-		load_relay_pulse(200u); /* diagnostics: the relay and the buzzer together for 200 ms */
-		load_buzzer_chirp(200u);
+		load_relay_pulse(DIAG_PULSE_MS); /* diagnostics: the relay and the buzzer together */
+		load_buzzer_chirp(DIAG_PULSE_MS);
 	}
 }
 
@@ -88,8 +100,8 @@ static void handle_hazard_button(button_event_t ev)
 static void handle_crash(void)
 {
 	s_hazard_on = true;
-	load_relay_pulse(150u);
-	load_buzzer_chirp(150u);
+	load_relay_pulse(CRASH_PULSE_MS);
+	load_buzzer_chirp(CRASH_PULSE_MS);
 }
 
 /* Read one button and advance its FSM. No pin setup here: CubeMX made the pins inputs with a pull-up,
@@ -137,8 +149,9 @@ static void pot_slot(uint32_t now)
 /* Every half flasher period: the LED phase and the click change */
 static void flasher_slot(uint32_t now)
 {
-	/* the pot sets the period, 200..800 ms (integer map, no float); 4095 * 600 fits in 32 bits */
-	uint32_t blink_period_ms = 200u + ((uint32_t)pot_sensor_get_raw() * 600u) / 4095u;
+	/* the pot sets the period (integer map, no float); the largest product, 4095 * 600, fits in 32 bits */
+	uint32_t blink_period_ms = FLASH_PERIOD_MIN_MS +
+		((uint32_t)pot_sensor_get_raw() * (FLASH_PERIOD_MAX_MS - FLASH_PERIOD_MIN_MS)) / POT_RAW_MAX;
 	if (now - s_last_blink_ms >= blink_period_ms / 2u) {
 		s_last_blink_ms = now;
 		bool blinking = s_hazard_on || s_turn_l_on || s_turn_r_on;

@@ -28,7 +28,9 @@ typedef struct {
 /* Times in ms; the u suffix makes them unsigned, like HAL_GetTick() */
 #define BTN_DEBOUNCE_MS   50u   /* the level must stay stable this long, on press and on release */
 #define BTN_LONG_PRESS_MS 2000u /* held this long = LONG */
-#define BTN_FSM_TICK_MS   10u   /* how often the superloop calls button_fsm_tick() */
+/* How often the superloop calls button_fsm_tick(): about 5 checks inside the 50 ms debounce window. At 20 ms only
+   2-3 checks, and a 5-10 ms bounce pulse slips between them more easily; 5 ms works too but gains nothing a hand feels */
+#define BTN_FSM_TICK_MS   10u
 
 /* Start one button in IDLE */
 void button_fsm_init(button_fsm_t *btn);
