@@ -7,7 +7,6 @@
 
 void load_driver_init(void); /* call once after MX_TIM3_Init(): starts the buzzer timer, silent */
 void load_relay_set(bool on);   /* the steady relay level (the lock state) */
-void load_buzzer_set(bool on);
 void load_led_left_set(bool on);
 void load_led_right_set(bool on);
 void load_led_valet_set(bool on); /* the onboard LED (PC13), lit on LOW: the driver flips the level */

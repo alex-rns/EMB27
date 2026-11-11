@@ -10,7 +10,9 @@ extern TIM_HandleTypeDef htim3; /* defined by CubeMX in main.c; TIM3 CH4 = the p
 
 void load_driver_init(void)
 {
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4); /* CCR is 0 from CubeMX, so it starts silent */
+	if (HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4) != HAL_OK) { /* CCR is 0 from CubeMX, so it starts silent */
+		Error_Handler(); /* CubeMX's own reaction to a failed init: interrupts off, stop here */
+	}
 }
 
 /* The non-blocking timers: when a beep or a relay pulse started and how long it lasts */
@@ -40,8 +42,8 @@ void load_relay_set(bool on)
 	}
 }
 
-/* on = the tone, off = silence (the timer keeps running, only CCR changes) */
-void load_buzzer_set(bool on)
+/* on = the tone, off = silence (the timer keeps running, only CCR changes); static: only the chirps use it */
+static void load_buzzer_set(bool on)
 {
 	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, on ? BUZZER_CCR_TONE : 0u);
 }

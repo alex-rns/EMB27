@@ -14,8 +14,8 @@ static uint16_t s_last_raw = 0;
 
 void pot_sensor_update(void)
 {
-	HAL_ADC_Start(&hadc1); /* start one conversion */
-	if (HAL_ADC_PollForConversion(&hadc1, POT_ADC_TIMEOUT_MS) == HAL_OK) {
+	/* start one conversion, then wait for it; && stops at the first failure, so no wait if the start failed */
+	if (HAL_ADC_Start(&hadc1) == HAL_OK && HAL_ADC_PollForConversion(&hadc1, POT_ADC_TIMEOUT_MS) == HAL_OK) {
 		s_last_raw = (uint16_t)HAL_ADC_GetValue(&hadc1); /* 12 bits fit in uint16_t */
 	}
 }
