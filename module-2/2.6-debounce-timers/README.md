@@ -12,6 +12,7 @@ turns the stable presses into gestures (short, double, long, stuck).
 | # | Step | Type | What it shows |
 |---|---|---|---|
 | 00 | [lecture-button-fsm-esp32](00-lecture-button-fsm-esp32/) | lecture | the teacher's demo: a 10 ms polling task and a debounced button state machine with SHORT / DOUBLE / LONG / STUCK, plus its STM32 snippet |
+| 01 | homework-button-fsm: [esp32](01-homework-button-fsm-esp32/) | homework (extra) | the lecture state machine rewritten as a switch-case over explicit states, with a callback per event (`button_fsm_on()`); one commit per change, the first one is the lecture code ([assignment](01-homework-button-fsm-esp32/README.md#assignment)) |
 
 ## Working with the steps
 
