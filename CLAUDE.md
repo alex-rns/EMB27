@@ -120,7 +120,14 @@ in the same CubeIDE workspace. Module 1 keeps its names.
   lecture steps on `main`, just not in that pull request. Order: the homework is written in the draft on the lesson
   branch, one commit per change; `/save-hw` saves the practice and lecture steps, removes the draft, and the lesson
   branch is merged; then the homework branch starts from the updated `main` and replays the draft's homework commits
-  into the homework folder (same messages and author dates, each one built), plus a README commit. Notes written
+  into the homework folder (same messages and author dates, each one built), plus a README commit.
+  **The starting point goes first:** before the homework branch, the homework's starting state reaches `main` in a
+  pull request of its own (branch `module-N/N.M-<topic>-homework-base`, title `module-N/N.M-<topic>: the homework's
+  starting point`), which the author merges without review: for an STM32 step the bare CubeMX project, for an ESP32
+  step the wizard's project or the code the homework rewrites (the lecture's). The homework branch then starts from
+  the updated `main`, so the teacher's pull request shows only our changes instead of every generated file as added
+  (2.7's bare CubeMX commit alone: 91 files, 115k lines). It must happen before the homework pull request opens:
+  GitHub kept the old base of an already open one (2.6, #24). Notes written
   after the homework (`module-N/CLAUDE.md`, `module-N/README.md`) go to `main` as `docs:` commits, never into the
   homework pull request.
   Format: `<folder>: <what was done>` (`repo:` for root configs, `docs:` for documentation).

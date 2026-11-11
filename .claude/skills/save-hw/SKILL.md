@@ -119,22 +119,30 @@ Move the user's code as it is. Don't fix bugs in it: spotting them is the user's
    - the build results, each command explained in a line;
    - `git status --short`.
 
-   Commit only after the user says yes, in two parts (CLAUDE.md, Git), so the pull request the teacher reviews
-   holds nothing but the homework:
+   Commit only after the user says yes, in three parts (CLAUDE.md, Git), so the pull request the teacher reviews
+   holds nothing but the homework's changes:
    1. **The lesson branch** `module-N/N.M-<topic>`: the draft's removal, the `practice` and `lecture` steps, the
       lesson README without the homework row, `module-N/README.md`, `module-N/CLAUDE.md`, `EMB27.code-workspace`.
       Commit `module-N/N.M-<topic>: save the practice and lecture steps` (name only the kinds it has), push, open a
       pull request (`gh pr create --base main`, title `module-N/N.M-<topic>`) and merge it after the user's yes
       without waiting for CI (`gh pr merge --merge --delete-branch`). If the lesson branch has nothing left to
       commit, skip this part.
-   2. **The homework branch** `module-N/N.M-<topic>-homework`, from the updated `main`
-      (`git switch main && git pull && git switch -c module-N/N.M-<topic>-homework`): run the replay script, then copy
-      the homework README in, add the homework's row and the assignment link to the lesson README, and commit
-      `module-N/N.M-<topic>: homework, describe the assignment, how each point is done and the board results`.
+   2. **The starting point** `module-N/N.M-<topic>-homework-base`, from the updated `main`: replay only the first
+      homework commit, the folder's starting state (the wizard's project, or the code the homework rewrites, e.g. the
+      lecture's), push, open a pull request (title `module-N/N.M-<topic>: the homework's starting point`) and merge it
+      after the user's yes without waiting for CI. Then the teacher's pull request shows only the homework's changes,
+      not every file as added. Do it before the homework pull request opens: GitHub kept the old base of an open one
+      (2.6, #24). If the homework has no meaningful starting state (its first commit already holds the user's code),
+      ask the user whether to skip this part.
+   3. **The homework branch** `module-N/N.M-<topic>-homework`, from the updated `main`
+      (`git switch main && git pull && git switch -c module-N/N.M-<topic>-homework`): run the rest of the replay
+      script, then copy the homework README in, add the homework's row and the assignment link to the lesson README,
+      and commit `module-N/N.M-<topic>: homework, describe the assignment, how each point is done and the board
+      results`.
       Push with `git push -u origin module-N/N.M-<topic>-homework`. Check that the branch holds nothing else:
       after `git fetch origin`, `git diff --name-only origin/main...HEAD` lists only the homework folder and the
       lesson README, and `git log --oneline origin/main..HEAD` only the replayed commits and the README commit.
-   3. **Open the homework's pull request right away**, without waiting for CI or for `/finish-lesson`:
+   4. **Open the homework's pull request right away**, without waiting for CI or for `/finish-lesson`:
       `gh pr create --base main --head module-N/N.M-<topic>-homework`, title `module-N/N.M-<topic>: homework`, an
       English body for the teacher (write it to a file, `--body-file`): the folder and how its history goes, the
       assignment in full (every point of the text the user pasted, translated), a table of the commits (short hash,
@@ -211,6 +219,7 @@ step e7bfee6 "homework, measure the average loop() time and report it every 1000
 | Multiple environments, `src_dir`, `build_src_filter` | The user explicitly finds them confusing |
 | The homework split into `base` / `extra` step folders | The user wants one working homework folder per board (from module 2 on) |
 | The homework folder committed in one go | The teacher can't walk the steps the user committed one by one |
+| The starting point left inside the homework pull request | Every generated file shows as added (2.7: 91 files, 115k lines) and the teacher's diff is a wall |
 | Circuits or schematics made without asking | Work the user didn't want (lesson 2.1: they asked to remove them) |
 | Replay run on a real branch before a test run | A broken replay leaves half-made commits in a published branch |
 | Fixed numbers for the steps | Wrong order: numbers follow the work (practice → lecture → homework) |
