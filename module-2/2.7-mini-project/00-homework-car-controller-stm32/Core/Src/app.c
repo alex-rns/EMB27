@@ -67,16 +67,17 @@ static void handle_lock_button(button_event_t ev)
 	}
 }
 
-/* left = true for LEFT, false for RIGHT. One side at a time: switching one on switches the other off */
-static void handle_turn_button(button_event_t ev, bool left)
+/* idx = IDX_LEFT or IDX_RIGHT: the call reads which side it is. One side at a time: switching one on switches
+   the other off */
+static void handle_turn_button(button_event_t ev, button_idx_t idx)
 {
 	if (ev == BTN_EVENT_SHORT_PRESS) {
-		if (left) {
+		if (idx == IDX_LEFT) {
 			s_turn_l_on = !s_turn_l_on;
 			if (s_turn_l_on) {
 				s_turn_r_on = false;
 			}
-		} else {
+		} else { /* IDX_RIGHT */
 			s_turn_r_on = !s_turn_r_on;
 			if (s_turn_r_on) {
 				s_turn_l_on = false;
@@ -130,8 +131,8 @@ static void buttons_slot(uint32_t now)
 	if ((now - s_last_fsm_ms) >= BTN_FSM_TICK_MS) {
 		s_last_fsm_ms = now;
 		handle_lock_button(button_tick(IDX_LOCK, now));
-		handle_turn_button(button_tick(IDX_LEFT, now), true);
-		handle_turn_button(button_tick(IDX_RIGHT, now), false);
+		handle_turn_button(button_tick(IDX_LEFT, now), IDX_LEFT);
+		handle_turn_button(button_tick(IDX_RIGHT, now), IDX_RIGHT);
 		handle_hazard_button(button_tick(IDX_HAZARD, now));
 		lamps_update();
 	}
