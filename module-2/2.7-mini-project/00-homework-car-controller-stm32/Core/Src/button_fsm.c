@@ -24,7 +24,7 @@ button_event_t button_fsm_tick(button_fsm_t *btn, bool pressed, uint32_t now_ms)
 	case BTN_STATE_PRESSED: /* pressed, but maybe only bounce: wait for 50 ms of a steady level */
 		if (!pressed) {
 			btn->state = BTN_STATE_IDLE; /* it dropped before 50 ms: that was bounce */
-		} else if (now_ms - btn->state_enter_ms >= BTN_DEBOUNCE_MS) {
+		} else if ((now_ms - btn->state_enter_ms) >= BTN_DEBOUNCE_MS) {
 			btn->state = BTN_STATE_HELD;
 			btn->state_enter_ms = now_ms; /* from now on it counts how long the button is held */
 			btn->long_fired = false;
@@ -39,7 +39,7 @@ button_event_t button_fsm_tick(button_fsm_t *btn, bool pressed, uint32_t now_ms)
 			}
 			btn->state = BTN_STATE_RELEASE;
 			btn->state_enter_ms = now_ms;
-		} else if (!btn->long_fired && held_ms >= BTN_LONG_PRESS_MS) {
+		} else if (!btn->long_fired && (held_ms >= BTN_LONG_PRESS_MS)) {
 			event = BTN_EVENT_LONG_PRESS; /* reported while still held, and only once */
 			btn->long_fired = true;
 		}
@@ -49,7 +49,7 @@ button_event_t button_fsm_tick(button_fsm_t *btn, bool pressed, uint32_t now_ms)
 	case BTN_STATE_RELEASE: /* the mirror of PRESSED: wait for 50 ms of a steady release */
 		if (pressed) {
 			btn->state = BTN_STATE_HELD; /* bounce lifted it back: the press goes on */
-		} else if (now_ms - btn->state_enter_ms >= BTN_DEBOUNCE_MS) {
+		} else if ((now_ms - btn->state_enter_ms) >= BTN_DEBOUNCE_MS) {
 			btn->state = BTN_STATE_IDLE;
 		}
 		break;

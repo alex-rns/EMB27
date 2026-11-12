@@ -127,7 +127,7 @@ static void lamps_update(void)
 /* Every 10 ms: the buttons, then the LEDs, so a press shows at once */
 static void buttons_slot(uint32_t now)
 {
-	if (now - s_last_fsm_ms >= BTN_FSM_TICK_MS) {
+	if ((now - s_last_fsm_ms) >= BTN_FSM_TICK_MS) {
 		s_last_fsm_ms = now;
 		handle_lock_button(button_tick(IDX_LOCK, now));
 		handle_turn_button(button_tick(IDX_LEFT, now), true);
@@ -140,7 +140,7 @@ static void buttons_slot(uint32_t now)
 /* Every 50 ms: the potentiometer */
 static void pot_slot(uint32_t now)
 {
-	if (now - s_last_pot_ms >= POT_SAMPLE_MS) {
+	if ((now - s_last_pot_ms) >= POT_SAMPLE_MS) {
 		s_last_pot_ms = now;
 		pot_sensor_update();
 	}
@@ -152,7 +152,7 @@ static void flasher_slot(uint32_t now)
 	/* the pot sets the period (integer map, no float); the largest product, 4095 * 600, fits in 32 bits */
 	uint32_t blink_period_ms = FLASH_PERIOD_MIN_MS +
 		((uint32_t)pot_sensor_get_raw() * (FLASH_PERIOD_MAX_MS - FLASH_PERIOD_MIN_MS)) / POT_RAW_MAX;
-	if (now - s_last_blink_ms >= blink_period_ms / 2u) {
+	if ((now - s_last_blink_ms) >= (blink_period_ms / 2u)) {
 		s_last_blink_ms = now;
 		bool blinking = s_hazard_on || s_turn_l_on || s_turn_r_on;
 		s_blink_phase = blinking ? !s_blink_phase : false;

@@ -56,7 +56,7 @@ void load_buzzer_tick(bool high)
 	if (s_chirp_active) {
 		return; /* don't cut a beep; the next tick sets the level */
 	}
-	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, high ? __HAL_TIM_GET_AUTORELOAD(&htim3) + 1u : 0u);
+	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, high ? (__HAL_TIM_GET_AUTORELOAD(&htim3) + 1u) : 0u);
 }
 
 void load_led_left_set(bool on)
@@ -108,7 +108,7 @@ void load_driver_update(void)
 	   and now - start would wrap to a huge number and end the beep at once */
 	uint32_t now = HAL_GetTick();
 
-	if (s_chirp_active && now - s_chirp_start_ms >= s_chirp_len_ms) {
+	if (s_chirp_active && ((now - s_chirp_start_ms) >= s_chirp_len_ms)) {
 		s_chirp_start_ms = now;
 		if (s_chirp_tone_on) { /* a beep just ended: silence; a gap follows if beeps are left */
 			load_buzzer_set(false);
@@ -122,7 +122,7 @@ void load_driver_update(void)
 			s_chirp_tone_on = true;
 		}
 	}
-	if (s_pulse_active && now - s_pulse_start_ms >= s_pulse_len_ms) {
+	if (s_pulse_active && ((now - s_pulse_start_ms) >= s_pulse_len_ms)) {
 		relay_write(s_relay_level); /* back to the lock state */
 		s_pulse_active = false;
 	}
