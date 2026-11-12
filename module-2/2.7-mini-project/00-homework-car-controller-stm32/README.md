@@ -262,10 +262,19 @@ faintly in the reversed case; on the board it stayed dark.
   the knob.
 - **After the review:** the five commits that move the code into `app` and `crash_sensor`, name the constants and
   check the HAL return values were built (each one without warnings) and checked with cppcheck, not on the board.
+- **The MISRA pass:** five small commits after that (the ADC timeout comment, parentheses in the conditions, an
+  unsigned loop counter, the turn handler's index, the file order and includes), not on the board either. Each one
+  was checked by comparing the built firmware with the one before it: three are the same byte for byte, the loop
+  counter changed 1 byte (a signed branch became an unsigned one), the turn index 3 bytes (the compare and the
+  argument).
 
 Build (Debug, `-O0 -g3`): 0 errors, 0 warnings with `-Wall -Wextra` (CI's `build-stm32.sh`). `arm-none-eabi-size`:
 `text` 13260, `data` 12, `bss` 1812 bytes. cppcheck 2.22 with all checks on our five modules: nothing but a false
-"never used" for `HAL_GPIO_EXTI_Callback` (the HAL calls it).
+"never used" for `HAL_GPIO_EXTI_Callback` (the HAL calls it). Its MISRA C:2012 addon (rule numbers only, a reference,
+not a gate) leaves: casts and assignments inside the HAL macros (11.4, 13.4), early returns (15.5), `else if` without
+a final `else` (15.7), file-scope variables that one function uses (8.9), and the FSM's `switch` without `default`
+(16.4, on purpose: without one, `-Wswitch` flags a state left unhandled). Its 8.7 for `app_init`, `app_loop` and the
+callback is the same false alarm as "never used": `main.c` and the HAL weren't in the check.
 
 Commit 0573a91 (the CubeMX setup of PA8) doesn't build: a word typed into the editor by accident landed in `main.c`;
 0a9d29a removes it.
