@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+/* The states sit in this header only because button_fsm_t below holds one: the caller (app.c) allocates
+   button_fsm_t, so the compiler must know its size there. The caller never reads them, it only gets the events */
 typedef enum {
 	BTN_STATE_IDLE,
 	BTN_STATE_PRESSED,
