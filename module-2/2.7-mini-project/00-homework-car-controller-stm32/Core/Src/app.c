@@ -171,7 +171,7 @@ static void crash_slot(void)
 void app_init(void)
 {
 	load_driver_init();
-	for (int i = 0; i < N_FSM_BUTTONS; i++) {
+	for (uint32_t i = 0u; i < (uint32_t)N_FSM_BUTTONS; i++) { /* unsigned: an index is never negative */
 		button_fsm_init(&s_buttons[i]); /* &: pass the struct's address, init fills it */
 	}
 }
