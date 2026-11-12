@@ -40,11 +40,13 @@ static const button_pin_t k_button_pins[N_FSM_BUTTONS] = {
 };
 static button_fsm_t s_buttons[N_FSM_BUTTONS]; /* each button's FSM memory, in the same order */
 
-/* The car's state: plain flags are enough here */
+/* The turn signal: one side at a time, so one value instead of two flags, and "both on" can't happen */
+typedef enum { TURN_OFF, TURN_LEFT, TURN_RIGHT } turn_t;
+
+/* The car's state: flags for what can be on together, one enum for the turn side */
 static bool s_locked = false;
 static bool s_valet_mode = false;
-static bool s_turn_l_on = false;
-static bool s_turn_r_on = false;
+static turn_t s_turn = TURN_OFF;
 static bool s_hazard_on = false;
 
 /* HAL_GetTick() when each superloop slot ran last; static: they keep their value between app_loop() calls */
@@ -71,22 +73,13 @@ static void handle_lock_button(button_event_t ev)
 	}
 }
 
-/* idx = IDX_LEFT or IDX_RIGHT: the call reads which side it is. One side at a time: switching one on switches
-   the other off */
+/* idx = IDX_LEFT or IDX_RIGHT: the call reads which side it is. A press switches its side on (the other side goes
+   off, since s_turn holds one side) or, if that side was on, off */
 static void handle_turn_button(button_event_t ev, button_idx_t idx)
 {
 	if (ev == BTN_EVENT_SHORT_PRESS) {
-		if (idx == IDX_LEFT) {
-			s_turn_l_on = !s_turn_l_on;
-			if (s_turn_l_on) {
-				s_turn_r_on = false;
-			}
-		} else { /* IDX_RIGHT */
-			s_turn_r_on = !s_turn_r_on;
-			if (s_turn_r_on) {
-				s_turn_l_on = false;
-			}
-		}
+		turn_t side = (idx == IDX_LEFT) ? TURN_LEFT : TURN_RIGHT;
+		s_turn = (s_turn == side) ? TURN_OFF : side;
 	}
 	/* LONG = the lane change (3 blinks): challenge 1, nothing yet */
 }
@@ -121,8 +114,8 @@ static button_event_t button_tick(button_idx_t idx, uint32_t now)
 /* The state on the LEDs instead of the PDF's status log: the turn LEDs blink in the flasher's phase */
 static void lamps_update(void)
 {
-	led_left_set(s_blink_phase && (s_hazard_on || s_turn_l_on)); /* the hazard wins; the turn flag stays and comes back */
-	led_right_set(s_blink_phase && (s_hazard_on || s_turn_r_on));
+	led_left_set(s_blink_phase && (s_hazard_on || (s_turn == TURN_LEFT))); /* the hazard wins; s_turn stays, comes back */
+	led_right_set(s_blink_phase && (s_hazard_on || (s_turn == TURN_RIGHT)));
 	led_valet_set(s_valet_mode);
 }
 
@@ -159,7 +152,7 @@ static void flasher_slot(uint32_t now)
 		((uint32_t)pot_sensor_get_raw() * (FLASH_PERIOD_MAX_MS - FLASH_PERIOD_MIN_MS)) / POT_RAW_MAX;
 	if ((now - s_last_blink_ms) >= (blink_period_ms / 2u)) {
 		s_last_blink_ms = now;
-		bool blinking = s_hazard_on || s_turn_l_on || s_turn_r_on;
+		bool blinking = s_hazard_on || (s_turn != TURN_OFF);
 		s_blink_phase = blinking ? !s_blink_phase : false;
 		buzzer_click(s_blink_phase); /* tick on, tock off: each change clicks the passive buzzer */
 	}
