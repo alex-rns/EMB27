@@ -4,9 +4,11 @@
 #include <stdint.h>  /* uint32_t; this file uses both, so it includes them itself, not through another header */
 #include "main.h" /* the pin names from CubeMX: BTN_LOCK_Pin, BTN_LOCK_GPIO_Port, ... */
 #include "button_fsm.h"
+#include "buzzer.h"
 #include "crash_sensor.h"
-#include "load_driver.h"
+#include "led.h"
 #include "pot_sensor.h"
+#include "relay.h"
 
 /* The feedback, in ms: how long each beep and relay pulse lasts */
 #define LOCK_BEEP_MS   80u  /* lock: one short beep */
@@ -57,15 +59,15 @@ static void handle_lock_button(button_event_t ev)
 {
 	if (ev == BTN_EVENT_SHORT_PRESS) {
 		s_locked = !s_locked;
-		load_relay_set(s_locked); /* the relay = the door lock */
+		relay_set(s_locked); /* the relay = the door lock */
 		if (s_locked) {
-			load_buzzer_chirp(LOCK_BEEP_MS);
+			buzzer_beep(LOCK_BEEP_MS);
 		} else {
-			load_buzzer_chirps(UNLOCK_BEEP_MS, UNLOCK_BEEPS);
+			buzzer_beeps(UNLOCK_BEEP_MS, UNLOCK_BEEPS);
 		}
 	} else if (ev == BTN_EVENT_LONG_PRESS) {
 		s_valet_mode = !s_valet_mode;
-		load_buzzer_chirp(VALET_BEEP_MS);
+		buzzer_beep(VALET_BEEP_MS);
 	}
 }
 
@@ -94,8 +96,8 @@ static void handle_hazard_button(button_event_t ev)
 	if (ev == BTN_EVENT_SHORT_PRESS) {
 		s_hazard_on = !s_hazard_on;
 	} else if (ev == BTN_EVENT_LONG_PRESS) {
-		load_relay_pulse(DIAG_PULSE_MS); /* diagnostics: the relay and the buzzer together */
-		load_buzzer_chirp(DIAG_PULSE_MS);
+		relay_pulse(DIAG_PULSE_MS); /* diagnostics: the relay and the buzzer together */
+		buzzer_beep(DIAG_PULSE_MS);
 	}
 }
 
@@ -103,8 +105,8 @@ static void handle_hazard_button(button_event_t ev)
 static void handle_crash(void)
 {
 	s_hazard_on = true;
-	load_relay_pulse(CRASH_PULSE_MS);
-	load_buzzer_chirp(CRASH_PULSE_MS);
+	relay_pulse(CRASH_PULSE_MS);
+	buzzer_beep(CRASH_PULSE_MS);
 }
 
 /* Read one button and advance its FSM. No pin setup here: CubeMX made the pins inputs with a pull-up,
@@ -119,9 +121,9 @@ static button_event_t button_tick(button_idx_t idx, uint32_t now)
 /* The state on the LEDs instead of the PDF's status log: the turn LEDs blink in the flasher's phase */
 static void lamps_update(void)
 {
-	load_led_left_set(s_blink_phase && (s_hazard_on || s_turn_l_on)); /* the hazard wins; the turn flag stays and comes back */
-	load_led_right_set(s_blink_phase && (s_hazard_on || s_turn_r_on));
-	load_led_valet_set(s_valet_mode);
+	led_left_set(s_blink_phase && (s_hazard_on || s_turn_l_on)); /* the hazard wins; the turn flag stays and comes back */
+	led_right_set(s_blink_phase && (s_hazard_on || s_turn_r_on));
+	led_valet_set(s_valet_mode);
 }
 
 /* Each slot below runs its work when its period has passed and returns at once otherwise: nothing waits.
@@ -159,7 +161,7 @@ static void flasher_slot(uint32_t now)
 		s_last_blink_ms = now;
 		bool blinking = s_hazard_on || s_turn_l_on || s_turn_r_on;
 		s_blink_phase = blinking ? !s_blink_phase : false;
-		load_buzzer_tick(s_blink_phase); /* tick on, tock off: each change clicks the passive buzzer */
+		buzzer_click(s_blink_phase); /* tick on, tock off: each change clicks the passive buzzer */
 	}
 }
 
@@ -173,7 +175,7 @@ static void crash_slot(void)
 
 void app_init(void)
 {
-	load_driver_init();
+	buzzer_init();
 	for (uint32_t i = 0u; i < (uint32_t)N_FSM_BUTTONS; i++) { /* unsigned: an index is never negative */
 		button_fsm_init(&s_buttons[i]); /* &: pass the struct's address, init fills it */
 	}
@@ -187,5 +189,6 @@ void app_loop(void)
 	pot_slot(now);
 	flasher_slot(now);
 	crash_slot();
-	load_driver_update(); /* every pass: ends a beep or a relay pulse whose time is up */
+	buzzer_update(); /* every pass: ends a beep whose time is up */
+	relay_update();  /* every pass: ends a relay pulse whose time is up */
 }
