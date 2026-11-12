@@ -1,5 +1,7 @@
 /* app: the car's logic (the glue between the buttons, the sensors and the loads) and the superloop's time slots */
 #include "app.h"
+#include <stdbool.h> /* bool */
+#include <stdint.h>  /* uint32_t; this file uses both, so it includes them itself, not through another header */
 #include "main.h" /* the pin names from CubeMX: BTN_LOCK_Pin, BTN_LOCK_GPIO_Port, ... */
 #include "button_fsm.h"
 #include "crash_sensor.h"

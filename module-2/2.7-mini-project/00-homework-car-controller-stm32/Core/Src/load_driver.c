@@ -8,13 +8,6 @@ extern TIM_HandleTypeDef htim3; /* defined by CubeMX in main.c; TIM3 CH4 = the p
    0 = silent, more = louder (up to half of the period, 625) */
 #define BUZZER_CCR_TONE 156u /* about 1/8 of the period: a soft beep */
 
-void load_driver_init(void)
-{
-	if (HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4) != HAL_OK) { /* CCR is 0 from CubeMX, so it starts silent */
-		Error_Handler(); /* CubeMX's own reaction to a failed init: interrupts off, stop here */
-	}
-}
-
 /* The non-blocking timers: when a beep or a relay pulse started and how long it lasts */
 static bool s_chirp_active = false;
 static bool s_chirp_tone_on = false; /* inside a series: a beep (true) or the gap after it (false) */
@@ -26,6 +19,13 @@ static bool s_relay_level = false; /* what load_relay_set() asked for: the lock 
 static bool s_pulse_active = false;
 static uint32_t s_pulse_start_ms;
 static uint32_t s_pulse_len_ms;
+
+void load_driver_init(void)
+{
+	if (HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4) != HAL_OK) { /* CCR is 0 from CubeMX, so it starts silent */
+		Error_Handler(); /* CubeMX's own reaction to a failed init: interrupts off, stop here */
+	}
+}
 
 /* on = true drives the pin HIGH: the relay through an NPN transistor, the LEDs straight from the pin */
 
