@@ -2,11 +2,12 @@
 
 The lesson 2.7 mini project: project 2 of the three offered, the automotive Body Control Module (central lock, turn
 signals, hazard lights, crash sensor), built on the WeAct Black Pill (STM32F411CEU6) instead of the ESP32-S3 the
-course PDF uses. A superloop in C without FreeRTOS; CubeMX generates the project, our code lives in five modules:
-`app` (the car's logic, gluing the others together), `button_fsm`, `crash_sensor`, `load_driver` and `pot_sensor`.
+course PDF uses. A superloop in C without FreeRTOS; CubeMX generates the project, our code lives in seven modules:
+`app` (the car's logic, gluing the others together), `button_fsm`, `crash_sensor` and `pot_sensor` (the inputs),
+`buzzer`, `relay` and `led` (the loads).
 CubeMX's `main.c` only calls `app_init()` and `app_loop()` from its `USER CODE` blocks.
 The git history of this folder follows the PDF's steps one change per commit, then the review's changes (the
-module layout, named constants, checked HAL return values), again one per commit.
+module layout, named constants, checked HAL return values, one driver per load), again one per commit.
 
 ## Assignment
 
@@ -100,7 +101,7 @@ logic, and changes what the board, the kit or the topics covered so far require:
 | logs over UART, step 12 (log levels), a status line every second | no UART: the state shows on the LEDs and the relay, values were read over SWD; step 12 dropped | UART logs were not needed for any check here |
 | unlock beep 40 ms | unlock = two 60 ms beeps | the author's change: like a real car (two 40 ms beeps would merge into one) |
 | after a relay pulse (diagnostics, crash) the relay is switched off | after a pulse the relay goes back to the lock level | in the PDF a pulse while locked leaves the relay off while the lock flag still says locked |
-| `load_buzzer_chirp()` blocks (`vTaskDelay`) | `load_buzzer_chirp()` / `load_relay_pulse()` start and return; `load_driver_update()` ends them | a blocking beep would stop the superloop and every button with it |
+| `load_buzzer_chirp()` blocks (`vTaskDelay`) | `buzzer_beep()` / `relay_pulse()` start and return; `buzzer_update()` / `relay_update()` end them | a blocking beep would stop the superloop and every button with it |
 
 Not done: the mini tasks of every step and the logic analyzer measurements (the author's choice), the challenges.
 
@@ -108,11 +109,11 @@ Not done: the mini tasks of every step and the logic analyzer measurements (the 
 
 | Goal / final check | Where |
 |---|---|
-| 1. Modules, no 1000-line `main.c` | `Core/Inc` + `Core/Src`: `app`, `button_fsm`, `crash_sensor`, `load_driver`, `pot_sensor`; `main.c` holds two calls, `app.c` the glue (the state flags, four small handlers, the slots) |
+| 1. Modules, no 1000-line `main.c` | `Core/Inc` + `Core/Src`: `app`, `button_fsm`, `buzzer`, `crash_sensor`, `led`, `pot_sensor`, `relay`; `main.c` holds two calls, `app.c` the glue (the car's state, four small handlers, the slots) |
 | 2. Four FSM buttons, short < 2 s / long ≥ 2 s | `button_fsm_tick()` in `button_fsm.c`: the PDF's 4-state FSM, 50 ms debounce on press and release, `BTN_EVENT_LONG_PRESS` once while still held; `s_buttons[4]` and the pin table in `app.c`, ticked every 10 ms |
 | 3. Crash sensor on a hardware interrupt | PA8 = EXTI line 8 (CubeMX), `HAL_GPIO_EXTI_Callback()` in `crash_sensor.c` only sets `s_crash_flag`; `crash_sensor_take()` hands it to the superloop once |
 | 4. Two periodic "timers" without blocking | `buttons_slot()` (10 ms) and `pot_slot()` (50 ms) in `app.c` (`now - last >= period`), no `HAL_Delay` anywhere |
-| 5. Relay and buzzer driver | `load_driver.c`: the relay through the BC547B stage, the buzzer through TIM3 PWM (see Notes for why no transistor is needed there) |
+| 5. Relay and buzzer driver | one driver per load: `relay.c` (the relay through the BC547B stage), `buzzer.c` (TIM3 PWM; see Notes for why no transistor is needed there), `led.c` (the turn and valet LEDs) |
 | 6. Analyzer captures | not done (see above); the debounce was checked by eye: one press = one toggle |
 | 7. The scenario | `handle_lock_button()`, `handle_turn_button()`, `handle_hazard_button()`, `handle_crash()` in `app.c`; the table below |
 | The pot sets the blink rate | `pot_sensor.c` (ADC1, PA1); `flasher_slot()` in `app.c`: period = 200 + raw × 600 / 4095 ms |
@@ -136,31 +137,30 @@ diagnostics or crash pulse doesn't click it (the author kept it that way).
 ## Architecture
 
 ```
-            ┌──────────────────────────────────────────────┐
-            │ main.c (CubeMX): init, then app_loop() again │
-            │ and again in while (1)                       │
-            └──────────────────────┬───────────────────────┘
-                                   │
-            ┌──────────────────────▼───────────────────────┐
-            │ app.c: the glue (all the car's logic)        │
-            │ the state flags, the button handlers,        │
-            │ the button pin table, HAL_GetTick() slots:   │
-            │ buttons 10 ms, pot 50 ms, flasher, crash     │
-            └───┬────────────┬─────────────┬───────────┬───┘
-                │            │             │           │
-   ┌────────────▼───┐ ┌──────▼───────┐ ┌───▼────────┐ ┌▼─────────────────────┐
-   │ button_fsm     │ │ crash_sensor │ │ pot_sensor │ │ load_driver          │
-   │ • the FSM only │ │ • EXTI, PA8  │ │ • ADC1,    │ │ • relay PB0 (BC547B) │
-   │ • no pins,     │ │   → a flag   │ │   PA1      │ │ • buzzer PB1 (TIM3)  │
-   │   no HAL       │ │              │ │            │ │ • LEDs PB8 / PB9,    │
-   │                │ │              │ │            │ │   valet PC13         │
-   └────────────────┘ └──────────────┘ └────────────┘ └──────────────────────┘
+ ┌───────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ main.c (CubeMX): init, then app_loop() again and again in while (1)                               │
+ └─────────────────────────────────────────────────┬─────────────────────────────────────────────────┘
+                                                   │
+ ┌─────────────────────────────────────────────────▼─────────────────────────────────────────────────┐
+ │ app.c: the glue (all the car's logic): the car's state, the button handlers,                      │
+ │ the button pin table, HAL_GetTick() slots: buttons 10 ms, pot 50 ms, flasher, crash               │
+ └───────┬────────────────┬────────────────┬────────────────┬────────────────┬────────────────┬──────┘
+         │                │                │                │                │                │
+ ┌───────▼──────┐ ┌───────▼──────┐ ┌───────▼──────┐ ┌───────▼──────┐ ┌───────▼──────┐ ┌───────▼──────┐
+ │ button_fsm   │ │ crash_sensor │ │ pot_sensor   │ │ buzzer       │ │ relay        │ │ led          │
+ │ • FSM only   │ │ • EXTI, PA8  │ │ • ADC1, PA1  │ │ • PB1, TIM3  │ │ • PB0 via    │ │ • turn LEDs  │
+ │ • no pins,   │ │   → a flag   │ │              │ │   CH4 PWM    │ │   BC547B     │ │   PB8, PB9   │
+ │   no HAL     │ │              │ │              │ │ • beeps,     │ │ • the lock,  │ │ • valet      │
+ │              │ │              │ │              │ │   clicks     │ │   pulses     │ │   PC13       │
+ └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘
 ```
 
 No module includes another one: each sees only its own header. `button_fsm` doesn't even see CubeMX's `main.h`: it
 gets "pressed or not" from `app.c`, which reads the pins from its table, so it knows nothing about the wiring.
-`crash_sensor`, `pot_sensor` and `load_driver` own their pins. The modules don't know each other; only `app.c`
-connects a button event to a load. One clock, `HAL_GetTick()` (SysTick, 1 ms), feeds every slot; the crash interrupt
+`crash_sensor`, `pot_sensor`, `buzzer`, `relay` and `led` own their pins; each driver keeps its state in one struct
+(`buzzer_t`, `relay_t`). The modules don't know each other; only `app.c` connects a button event to a load. The
+car's state in `app.c`: flags for what can be on together (lock, valet, hazard), one enum for the turn side, since
+left and right exclude each other. One clock, `HAL_GetTick()` (SysTick, 1 ms), feeds every slot; the crash interrupt
 doesn't wait for any of them.
 
 ## Project
@@ -231,7 +231,7 @@ faintly in the reversed case; on the board it stayed dark.
 - **The crash flag is read and cleared in two steps.** A second crash between the two merges with the first one: the
   reaction is the same, so no locking is needed.
 - **`now - start >= len` on `uint32_t`** survives the wrap of `HAL_GetTick()` after about 49.7 days.
-  `load_driver_update()` reads its own `HAL_GetTick()`: with the loop's `now`, a beep started later in the same pass
+  `buzzer_update()` and `relay_update()` read their own `HAL_GetTick()`: with the loop's `now`, a beep started later in the same pass
   would have `start > now`, and `now - start` would wrap to about 4.3 billion and end the beep at once.
 - **The ADC needs time to sample.** Its internal capacitor charges through the source: a 10 kΩ potentiometer is up to
   2.5 kΩ in the middle. With the datasheet's formula (Table 65, Equation 1) 3 cycles are not enough even for a 0 Ω
@@ -267,9 +267,16 @@ faintly in the reversed case; on the board it stayed dark.
   was checked by comparing the built firmware with the one before it: three are the same byte for byte, the loop
   counter changed 1 byte (a signed branch became an unsigned one), the turn index 3 bytes (the compare and the
   argument).
+- **After the class review (the recording):** four more commits (the load driver split into `buzzer`, `relay` and
+  `led`, their state in structs, the turn side as one enum, a comment in `button_fsm.h`), not on the board either.
+  Checked on the Mac instead: our seven modules built with a fake HAL and run through a scripted 26 s scenario (every
+  button short and long, a bouncy press, two crashes, LOCK during a relay pulse, the pot at both ends) that logs
+  every change of a pin or of the buzzer's CCR with its time. The log, 207 changes, stayed the same after each
+  commit; three deliberately broken copies (a third unlock beep, the relay not restored after a pulse, a turn that
+  never switches off) each changed it. The harness stays outside the repo.
 
 Build (Debug, `-O0 -g3`): 0 errors, 0 warnings with `-Wall -Wextra` (CI's `build-stm32.sh`). `arm-none-eabi-size`:
-`text` 13260, `data` 12, `bss` 1812 bytes. cppcheck 2.22 with all checks on our five modules: nothing but a false
+`text` 13144, `data` 12, `bss` 1812 bytes. cppcheck 2.22 with all checks on our seven modules: nothing but a false
 "never used" for `HAL_GPIO_EXTI_Callback` (the HAL calls it). Its MISRA C:2012 addon (rule numbers only, a reference,
 not a gate) leaves: casts and assignments inside the HAL macros (11.4, 13.4), early returns (15.5), `else if` without
 a final `else` (15.7), file-scope variables that one function uses (8.9), and the FSM's `switch` without `default`
