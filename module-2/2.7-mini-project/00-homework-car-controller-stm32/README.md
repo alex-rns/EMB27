@@ -236,8 +236,9 @@ faintly in the reversed case; on the board it stayed dark.
 - **The ADC needs time to sample.** Its internal capacitor charges through the source: a 10 kΩ potentiometer is up to
   2.5 kΩ in the middle. With the datasheet's formula (Table 65, Equation 1) 3 cycles are not enough even for a 0 Ω
   source, 84 cycles allow about 43 kΩ. One conversion then takes (84 + 12) / 25 MHz = 3.84 µs, so polling it is fine.
-  The poll's timeout, `POT_ADC_TIMEOUT_MS` = 1 ms (HAL counts milliseconds, not seconds), never runs out on a working
-  ADC: it only keeps the superloop from hanging if a conversion never ends, as `HAL_MAX_DELAY` would.
+  The poll's timeout, `POT_ADC_TIMEOUT_MS` = 1 ms (HAL counts milliseconds, not seconds; it gives up only after more
+  than 1 tick, so 1 to 2 ms in real time), never runs out on a working ADC: it only keeps the superloop from hanging
+  if a conversion never ends, as `HAL_MAX_DELAY` would.
 - **Why the FSM ticks every 10 ms.** The debounce needs 50 ms of a steady level, and the FSM sees the pin only when it
   ticks: 10 ms gives about 5 checks in that window. At 20 ms only 2–3, and a 5–10 ms bounce pulse slips between them
   more easily; at 5 ms the press is accepted at most 5 ms sooner, which no hand feels.
