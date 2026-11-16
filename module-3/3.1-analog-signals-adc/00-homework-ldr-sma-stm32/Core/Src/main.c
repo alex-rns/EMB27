@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ldr_sensor.h"
+#include "led.h"
 #include "sma.h"
 /* USER CODE END Includes */
 
@@ -125,9 +126,9 @@ int main(void)
 
             /* hysteresis: only a clear change of light switches the LED; between the thresholds it stays as it is */
             if (ldr_avg < LED_ON_BELOW) {
-                HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);   /* dark: LED on */
+                led_set(true);  /* dark */
             } else if (ldr_avg > LED_OFF_ABOVE) {
-                HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); /* light: LED off */
+                led_set(false); /* light */
             }
         }
     }
