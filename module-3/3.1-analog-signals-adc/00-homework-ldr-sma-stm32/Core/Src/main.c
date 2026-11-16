@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdbool.h>
+#include "sma.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,11 +54,9 @@ ADC_HandleTypeDef hadc1;
 volatile uint16_t ldr_raw;
 uint32_t last_sample_ms;
 
-uint16_t ldr_samples[LDR_AVG_SAMPLES]; /* ring buffer of the latest readings */
-uint16_t ldr_index;  /* where the next reading goes (the oldest one is there) */
-uint32_t ldr_sum;    /* sum of the buffer, kept up to date: 8 x 4095 fits easily */
-volatile uint16_t ldr_avg; /* the moving average */
-bool ldr_primed;     /* the buffer has been filled with the first reading */
+static uint16_t ldr_samples[LDR_AVG_SAMPLES]; /* the average's buffer: sma.c fills it */
+static sma_t ldr_sma; /* the moving average of the LDR readings */
+volatile uint16_t ldr_avg; /* the latest average */
 
 /* USER CODE END PV */
 
@@ -106,7 +104,7 @@ int main(void)
   MX_GPIO_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-
+  sma_init(&ldr_sma, ldr_samples, LDR_AVG_SAMPLES);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -122,25 +120,7 @@ int main(void)
         if ((HAL_ADC_Start(&hadc1) == HAL_OK) && (HAL_ADC_PollForConversion(&hadc1, 1) == HAL_OK)) {
             ldr_raw = (uint16_t)HAL_ADC_GetValue(&hadc1); /* 12 bits fit in uint16_t */
 
-            /* first reading: fill the whole buffer with it, so the average starts right
-               instead of climbing from 0 (which would look like darkness for 0.4 s) */
-            if (!ldr_primed) {
-                for (uint16_t i = 0u; i < LDR_AVG_SAMPLES; i++) {
-                    ldr_samples[i] = ldr_raw;
-                }
-                ldr_sum = (uint32_t)ldr_raw * LDR_AVG_SAMPLES;
-                ldr_primed = true;
-            }
-
-            /* moving average: the newest reading takes the place of the oldest one */
-            ldr_sum -= ldr_samples[ldr_index];
-            ldr_samples[ldr_index] = ldr_raw;
-            ldr_sum += ldr_raw;
-            ldr_index++;
-            if (ldr_index >= LDR_AVG_SAMPLES) {
-                ldr_index = 0u; /* past the last slot: back to the first */
-            }
-            ldr_avg = (uint16_t)(ldr_sum / LDR_AVG_SAMPLES);
+            ldr_avg = sma_add(&ldr_sma, ldr_raw);
 
             /* hysteresis: only a clear change of light switches the LED; between the thresholds it stays as it is */
             if (ldr_avg < LED_ON_BELOW) {
