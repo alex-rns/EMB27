@@ -34,6 +34,12 @@
 #define LDR_SAMPLE_MS 50u /* how often the LDR is read: room light changes slowly, 20 times a second is plenty */
 #define LDR_AVG_SAMPLES 8u /* how many of the latest readings are averaged: 8 x 50 ms = the last 0.4 s */
 
+/* Two thresholds (hysteresis) on the average. Measured on this breadboard: room light ~3290, a finger over the
+   LDR ~1620. Between the two the LED keeps its state, so small changes of light don't make it flicker. */
+#define LED_ON_BELOW  2000u /* darker than this: LED on (~1.6 V at PA1) */
+#define LED_OFF_ABOVE 2600u /* lighter than this: LED off (~2.1 V at PA1) */
+_Static_assert(LED_ON_BELOW < LED_OFF_ABOVE, "the on threshold must be below the off threshold");
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -135,6 +141,13 @@ int main(void)
                 ldr_index = 0u; /* past the last slot: back to the first */
             }
             ldr_avg = (uint16_t)(ldr_sum / LDR_AVG_SAMPLES);
+
+            /* hysteresis: only a clear change of light switches the LED; between the thresholds it stays as it is */
+            if (ldr_avg < LED_ON_BELOW) {
+                HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);   /* dark: LED on */
+            } else if (ldr_avg > LED_OFF_ABOVE) {
+                HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); /* light: LED off */
+            }
         }
     }
   }
