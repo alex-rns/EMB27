@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "hysteresis.h"
 #include "ldr_sensor.h"
 #include "led.h"
 #include "sma.h"
@@ -59,6 +60,7 @@ uint32_t last_sample_ms;
 static uint16_t ldr_samples[LDR_AVG_SAMPLES]; /* the average's buffer: sma.c fills it */
 static sma_t ldr_sma; /* the moving average of the LDR readings */
 volatile uint16_t ldr_avg; /* the latest average */
+static hysteresis_t ldr_dark; /* dark or not, from the average with the two thresholds */
 
 /* USER CODE END PV */
 
@@ -107,6 +109,7 @@ int main(void)
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   sma_init(&ldr_sma, ldr_samples, LDR_AVG_SAMPLES);
+  hysteresis_init(&ldr_dark, LED_ON_BELOW, LED_OFF_ABOVE, false); /* the LED starts dark, as CubeMX left PB8 */
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -124,12 +127,8 @@ int main(void)
             ldr_raw = raw;
             ldr_avg = sma_add(&ldr_sma, raw);
 
-            /* hysteresis: only a clear change of light switches the LED; between the thresholds it stays as it is */
-            if (ldr_avg < LED_ON_BELOW) {
-                led_set(true);  /* dark */
-            } else if (ldr_avg > LED_OFF_ABOVE) {
-                led_set(false); /* light */
-            }
+            /* only a clear change of light switches the LED; between the thresholds it stays as it is */
+            led_set(hysteresis_update(&ldr_dark, ldr_avg));
         }
     }
   }
