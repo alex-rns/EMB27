@@ -32,6 +32,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define LDR_SAMPLE_MS 50u /* how often the LDR is read: room light changes slowly, 20 times a second is plenty */
+#define LDR_AVG_SAMPLES 8u /* how many of the latest readings are averaged: 8 x 50 ms = the last 0.4 s */
 
 /* USER CODE END PD */
 
@@ -46,6 +47,11 @@ ADC_HandleTypeDef hadc1;
 /* USER CODE BEGIN PV */
 volatile uint16_t ldr_raw;
 uint32_t last_sample_ms;
+
+uint16_t ldr_samples[LDR_AVG_SAMPLES]; /* ring buffer of the latest readings */
+uint16_t ldr_index;  /* where the next reading goes (the oldest one is there) */
+uint32_t ldr_sum;    /* sum of the buffer, kept up to date: 8 x 4095 fits easily */
+volatile uint16_t ldr_avg; /* the moving average */
 
 /* USER CODE END PV */
 
@@ -108,6 +114,16 @@ int main(void)
         last_sample_ms = now;
         if ((HAL_ADC_Start(&hadc1) == HAL_OK) && (HAL_ADC_PollForConversion(&hadc1, 1) == HAL_OK)) {
             ldr_raw = (uint16_t)HAL_ADC_GetValue(&hadc1); /* 12 bits fit in uint16_t */
+
+            /* moving average: the newest reading takes the place of the oldest one */
+            ldr_sum -= ldr_samples[ldr_index];
+            ldr_samples[ldr_index] = ldr_raw;
+            ldr_sum += ldr_raw;
+            ldr_index++;
+            if (ldr_index >= LDR_AVG_SAMPLES) {
+                ldr_index = 0u; /* past the last slot: back to the first */
+            }
+            ldr_avg = (uint16_t)(ldr_sum / LDR_AVG_SAMPLES);
         }
     }
   }
