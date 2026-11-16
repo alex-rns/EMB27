@@ -31,6 +31,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define LDR_SAMPLE_MS 50u /* how often the LDR is read: room light changes slowly, 20 times a second is plenty */
 
 /* USER CODE END PD */
 
@@ -44,6 +45,7 @@ ADC_HandleTypeDef hadc1;
 
 /* USER CODE BEGIN PV */
 volatile uint16_t ldr_raw;
+uint32_t last_sample_ms;
 
 /* USER CODE END PV */
 
@@ -101,9 +103,13 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	if ((HAL_ADC_Start(&hadc1) == HAL_OK) && (HAL_ADC_PollForConversion(&hadc1, 1) == HAL_OK)) {
-		ldr_raw = (uint16_t)HAL_ADC_GetValue(&hadc1); /* 12 bits fit in uint16_t */
-	}
+    uint32_t now = HAL_GetTick();
+    if ((now - last_sample_ms) >= LDR_SAMPLE_MS) {
+        last_sample_ms = now;
+        if ((HAL_ADC_Start(&hadc1) == HAL_OK) && (HAL_ADC_PollForConversion(&hadc1, 1) == HAL_OK)) {
+            ldr_raw = (uint16_t)HAL_ADC_GetValue(&hadc1); /* 12 bits fit in uint16_t */
+        }
+    }
   }
   /* USER CODE END 3 */
 }
