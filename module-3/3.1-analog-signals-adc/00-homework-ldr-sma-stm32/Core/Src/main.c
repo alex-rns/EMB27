@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "ldr_sensor.h"
 #include "sma.h"
 /* USER CODE END Includes */
 
@@ -117,10 +118,10 @@ int main(void)
     uint32_t now = HAL_GetTick();
     if ((now - last_sample_ms) >= LDR_SAMPLE_MS) {
         last_sample_ms = now;
-        if ((HAL_ADC_Start(&hadc1) == HAL_OK) && (HAL_ADC_PollForConversion(&hadc1, 1) == HAL_OK)) {
-            ldr_raw = (uint16_t)HAL_ADC_GetValue(&hadc1); /* 12 bits fit in uint16_t */
-
-            ldr_avg = sma_add(&ldr_sma, ldr_raw);
+        uint16_t raw;
+        if (ldr_sensor_read(&raw)) { /* a failed conversion is skipped: the average keeps the older readings */
+            ldr_raw = raw;
+            ldr_avg = sma_add(&ldr_sma, raw);
 
             /* hysteresis: only a clear change of light switches the LED; between the thresholds it stays as it is */
             if (ldr_avg < LED_ON_BELOW) {
