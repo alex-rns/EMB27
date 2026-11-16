@@ -21,10 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "hysteresis.h"
-#include "ldr_sensor.h"
-#include "led.h"
-#include "sma.h"
+#include "app.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -34,14 +31,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LDR_SAMPLE_MS 50u /* how often the LDR is read: room light changes slowly, 20 times a second is plenty */
-#define LDR_AVG_SAMPLES 8u /* how many of the latest readings are averaged: 8 x 50 ms = the last 0.4 s */
-
-/* Two thresholds (hysteresis) on the average. Measured on this breadboard: room light ~3290, a finger over the
-   LDR ~1620. Between the two the LED keeps its state, so small changes of light don't make it flicker. */
-#define LED_ON_BELOW  2000u /* darker than this: LED on (~1.6 V at PA1) */
-#define LED_OFF_ABOVE 2600u /* lighter than this: LED off (~2.1 V at PA1) */
-_Static_assert(LED_ON_BELOW < LED_OFF_ABOVE, "the on threshold must be below the off threshold");
 
 /* USER CODE END PD */
 
@@ -54,13 +43,6 @@ _Static_assert(LED_ON_BELOW < LED_OFF_ABOVE, "the on threshold must be below the
 ADC_HandleTypeDef hadc1;
 
 /* USER CODE BEGIN PV */
-volatile uint16_t ldr_raw;
-uint32_t last_sample_ms;
-
-static uint16_t ldr_samples[LDR_AVG_SAMPLES]; /* the average's buffer: sma.c fills it */
-static sma_t ldr_sma; /* the moving average of the LDR readings */
-volatile uint16_t ldr_avg; /* the latest average */
-static hysteresis_t ldr_dark; /* dark or not, from the average with the two thresholds */
 
 /* USER CODE END PV */
 
@@ -108,8 +90,7 @@ int main(void)
   MX_GPIO_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-  sma_init(&ldr_sma, ldr_samples, LDR_AVG_SAMPLES);
-  hysteresis_init(&ldr_dark, LED_ON_BELOW, LED_OFF_ABOVE, false); /* the LED starts dark, as CubeMX left PB8 */
+  app_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -119,18 +100,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    uint32_t now = HAL_GetTick();
-    if ((now - last_sample_ms) >= LDR_SAMPLE_MS) {
-        last_sample_ms = now;
-        uint16_t raw;
-        if (ldr_sensor_read(&raw)) { /* a failed conversion is skipped: the average keeps the older readings */
-            ldr_raw = raw;
-            ldr_avg = sma_add(&ldr_sma, raw);
-
-            /* only a clear change of light switches the LED; between the thresholds it stays as it is */
-            led_set(hysteresis_update(&ldr_dark, ldr_avg));
-        }
-    }
+    app_loop();
   }
   /* USER CODE END 3 */
 }
