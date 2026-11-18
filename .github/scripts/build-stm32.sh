@@ -30,9 +30,15 @@ build() {  # $1 = project folder; prints the log, returns non-zero on an error o
   local dir=$1 out log src obj cpp=0 err=0
   out=$(mktemp -d)
   log="$out/log"
-  # CubeMX writes the chip into the project; every step so far is the Black Pill's STM32F411CE.
+  # CubeMX writes the chip into the project; every step so far is an STM32F411 (the Black Pill's CE, or the CC, which
+  # CMSIS also calls STM32F411xE). Each project links with the *_FLASH.ld CubeMX generated for its chip.
   if ! grep -q 'STM32F411xE' "$dir/.cproject"; then
     echo "not an STM32F411xE project: update build-stm32.sh" >"$log"; cat "$log"; return 1
+  fi
+  local ld
+  ld=$(ls "$dir"/*_FLASH.ld 2>/dev/null)
+  if [ "$(printf '%s\n' "$ld" | grep -c .)" -ne 1 ]; then
+    echo "expected one *_FLASH.ld in $dir" >"$log"; cat "$log"; return 1
   fi
   (
     cd "$dir" || exit 1
@@ -54,7 +60,7 @@ build() {  # $1 = project folder; prints the log, returns non-zero on an error o
     find "$dir/Core/Src" -name '*.cpp' | grep -q . && cpp=1
     local linker=$CC libs=(-lc -lm)
     [ $cpp -eq 1 ] && linker=$CXX && libs=(-lc -lm -lstdc++ -lsupc++)
-    "$linker" -o "$out/firmware.elf" "$out"/*.o "${ARCH[@]}" -T"$dir/STM32F411CEUX_FLASH.ld" \
+    "$linker" -o "$out/firmware.elf" "$out"/*.o "${ARCH[@]}" -T"$ld" \
       --specs=nosys.specs -Wl,--gc-sections -static -Wl,--start-group "${libs[@]}" -Wl,--end-group >>"$log" 2>&1 || err=1
   fi
   cat "$log"
