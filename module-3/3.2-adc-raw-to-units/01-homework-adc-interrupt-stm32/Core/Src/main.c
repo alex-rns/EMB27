@@ -31,7 +31,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define TIM2_CLOCK_HZ  16000000U  /* TIM2's clock: APB1 = 16 MHz here (HSI, no PLL) */
+#define NORMAL_RATE_HZ 1000U      /* the trigger rate for normal work */
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -57,7 +58,7 @@ static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
-
+static void trigger_load_period(uint32_t ticks);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -97,6 +98,8 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+  /* TIM2 counts at the full 16 MHz (CubeMX set prescaler 159), so the rate can be set finely. */
+  trigger_load_period(TIM2_CLOCK_HZ / NORMAL_RATE_HZ);
   /* Arm the ADC first: it waits for TIM2's trigger and interrupts after each conversion. */
   if (HAL_ADC_Start_IT(&hadc1) != HAL_OK)
   {
@@ -278,6 +281,15 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/* Load a new trigger period into a stopped TIM2: prescaler 0 (one tick = 1/16 us), the period in ticks. The
+ * update event (UG) applies both at once and restarts the count from 0; as TRGO it also triggers one conversion. */
+static void trigger_load_period(uint32_t ticks)
+{
+  __HAL_TIM_SET_PRESCALER(&htim2, 0U);
+  __HAL_TIM_SET_AUTORELOAD(&htim2, ticks - 1U);  /* the timer counts 0..ARR: ARR + 1 ticks */
+  htim2.Instance->EGR = TIM_EGR_UG;
+}
+
 /* HAL calls this from ADC_IRQHandler after every conversion (EOC). An interrupt must end quickly: take the
  * number and count it, nothing else. */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
