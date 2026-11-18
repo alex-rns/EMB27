@@ -8,6 +8,15 @@
 #define POT_CHANNEL ADC_CHANNEL_3    // GPIO 4: the potentiometer's middle pin
 #define POT_ATTEN   ADC_ATTEN_DB_12  // the widest input range: up to about 3.1 V on the ESP32-S3
 #define SAMPLE_MS   100              // one reading every ~100 ms, as the assignment asks
+#define ADC_MAX_CODE 4095            // 12 bits: the largest code
+#define ATTEN_MAX_MV 3100.0f         // the ESP32-S3's input range at 12 dB: 0..3100 mV (Espressif's ADC docs)
+
+// The textbook formula: the code's share of the largest code, times the input range. It assumes the ADC is
+// ideal: no offset, no gain error, the same on every chip.
+static float raw_to_mv_manual(int raw)
+{
+    return raw * ATTEN_MAX_MV / ADC_MAX_CODE;
+}
 
 void app_main(void)
 {
@@ -23,7 +32,7 @@ void app_main(void)
         int raw;
 
         ESP_ERROR_CHECK(adc_oneshot_read(adc, POT_CHANNEL, &raw));  // one conversion, waits for its result
-        printf("RAW %4d\n", raw);
+        printf("RAW %4d  U_manual %6.1f mV\n", raw, raw_to_mv_manual(raw));
         vTaskDelay(pdMS_TO_TICKS(SAMPLE_MS));  // gives the CPU to other tasks while waiting
     }
 }
