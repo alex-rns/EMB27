@@ -48,6 +48,7 @@ TIM_HandleTypeDef htim2;
 /* Written by the ADC interrupt, read by main: volatile, so every read goes to RAM. */
 static volatile uint16_t s_adc_raw;        /* the last conversion, 0..4095 */
 static volatile uint32_t s_adc_irq_count;  /* conversions taken so far */
+static volatile uint32_t s_adc_ovr_count;  /* overruns: readings lost */
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -283,6 +284,15 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
   s_adc_raw = (uint16_t)HAL_ADC_GetValue(hadc);  /* reads the ADC data register (DR), 12 bits */
   s_adc_irq_count++;
+}
+
+/* HAL calls this from ADC_IRQHandler on an overrun (OVR): a conversion finished before the last one was read,
+ * so that reading is lost. Without DMA it is the only error HAL reports here. HAL clears the flag itself, and the
+ * next trigger converts again. */
+void HAL_ADC_ErrorCallback(ADC_HandleTypeDef *hadc)
+{
+  (void)hadc;
+  s_adc_ovr_count++;
 }
 /* USER CODE END 4 */
 
