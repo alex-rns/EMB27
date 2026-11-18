@@ -33,6 +33,8 @@
 /* USER CODE BEGIN PD */
 #define TIM2_CLOCK_HZ  16000000U  /* TIM2's clock: APB1 = 16 MHz here (HSI, no PLL) */
 #define NORMAL_RATE_HZ 1000U      /* the trigger rate for normal work */
+#define SWEEP_STEP_MS  100U       /* how long the search tries each trigger rate */
+#define SWEEP_MIN_TICKS 2U        /* the shortest period TIM2 can make: ARR = 1 */
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -50,6 +52,10 @@ TIM_HandleTypeDef htim2;
 static volatile uint16_t s_adc_raw;        /* the last conversion, 0..4095 */
 static volatile uint32_t s_adc_irq_count;  /* conversions taken so far */
 static volatile uint32_t s_adc_ovr_count;  /* overruns: readings lost */
+/* The search's results, read in the debugger. */
+static volatile uint32_t s_sweep_ok_hz;          /* the fastest trigger rate with no overrun */
+static volatile uint32_t s_sweep_ok_conv_per_s;  /* conversions a second counted at that rate */
+static volatile uint32_t s_sweep_fail_hz;        /* the first rate that lost a reading; 0: none */
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -59,6 +65,7 @@ static void MX_ADC1_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 static void trigger_load_period(uint32_t ticks);
+static void sweep_trigger_rate(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -110,6 +117,8 @@ int main(void)
   {
     Error_Handler();
   }
+  /* The bonus: once after reset, find the fastest trigger rate the interrupt keeps up with (about 12 s). */
+  sweep_trigger_rate();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -290,6 +299,43 @@ static void trigger_load_period(uint32_t ticks)
   htim2.Instance->EGR = TIM_EGR_UG;
 }
 
+/* Start at NORMAL_RATE_HZ and shorten TIM2's period by about 3 % a step; try each rate for SWEEP_STEP_MS and
+ * stop at the first overrun. Then go back to NORMAL_RATE_HZ. Blocks main while it runs. */
+static void sweep_trigger_rate(void)
+{
+  uint32_t ticks = TIM2_CLOCK_HZ / NORMAL_RATE_HZ;
+
+  while (ticks >= SWEEP_MIN_TICKS)
+  {
+    uint32_t start_count;
+    uint32_t start_ms;
+    uint32_t elapsed_ms;
+
+    __HAL_TIM_DISABLE(&htim2);
+    trigger_load_period(ticks);
+    s_adc_ovr_count = 0U;  /* main writes it only while no trigger can come */
+    start_count = s_adc_irq_count;
+    start_ms = HAL_GetTick();
+    __HAL_TIM_ENABLE(&htim2);
+    HAL_Delay(SWEEP_STEP_MS);
+    __HAL_TIM_DISABLE(&htim2);
+    elapsed_ms = HAL_GetTick() - start_ms;  /* HAL_Delay waits one tick more than asked */
+
+    if (s_adc_ovr_count != 0U)
+    {
+      s_sweep_fail_hz = TIM2_CLOCK_HZ / ticks;
+      break;
+    }
+    s_sweep_ok_hz = TIM2_CLOCK_HZ / ticks;
+    s_sweep_ok_conv_per_s = (s_adc_irq_count - start_count) * 1000U / elapsed_ms;
+    ticks -= (ticks / 32U != 0U) ? (ticks / 32U) : 1U;  /* about 3 % faster each step */
+  }
+
+  __HAL_TIM_DISABLE(&htim2);
+  trigger_load_period(TIM2_CLOCK_HZ / NORMAL_RATE_HZ);
+  __HAL_TIM_ENABLE(&htim2);
+}
+
 /* HAL calls this from ADC_IRQHandler after every conversion (EOC). An interrupt must end quickly: take the
  * number and count it, nothing else. */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
@@ -305,6 +351,8 @@ void HAL_ADC_ErrorCallback(ADC_HandleTypeDef *hadc)
 {
   (void)hadc;
   s_adc_ovr_count++;
+  /* Stop the trigger: readings are being lost, and an interrupt that never ends would starve main. */
+  __HAL_TIM_DISABLE(&htim2);
 }
 /* USER CODE END 4 */
 
