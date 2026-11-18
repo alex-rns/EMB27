@@ -12,12 +12,25 @@
 #define SAMPLE_MS   100              // one reading every ~100 ms, as the assignment asks
 #define ADC_MAX_CODE 4095            // 12 bits: the largest code
 #define ATTEN_MAX_MV 3100.0f         // the ESP32-S3's input range at 12 dB: 0..3100 mV (Espressif's ADC docs)
+#define HEADER_EVERY 20              // repeat the table's header every 20 rows (2 s), so it stays on screen
 
 // The textbook formula: the code's share of the largest code, times the input range. It assumes the ADC is
 // ideal: no offset, no gain error, the same on every chip.
 static float raw_to_mv_manual(int raw)
 {
     return raw * ATTEN_MAX_MV / ADC_MAX_CODE;
+}
+
+// How far the formula is from the calibrated value, in % of the calibrated value (+: the formula reads high)
+static float error_percent(float mv_manual, int mv_cali)
+{
+    return (mv_manual - mv_cali) * 100.0f / mv_cali;
+}
+
+static void print_header(void)
+{
+    printf("\n RAW   U_manual(mV)   U_cali(mV)   Error(%%)\n");  // %% prints one %
+    printf("-------------------------------------------\n");
 }
 
 void app_main(void)
@@ -35,14 +48,27 @@ void app_main(void)
     // Reads the calibration data the factory wrote into this chip's eFuse and builds the chip's own curve
     ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali_cfg, &cali));
 
-    while (1)
+    for (unsigned row = 0; ; row++)
     {
         int raw;
         int mv_cali;
+        float mv_manual;
 
+        if (row % HEADER_EVERY == 0)
+        {
+            print_header();
+        }
         ESP_ERROR_CHECK(adc_oneshot_read(adc, POT_CHANNEL, &raw));  // one conversion, waits for its result
         ESP_ERROR_CHECK(adc_cali_raw_to_voltage(cali, raw, &mv_cali));  // the same code through the curve
-        printf("RAW %4d  U_manual %6.1f mV  U_cali %4d mV\n", raw, raw_to_mv_manual(raw), mv_cali);
+        mv_manual = raw_to_mv_manual(raw);
+        if (mv_cali > 0)
+        {
+            printf("%4d   %12.1f   %10d   %8.2f\n", raw, mv_manual, mv_cali, error_percent(mv_manual, mv_cali));
+        }
+        else
+        {
+            printf("%4d   %12.1f   %10d   %8s\n", raw, mv_manual, mv_cali, "n/a");  // no % of zero
+        }
         vTaskDelay(pdMS_TO_TICKS(SAMPLE_MS));  // gives the CPU to other tasks while waiting
     }
 }
