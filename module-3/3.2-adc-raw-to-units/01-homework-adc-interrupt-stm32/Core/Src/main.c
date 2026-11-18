@@ -45,7 +45,9 @@ ADC_HandleTypeDef hadc1;
 TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
-
+/* Written by the ADC interrupt, read by main: volatile, so every read goes to RAM. */
+static volatile uint16_t s_adc_raw;        /* the last conversion, 0..4095 */
+static volatile uint32_t s_adc_irq_count;  /* conversions taken so far */
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,7 +96,16 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-
+  /* Arm the ADC first: it waits for TIM2's trigger and interrupts after each conversion. */
+  if (HAL_ADC_Start_IT(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* Start the trigger last, so its first tick finds the ADC ready. */
+  if (HAL_TIM_Base_Start(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -266,7 +277,13 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+/* HAL calls this from ADC_IRQHandler after every conversion (EOC). An interrupt must end quickly: take the
+ * number and count it, nothing else. */
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
+{
+  s_adc_raw = (uint16_t)HAL_ADC_GetValue(hadc);  /* reads the ADC data register (DR), 12 bits */
+  s_adc_irq_count++;
+}
 /* USER CODE END 4 */
 
 /**
