@@ -5,8 +5,8 @@
       "name": "EMB27 (repo)"
     },
     {
-      "name": "01-homework-button-fsm-esp32",
-      "path": "module-2/2.6-debounce-timers/01-homework-button-fsm-esp32"
+      "name": "02-homework-adc-calibration-esp32",
+      "path": "module-3/3.2-adc-raw-to-units/02-homework-adc-calibration-esp32"
     }
   ],
   "settings": {
