@@ -13,6 +13,7 @@
 #define ADC_MAX_CODE 4095            // 12 bits: the largest code
 #define ATTEN_MAX_MV 3100.0f         // the ESP32-S3's input range at 12 dB: 0..3100 mV (Espressif's ADC docs)
 #define HEADER_EVERY 20              // repeat the table's header every 20 rows (2 s), so it stays on screen
+#define CURVE_STEP   16              // the curve printed at start: every 16th code, 257 points
 
 // The textbook formula: the code's share of the largest code, times the input range. It assumes the ADC is
 // ideal: no offset, no gain error, the same on every chip.
@@ -25,6 +26,21 @@ static float raw_to_mv_manual(int raw)
 static float error_percent(float mv_manual, int mv_cali)
 {
     return (mv_manual - mv_cali) * 100.0f / mv_cali;
+}
+
+// The optional part: both conversions for the whole code range, once at start, as CSV lines for a plot. The
+// error depends only on the code, so this shows the whole curve without turning the knob.
+static void print_curve(adc_cali_handle_t cali)
+{
+    printf("CURVE,raw,u_manual_mv,u_cali_mv\n");
+    for (int i = 0; i <= ADC_MAX_CODE / CURVE_STEP + 1; i++)
+    {
+        int raw = (i * CURVE_STEP > ADC_MAX_CODE) ? ADC_MAX_CODE : i * CURVE_STEP;  // the last point is 4095
+        int mv_cali;
+
+        ESP_ERROR_CHECK(adc_cali_raw_to_voltage(cali, raw, &mv_cali));  // no conversion: only the curve
+        printf("CURVE,%d,%.1f,%d\n", raw, raw_to_mv_manual(raw), mv_cali);
+    }
 }
 
 static void print_header(void)
@@ -47,6 +63,7 @@ void app_main(void)
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc, POT_CHANNEL, &chan_cfg));
     // Reads the calibration data the factory wrote into this chip's eFuse and builds the chip's own curve
     ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali_cfg, &cali));
+    print_curve(cali);
 
     for (unsigned row = 0; ; row++)
     {
