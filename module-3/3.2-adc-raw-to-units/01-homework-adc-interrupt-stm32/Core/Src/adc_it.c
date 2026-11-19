@@ -9,10 +9,11 @@ extern TIM_HandleTypeDef htim2;
 #define SWEEP_STEP_MS   100U       /* about how long the search tries each rate (counted in conversions) */
 #define SWEEP_MIN_TICKS 2U         /* the shortest period TIM2 can make: ARR = 1 */
 
-/* Written by the ADC interrupt, read by main: volatile, so every read goes to RAM. */
-static volatile uint16_t s_adc_raw;        /* the last conversion, 0..4095 */
-static volatile uint32_t s_adc_irq_count;  /* conversions taken so far */
-static volatile uint32_t s_adc_ovr_count;  /* overruns: readings lost */
+/* Written by the ADC interrupt, read outside it (by the search, or in the debugger): volatile, so every read
+ * goes to RAM. */
+static volatile uint16_t s_adc_raw;        /* the last conversion, 0..4095; read in the debugger */
+static volatile uint32_t s_adc_irq_count;  /* conversions taken so far; read in the debugger: 1000 a second at 1 kHz */
+static volatile uint32_t s_adc_ovr_count;  /* overruns: readings lost; read by the search */
 /* The search's results, read in the debugger. */
 static volatile uint32_t s_sweep_ok_hz;      /* the fastest trigger rate with no overrun */
 static volatile uint32_t s_sweep_fail_hz;    /* the first rate that lost a reading; 0: none */
