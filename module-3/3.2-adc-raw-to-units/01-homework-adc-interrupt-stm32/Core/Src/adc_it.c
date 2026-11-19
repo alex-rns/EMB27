@@ -50,32 +50,39 @@ HAL_StatusTypeDef adc_it_start(void)
  * (with HAL_Delay and the SysTick) would never run again. */
 void adc_it_find_max_rate(void)
 {
-  uint32_t ticks = TIM2_CLOCK_HZ / NORMAL_RATE_HZ;
+  uint32_t ticks = TIM2_CLOCK_HZ / NORMAL_RATE_HZ;  /* the trigger period in 1/16 us ticks: 16 000 = 1 kHz */
 
   while (ticks >= SWEEP_MIN_TICKS)
   {
-    uint32_t hz = TIM2_CLOCK_HZ / ticks;
+    uint32_t hz = TIM2_CLOCK_HZ / ticks;  /* the rate this step tries */
 
+    /* Set the step up with TIM2 stopped, so no trigger (and no interrupt) comes in the middle. */
     __HAL_TIM_DISABLE(&htim2);
     trigger_load_period(ticks);
     s_adc_ovr_count = 0U;  /* no overrun can come while TIM2 is stopped */
-    s_sweep_step_left = hz * SWEEP_STEP_MS / 1000U;
+    s_sweep_step_left = hz * SWEEP_STEP_MS / 1000U;  /* SWEEP_STEP_MS worth of conversions at this rate */
+
+    /* Run the step and wait for its end. */
     __HAL_TIM_ENABLE(&htim2);
     while ((htim2.Instance->CR1 & TIM_CR1_CEN) != 0U)
     {
       /* the ADC interrupt stops TIM2: after the step's conversions, or at an overrun */
     }
-    s_sweep_step_left = 0U;
+    s_sweep_step_left = 0U;  /* after an overrun some may be left: no step is running now */
 
+    /* Read the step's result. */
     if (s_adc_ovr_count != 0U)
     {
-      s_sweep_fail_hz = hz;
+      s_sweep_fail_hz = hz;  /* a reading was lost: this rate is too fast, the search ends */
       break;
     }
-    s_sweep_ok_hz = hz;
-    ticks -= (ticks / 32U != 0U) ? (ticks / 32U) : 1U;  /* about 3 % faster each step */
+    s_sweep_ok_hz = hz;  /* every reading was taken at this rate */
+    /* The next period is 1/32 shorter, about 3 % faster. Below 32 ticks 1/32 is 0, so take at least 1 tick off,
+     * or the loop would never end. */
+    ticks -= (ticks / 32U != 0U) ? (ticks / 32U) : 1U;
   }
 
+  /* Back to normal work at 1 kHz. */
   __HAL_TIM_DISABLE(&htim2);
   trigger_load_period(TIM2_CLOCK_HZ / NORMAL_RATE_HZ);
   __HAL_TIM_ENABLE(&htim2);
