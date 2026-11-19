@@ -98,7 +98,7 @@ int main(void)
   {
     Error_Handler();
   }
-  /* The bonus: once after reset, find the fastest trigger rate the interrupt keeps up with (about 12 s). */
+  /* The bonus: once after reset, find the fastest trigger rate the interrupt keeps up with (about 14 s). */
   adc_it_find_max_rate();
   /* USER CODE END 2 */
 

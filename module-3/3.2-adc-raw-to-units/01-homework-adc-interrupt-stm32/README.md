@@ -39,30 +39,39 @@ TIM2 TRGO ──► ADC1 converts PA0 ──► EOC interrupt: ADC_IRQHandler �
 ## The bonus: the fastest trigger before an overrun
 
 **How it is searched.** `adc_it_find_max_rate()` starts TIM2 at 1 kHz and shortens its period by about 3 % a step
-(prescaler 0, so the period is set in 1/16 µs ticks). Each rate runs for about 100 ms worth of triggers, counted in
-conversions, and the step ends when the ADC interrupt stops TIM2. The search stops at the first overrun:
-`HAL_ADC_ErrorCallback` counts it and stops TIM2 too. Then TIM2 goes back to 1 kHz. The results are read in the
-debugger: `s_sweep_ok_hz` (the fastest rate with no overrun) and `s_sweep_fail_hz` (the first that lost a reading).
+(prescaler 0, so the period is set in TIM2 clock cycles, 1/16 µs at 16 MHz; the clock is read from the clock tree).
+Each rate runs for about 100 ms worth of triggers, counted in conversions, and the step ends when the ADC interrupt
+stops TIM2. The search stops at the first overrun: `HAL_ADC_ErrorCallback` counts it and, during a search step,
+stops TIM2 too. Then TIM2 goes back to 1 kHz. The results are read in the debugger: `s_sweep_ok_hz` (the fastest
+rate with no overrun) and `s_sweep_fail_hz` (the first rate that gave one).
 
 The step's end is counted by the interrupt, not timed by `main` with `HAL_Delay`, because the first version (with
-`HAL_Delay`, at 3 cycles) stopped at 70 kHz: from there on the interrupt took all the CPU time, and `main` and the SysTick, which
-has the lowest priority, never ran again.
+`HAL_Delay`, at 3 cycles) stopped at 70 kHz: from there on the interrupt took all the CPU time, and `main` and the
+SysTick, which has the lowest priority, never ran again.
 
 **Results** (HSI 16 MHz, ADC clock 8 MHz, HAL, CubeIDE's Debug build at `-O0`):
 
 | Sampling time | Result |
 |---|---|
-| 144 cycles: 144 + 12 = 156 ADC clocks, 19.5 µs a conversion | **no overrun at all**, up to an 8 MHz trigger (the fastest TIM2 makes, period 2 ticks). The ADC tops out at 51 257 conversions a second (1 / 19.5 µs); a trigger that comes during a conversion is ignored, without an error. At 53.7 kHz exactly every second trigger was converted |
+| 144 cycles: 144 + 12 = 156 ADC clocks, 19.5 µs a conversion | **no overrun at all**, up to an 8 MHz trigger (the fastest TIM2 makes, period 2 ticks). The ADC tops out at 51 257 conversions a second (measured; 1 / 19.5 µs gives 51 282); a trigger that comes during a conversion is ignored, without an error. At 53.7 kHz exactly every second trigger was converted |
 | 3 cycles: 3 + 12 = 15 ADC clocks, 1.9 µs a conversion | **no overrun at 88 888 Hz** (period 11.25 µs), **the first at 91 428 Hz** (period 10.94 µs); the same in three runs |
 
-So the answer to the bonus: about **89–91 kHz**, and only once the ADC converts faster than the interrupt takes its
-results; then the interrupt is the limit. With 144 cycles the ADC is the limit, and it never overruns.
+So the answer to the bonus, as asked (the first overrun error): about **89–91 kHz**, and only once the ADC converts
+faster than the interrupt takes its results; then the interrupt is the limit. With 144 cycles the ADC is the limit,
+and it never overruns. Readings may be lost earlier without an error (below).
 
-Seen along the way: from about 70 kHz (period 14.2 µs) the interrupt takes all the CPU time without losing a
-reading. With TIM2 fixed at 70 485 Hz or at 88 888 Hz, conversions kept coming with no overrun while `uwTick` (HAL's
-millisecond tick) stayed 0 from reset; at 68 376 Hz `HAL_Delay` still returned. Why the CPU is full from about 70 kHz
-but readings are lost only from about 91 kHz is not measured here: a pin toggled at the start and the end of the
-interrupt, seen on the logic analyzer, would show how long the interrupt takes and when it reads the data register.
+Seen along the way: from about 70 kHz (period 14.2 µs) the interrupt takes all the CPU time without an overrun. With
+TIM2 fixed at 70 485 Hz or at 88 888 Hz, conversions kept coming with no overrun while `uwTick` (HAL's millisecond
+tick) stayed 0 from reset; at 68 376 Hz `HAL_Delay` still returned.
+
+**Not checked: readings lost without an overrun.** `HAL_ADC_IRQHandler` clears the EOC flag only after
+`HAL_ADC_ConvCpltCallback` returns. A conversion that ends between the callback's read of the data register and that
+clear loses its EOC: it gets no interrupt, and when the next result overwrites it the ADC reports no overrun either,
+because it counts the cleared EOC as read. The search counts conversions, not triggers, so it would not see such a
+loss. From about 70 kHz, where the interrupt runs back to back, this may happen, and it would explain why the CPU is
+full from about 70 kHz while the first overrun comes only at about 91 kHz; the rate at which every reading is taken
+would then be lower than 89 kHz. Comparing each step's conversions with its TIM2 periods (the DWT cycle counter), or
+a pin toggled in the interrupt on the logic analyzer, would show it.
 
 ## Project
 
@@ -76,7 +85,7 @@ interrupt, seen on the logic analyzer, would show how long the interrupt takes a
 conversion; the external trigger TIM2 TRGO on the rising edge; DMA off; EOC after each conversion; the ADC1
 interrupt at priority 0 (the SysTick at 15, the lowest).
 **TIM2:** CubeMX sets prescaler 159 and period 99 (1 kHz), TRGO = update; `adc_it_start()` reloads it with prescaler 0
-and a period of 16 000 ticks, still 1 kHz.
+and a period of 16 000 ticks, still 1 kHz; the code reads TIM2's clock (16 MHz) from the clock tree.
 CubeMX's target is the STM32F411CCUx, as in the lecture project; the Black Pill carries the CE (see the lecture
 step's README). STM32Cube FW_F4 V1.28.3, CubeMX 6.18.1, CubeIDE 2.2.0.
 
@@ -94,14 +103,17 @@ step's README). STM32Cube FW_F4 V1.28.3, CubeMX 6.18.1, CubeIDE 2.2.0.
   sequence and no DMA, the ADC never sets OVR, and the search would find no limit.
 - **A trigger during a conversion is ignored, not an error.** Fewer conversions than triggers is the only sign.
 - **An interrupt that takes all the CPU time gives no error either.** `main` stops, and so does the HAL tick, so
-  `HAL_Delay` never returns. The error callback stops TIM2, so after an overrun the program gets the CPU back.
+  `HAL_Delay` never returns. During a search step the error callback stops TIM2, so after an overrun there the
+  program gets the CPU back. In normal work an overrun is only counted: one also comes after a breakpoint, since
+  TIM2 and the ADC keep running while the core is halted.
 - **3 cycles are too short for full accuracy through the potentiometer.** The datasheet's formula for an error below
   ¼ LSB allows at most about 2 kΩ of source resistance at 3 cycles and 8 MHz (with the typical 4 pF sample
   capacitor; none with the maximum 7 pF), and a 10 kΩ potentiometer's wiper has up to 2.5 kΩ. The setting is for the
   bonus; 144 cycles (allowing the datasheet's 50 kΩ maximum) were used before it.
-- **The search blocks `main` for about 14 s after every reset**, then the ADC runs at 1 kHz.
-- **The results depend on the build.** At `-O2`, or with a faster clock (up to 100 MHz with the PLL), the interrupt would be
-  shorter, so the overrun should come later (not measured).
+- **The search blocks `main` for about 14 s after every reset**, then the ADC runs at 1 kHz. With 144-cycle sampling
+  it would take about 2 minutes: each step counts conversions, and the ADC tops out at about 51 000 a second.
+- **The results depend on the build.** At `-O2`, or with a faster clock (up to 100 MHz with the PLL), the interrupt
+  would be shorter, so the overrun should come later (not measured).
 
 ## Checked on the board
 
@@ -116,8 +128,10 @@ Values read from RAM over the ST-Link while the program runs:
 | The search, 3 cycles | `s_sweep_ok_hz` 88 888, `s_sweep_fail_hz` 91 428, three runs (the last after the refactor) |
 | After the search | back to 1 kHz: `s_adc_irq_count` grows with `uwTick` |
 
-The build: `.github/scripts/build-stm32.sh` (CubeIDE's GCC 14.3 with `-Wextra`) gives 0 warnings; `text` 10 656,
-`data` 12, `bss` 1740 bytes.
+The build: `.github/scripts/build-stm32.sh` (CubeIDE's GCC 14.3 with `-Wextra`) gives 0 warnings; `text` 10 816,
+`data` 12, `bss` 1740 bytes. The fixes after the code review (the overrun stops TIM2 only during the search, TIM2's
+clock read from the clock tree, the step's counters set before the update event) were built but not run on the board
+yet; the results above are from the code before them.
 
 ## Working with the step
 
