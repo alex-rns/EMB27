@@ -43,9 +43,13 @@ static void print_curve(adc_cali_handle_t cali)
     }
 }
 
+// The settings the formula depends on, as the assignment suggests, then the table's header
 static void print_header(void)
 {
-    printf("\n RAW   U_manual(mV)   U_cali(mV)   Error(%%)\n");  // %% prints one %
+    printf("\nADC1 channel %d (GPIO 4), attenuation 12 dB (0..%.0f mV), 12 bits (0..%d), "
+           "Vref ~1100 mV (corrected by the factory calibration)\n",
+           POT_CHANNEL, ATTEN_MAX_MV, ADC_MAX_CODE);
+    printf(" RAW   U_manual(mV)   U_cali(mV)   Error(%%)\n");  // %% prints one %
     printf("-------------------------------------------\n");
 }
 

@@ -46,12 +46,12 @@ Optional:
 | Point | Where | How |
 |---|---|---|
 | The potentiometer as a divider | wiring | its ends to `3V3` and `GND`, the middle pin to GPIO 4 (ADC1, channel 3); no other part |
-| Reference, attenuation, resolution | `main.c`, the table below | 12 dB attenuation (`ADC_ATTEN_DB_12`) gives an input range of 0..3100 mV; 12 bits give codes 0..4095; the formula uses both: RAW × 3100 / 4095. The internal reference is the chip's own, about 1100 mV; the calibration accounts for it |
+| Reference, attenuation, resolution | `main.c`, the table below | 12 dB attenuation (`ADC_ATTEN_DB_12`) gives an input range of 0..3100 mV; 12 bits give codes 0..4095; the formula uses both: RAW × 3100 / 4095. The internal reference is the chip's own, about 1100 mV; the calibration accounts for it; a line above the table's header prints all three |
 | Read every ~100 ms | `main.c` | `adc_oneshot_read()` in a loop with `vTaskDelay(100 ms)` |
 | The voltage by the formula | `raw_to_mv_manual()` | U_manual = RAW × 3100 / 4095 |
 | The calibrated voltage | `main.c` | `adc_cali_create_scheme_curve_fitting()` once (the factory's data in the chip's eFuse), then `adc_cali_raw_to_voltage()` for each reading |
 | The error in % | `error_percent()` | (U_manual - U_cali) / U_cali × 100, as in the example; minus means the formula reads low; `n/a` when U_cali is 0 |
-| The table on the serial console | `main.c` | one row every 100 ms, the header every 20 rows (115 200 baud) |
+| The table on the serial console | `main.c` | one row every 100 ms; every 20 rows the settings line and the header (115 200 baud) |
 | Optional: plots | `print_curve()`, [img/calibration.svg](img/calibration.svg) | at start the firmware prints both conversions for every 16th code (`CURVE,...` lines, 257 points, saved in [img/calibration-curve.csv](img/calibration-curve.csv)); the plot is drawn from them |
 | Optional: the nonlinear regions | the plot | near 0 and from about code 2900 (below) |
 
@@ -131,7 +131,8 @@ picks a point on two fixed curves. That is why the whole curve can be printed at
 | Six knob positions | the results table above |
 | The curve at start | 257 `CURVE` lines, from code 0 to 4095 |
 
-The build: `pio run` with `-Wall -Wextra` for our code gives 0 warnings (espressif32 7.1.3, ESP-IDF 6.1.0).
+The build: `pio run` with `-Wall -Wextra` for our code gives 0 warnings (espressif32 7.1.3, ESP-IDF 6.1.0). The settings line above
+the header came after the board checks: built, not run on the board yet.
 
 ## Working with the step
 
