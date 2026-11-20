@@ -12,6 +12,7 @@ can be; sampling several channels on a timer with DMA, and where the processing 
 | # | Step | Type | What it shows |
 |---|---|---|---|
 | 00 | lecture-adc: [stm32](00-lecture-adc-stm32/) | lecture | TIM2 at 1 kHz triggers an ADC1 scan of a potentiometer (PA0) and an LDR (PA1); DMA fills a circular buffer of two halves, the callbacks only count, the main loop averages each finished half and converts it to millivolts |
+| 01 | homework-adc-interrupt: [stm32](01-homework-adc-interrupt-stm32/) | homework (extra) | the teacher's extra task: ADC1 in interrupt mode with no DMA, triggered by TIM2, the callback takes each result from the data register; the bonus finds the fastest trigger before an overrun: none at 144-cycle sampling, about 89–91 kHz at 3 cycles ([assignment](01-homework-adc-interrupt-stm32/README.md#assignment)) |
 
 ## Working with the steps
 
