@@ -5,8 +5,8 @@
       "name": "EMB27 (repo)"
     },
     {
-      "name": "00-lecture-pwm-rc-adc-esp32",
-      "path": "module-3/3.4-dac-number-to-voltage/00-lecture-pwm-rc-adc-esp32"
+      "name": "01-homework-buzzer-player-esp32",
+      "path": "module-3/3.4-dac-number-to-voltage/01-homework-buzzer-player-esp32"
     }
   ],
   "settings": {
