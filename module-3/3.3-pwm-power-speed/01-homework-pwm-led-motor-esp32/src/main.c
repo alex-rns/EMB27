@@ -1,8 +1,16 @@
-#include "driver/ledc.h" // LEDC: ledc_timer_config_t, ledc_timer_config()
-#include "esp_err.h"     // ESP_ERROR_CHECK
+#include <stdio.h>               // printf
+#include "driver/ledc.h"         // LEDC: ledc_timer_config_t, ledc_timer_config()
+#include "esp_adc/adc_oneshot.h" // the ADC, one conversion per call
+#include "esp_err.h"             // ESP_ERROR_CHECK
+#include "freertos/FreeRTOS.h"   // pdMS_TO_TICKS
+#include "freertos/task.h"       // vTaskDelay
 
 #define MOTOR_GPIO 5 // to the 2N2222's base through a resistor
 #define LED_GPIO 6   // to the LED through a resistor
+
+#define POT_UNIT ADC_UNIT_1       // GPIO 1..10 are ADC1
+#define POT_CHANNEL ADC_CHANNEL_3 // GPIO 4: the potentiometer's middle pin
+#define SAMPLE_MS 100             // read the knob 10 times a second
 
 #define PWM_MODE LEDC_LOW_SPEED_MODE // the S3 has only the low-speed group
 #define PWM_TIMER LEDC_TIMER_0       // one timer for both channels, like TIM1 in the lecture
@@ -45,4 +53,23 @@ void app_main(void)
         .flags.output_invert = 1, // the pin inverted, like TIM1_CH1N: high 75 %
     };
     ESP_ERROR_CHECK(ledc_channel_config(&led));
+
+    adc_oneshot_unit_handle_t adc; // the driver's handle for ADC1, filled in by adc_oneshot_new_unit()
+    const adc_oneshot_unit_init_cfg_t unit_cfg = {.unit_id = POT_UNIT};
+    ESP_ERROR_CHECK(adc_oneshot_new_unit(&unit_cfg, &adc));
+
+    const adc_oneshot_chan_cfg_t chan_cfg = {
+        .atten = ADC_ATTEN_DB_12,       // the widest input range, about 0..3.1 V
+        .bitwidth = ADC_BITWIDTH_12,    // 0..4095
+    };
+
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc, POT_CHANNEL, &chan_cfg));
+
+    while (1)
+    {
+        int raw = 0;
+        ESP_ERROR_CHECK(adc_oneshot_read(adc, POT_CHANNEL, &raw)); // one conversion, waits for its result
+        printf("raw %d\n", raw);
+        vTaskDelay(pdMS_TO_TICKS(SAMPLE_MS)); // sleeps, giving the CPU to other tasks
+    }
 }
