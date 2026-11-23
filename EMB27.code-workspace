@@ -5,8 +5,8 @@
       "name": "EMB27 (repo)"
     },
     {
-      "name": "3.4-dac-number-to-voltage (draft)",
-      "path": "module-3/3.4-dac-number-to-voltage"
+      "name": "00-lecture-pwm-rc-adc-esp32",
+      "path": "module-3/3.4-dac-number-to-voltage/00-lecture-pwm-rc-adc-esp32"
     }
   ],
   "settings": {
