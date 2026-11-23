@@ -1,3 +1,4 @@
+#include <inttypes.h>            // PRIu32: the printf format for uint32_t
 #include <stdio.h>               // printf
 #include "driver/ledc.h"         // LEDC: ledc_timer_config_t, ledc_timer_config()
 #include "esp_adc/adc_oneshot.h" // the ADC, one conversion per call
@@ -11,6 +12,7 @@
 #define POT_UNIT ADC_UNIT_1       // GPIO 1..10 are ADC1
 #define POT_CHANNEL ADC_CHANNEL_3 // GPIO 4: the potentiometer's middle pin
 #define SAMPLE_MS 100             // read the knob 10 times a second
+#define POT_FULL 4000             // above it the duty is 100 %, like the lecture's 4000
 
 #define PWM_MODE LEDC_LOW_SPEED_MODE // the S3 has only the low-speed group
 #define PWM_TIMER LEDC_TIMER_0       // one timer for both channels, like TIM1 in the lecture
@@ -69,7 +71,15 @@ void app_main(void)
     {
         int raw = 0;
         ESP_ERROR_CHECK(adc_oneshot_read(adc, POT_CHANNEL, &raw)); // one conversion, waits for its result
-        printf("raw %d\n", raw);
+
+        // 0..4000 -> 0..16384, like the lecture's adc_value / 4 (0..4000 -> 0..1000)
+        const uint32_t duty = (raw > POT_FULL) ? DUTY_MAX : (uint32_t)raw * DUTY_MAX / POT_FULL;
+        ESP_ERROR_CHECK(ledc_set_duty(PWM_MODE, MOTOR_CHANNEL, duty)); // stores the new duty
+        ESP_ERROR_CHECK(ledc_update_duty(PWM_MODE, MOTOR_CHANNEL));    // applies it from the next period
+        ESP_ERROR_CHECK(ledc_set_duty(PWM_MODE, LED_CHANNEL, duty));   // the same duty: the LED pin is inverted
+        ESP_ERROR_CHECK(ledc_update_duty(PWM_MODE, LED_CHANNEL));
+
+        printf("raw %d duty %" PRIu32 "\n", raw, duty);
         vTaskDelay(pdMS_TO_TICKS(SAMPLE_MS)); // sleeps, giving the CPU to other tasks
     }
 }
