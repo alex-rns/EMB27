@@ -16,12 +16,12 @@
 
 #define PWM_MODE LEDC_LOW_SPEED_MODE // the S3 has only the low-speed group
 #define PWM_TIMER LEDC_TIMER_0       // one timer for both channels, like TIM1 in the lecture
-#define PWM_BITS LEDC_TIMER_14_BIT   // counter 0..16383; 10 Hz needs at least 13 bits (divider <= 1024)
-#define PWM_FREQ_HZ 10               // slow enough to see by eye
+#define PWM_BITS LEDC_TIMER_11_BIT   // counter 0..2047; 20 kHz allows at most 11 bits (80 MHz / 2048 / 20 kHz = 1.95)
+#define PWM_FREQ_HZ 20000            // above hearing: at 1 kHz the motor whined; the eye sees brightness, not blinks
 #define MOTOR_CHANNEL LEDC_CHANNEL_0 // channel 0 of 8
 #define LED_CHANNEL LEDC_CHANNEL_1
 
-#define DUTY_MAX (1u << PWM_BITS) // 16384 = always high: the duty range is [0, 2^bits], like CCR = ARR + 1
+#define DUTY_MAX (1u << PWM_BITS) // 2048 = always high: the duty range is [0, 2^bits], like CCR = ARR + 1
 
 void app_main(void)
 {
@@ -32,7 +32,7 @@ void app_main(void)
         .freq_hz = PWM_FREQ_HZ,
         .clk_cfg = LEDC_AUTO_CLK, // the driver picks the clock (APB 80 MHz here)
     };
-    // The driver works out the divider itself: 80 MHz / (10 * 16384) = about 488
+    // The driver works out the divider itself: 80 MHz / (20000 * 2048) = about 1.95
     ESP_ERROR_CHECK(ledc_timer_config(&timer)); // on an error: print it and restart
 
     const ledc_channel_config_t motor = {
@@ -72,7 +72,7 @@ void app_main(void)
         int raw = 0;
         ESP_ERROR_CHECK(adc_oneshot_read(adc, POT_CHANNEL, &raw)); // one conversion, waits for its result
 
-        // 0..4000 -> 0..16384, like the lecture's adc_value / 4 (0..4000 -> 0..1000)
+        // 0..4000 -> 0..2048, like the lecture's adc_value / 4 (0..4000 -> 0..1000)
         const uint32_t duty = (raw > POT_FULL) ? DUTY_MAX : (uint32_t)raw * DUTY_MAX / POT_FULL;
         ESP_ERROR_CHECK(ledc_set_duty(PWM_MODE, MOTOR_CHANNEL, duty)); // stores the new duty
         ESP_ERROR_CHECK(ledc_update_duty(PWM_MODE, MOTOR_CHANNEL));    // applies it from the next period
