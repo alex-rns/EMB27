@@ -5,8 +5,8 @@
       "name": "EMB27 (repo)"
     },
     {
-      "name": "02-homework-adc-calibration-esp32",
-      "path": "module-3/3.2-adc-raw-to-units/02-homework-adc-calibration-esp32"
+      "name": "01-homework-pwm-led-motor-esp32",
+      "path": "module-3/3.3-pwm-power-speed/01-homework-pwm-led-motor-esp32"
     }
   ],
   "settings": {
