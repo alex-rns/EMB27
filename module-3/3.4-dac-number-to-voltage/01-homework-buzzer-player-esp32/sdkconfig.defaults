@@ -1,0 +1,2 @@
+# Flash size: 8 MB, as PlatformIO's esp32-s3-devkitc-1 board says (the module has 16 MB; 8 MB is enough here)
+CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y
