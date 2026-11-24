@@ -26,6 +26,9 @@ void player_tick(void)
     }
     if (s_ticks_left > 0) { // the current note goes on
         s_ticks_left--;
+        if (s_ticks_left == 0) {
+            buzzer_off(); // its last tick is silent: two equal notes in a row don't merge into one
+        }
         return;
     }
     if (s_next >= s_count) { // the melody is over
