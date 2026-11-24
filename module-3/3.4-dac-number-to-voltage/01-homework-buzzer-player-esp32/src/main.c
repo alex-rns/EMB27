@@ -1,6 +1,7 @@
 #include <stddef.h>
 
 #include "buzzer.h"
+#include "driver/gpio.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_timer.h"
@@ -8,6 +9,8 @@
 #include "player.h"
 
 #define TICK_MS 50 // the fixed tick: everything in the player happens on it
+#define LED_GPIO 6 // an LED through 220 Ohm: blinks while the melodies play
+#define BLINK_MS 250
 
 static const char *TAG = "player";
 
@@ -27,16 +30,34 @@ static void on_tick(void *arg)
     player_tick();
 }
 
+// A second, independent job on its own esp_timer: the player never waits, so this keeps its rhythm.
+static void on_blink(void *arg)
+{
+    (void)arg;
+    static int level = 0;
+    level = !level;
+    gpio_set_level(LED_GPIO, level);
+}
+
+static void start_periodic(esp_timer_cb_t callback, const char *name, uint32_t period_ms)
+{
+    const esp_timer_create_args_t args = {
+        .callback = callback,
+        .name = name,
+    };
+    esp_timer_handle_t timer;
+    ESP_ERROR_CHECK(esp_timer_create(&args, &timer));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(timer, period_ms * 1000)); // the period is in microseconds
+}
+
 void app_main(void)
 {
     buzzer_init();
+    ESP_ERROR_CHECK(gpio_reset_pin(LED_GPIO));
+    ESP_ERROR_CHECK(gpio_set_direction(LED_GPIO, GPIO_MODE_OUTPUT));
 
-    const esp_timer_create_args_t tick_args = {
-        .callback = on_tick,
-        .name = "player_tick",
-    };
-    esp_timer_handle_t tick_timer;
-    ESP_ERROR_CHECK(esp_timer_create(&tick_args, &tick_timer));
-    ESP_ERROR_CHECK(esp_timer_start_periodic(tick_timer, TICK_MS * 1000)); // the period is in microseconds
-    // app_main returns: nothing here waits; the timer keeps calling on_tick
+    start_periodic(on_tick, "player_tick", TICK_MS);
+    start_periodic(on_blink, "led_blink", BLINK_MS);
+    ESP_LOGI(TAG, "started; app_main returns, the timers keep the music and the LED going");
+    // app_main returns: nothing here waits
 }
