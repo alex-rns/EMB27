@@ -1,31 +1,30 @@
-#include <stdbool.h>
-#include <stdint.h>
-
 #include "buzzer.h"
 #include "esp_err.h"
 #include "esp_timer.h"
+#include "notes.h"
+#include "player.h"
 
-#define TICK_MS 50          // the fixed tick: everything in the player happens on it
-#define BEEP_TICKS 10       // 10 ticks = 500 ms on, 500 ms off
-#define NOTE_A4 440         // Hz
+#define TICK_MS 50 // the fixed tick: everything in the player happens on it
+#define QUARTER 8  // ticks: 8 x 50 ms = 400 ms
+#define HALF 16
+
+#define COUNT_OF(a) (sizeof(a) / sizeof((a)[0]))
+
+// Twinkle Twinkle Little Star, the assignment's first line: C C G G | A A G
+static const note_t s_twinkle[] = {
+    {NOTE_C4, QUARTER}, {NOTE_C4, QUARTER}, {NOTE_G4, QUARTER}, {NOTE_G4, QUARTER},
+    {NOTE_A4, QUARTER}, {NOTE_A4, QUARTER}, {NOTE_G4, HALF},    {NOTE_REST, HALF},
+};
 
 // Called by esp_timer every TICK_MS. It runs in the esp_timer service (no task of ours, no delay),
-// so it must return quickly: it only counts and switches the buzzer.
+// so it must return quickly: it only moves the player one tick on.
 static void on_tick(void *arg)
 {
     (void)arg;
-    static uint32_t ticks = 0;
-    static bool on = false;
-
-    if (ticks % BEEP_TICKS == 0) {
-        on = !on;
-        if (on) {
-            buzzer_tone(NOTE_A4);
-        } else {
-            buzzer_off();
-        }
+    if (!player_is_playing()) {
+        player_start(s_twinkle, COUNT_OF(s_twinkle)); // over again
     }
-    ticks++;
+    player_tick();
 }
 
 void app_main(void)
