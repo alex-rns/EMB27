@@ -1,28 +1,28 @@
+#include <stddef.h>
+
 #include "buzzer.h"
 #include "esp_err.h"
+#include "esp_log.h"
 #include "esp_timer.h"
-#include "notes.h"
+#include "melodies.h"
 #include "player.h"
 
 #define TICK_MS 50 // the fixed tick: everything in the player happens on it
-#define QUARTER 8  // ticks: 8 x 50 ms = 400 ms
-#define HALF 16
 
-#define COUNT_OF(a) (sizeof(a) / sizeof((a)[0]))
+static const char *TAG = "player";
 
-// Twinkle Twinkle Little Star, the assignment's first line: C C G G | A A G
-static const note_t s_twinkle[] = {
-    {NOTE_C4, QUARTER}, {NOTE_C4, QUARTER}, {NOTE_G4, QUARTER}, {NOTE_G4, QUARTER},
-    {NOTE_A4, QUARTER}, {NOTE_A4, QUARTER}, {NOTE_G4, HALF},    {NOTE_REST, HALF},
-};
+static size_t s_melody_index; // the melody to play next
 
 // Called by esp_timer every TICK_MS. It runs in the esp_timer service (no task of ours, no delay),
-// so it must return quickly: it only moves the player one tick on.
+// so it must return quickly: when a melody is over it starts the next one, then moves the player one tick on.
 static void on_tick(void *arg)
 {
     (void)arg;
     if (!player_is_playing()) {
-        player_start(s_twinkle, COUNT_OF(s_twinkle)); // over again
+        const melody_t *melody = melodies_get(s_melody_index);
+        ESP_LOGI(TAG, "%s", melody->name);
+        player_start(melody->notes, melody->count);
+        s_melody_index = (s_melody_index + 1) % melodies_count();
     }
     player_tick();
 }
