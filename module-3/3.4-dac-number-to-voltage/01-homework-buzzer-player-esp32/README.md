@@ -63,6 +63,8 @@ Twinkle's C C or Jingle Bells' E E E are heard as separate notes.
 | LED | GPIO 6 → 220 Ω → LED → `GND` |
 | USB | the board's UART port (the CH343P bridge), 115 200 baud |
 
+![Schematic](schematic.svg)
+
 ## Checked on the board
 
 The serial log after flashing:
