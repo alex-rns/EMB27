@@ -1,3 +1,85 @@
+#include <inttypes.h>            // PRIu32: the printf format for uint32_t
+#include <stdio.h>               // printf
+#include "driver/ledc.h"         // LEDC: ledc_timer_config_t, ledc_timer_config()
+#include "esp_adc/adc_oneshot.h" // the ADC, one conversion per call
+#include "esp_err.h"             // ESP_ERROR_CHECK
+#include "freertos/FreeRTOS.h"   // pdMS_TO_TICKS
+#include "freertos/task.h"       // vTaskDelay
+
+#define MOTOR_GPIO 5 // to the 2N2222's base through a resistor
+#define LED_GPIO 6   // to the LED through a resistor
+
+#define POT_UNIT ADC_UNIT_1       // GPIO 1..10 are ADC1
+#define POT_CHANNEL ADC_CHANNEL_3 // GPIO 4: the potentiometer's middle pin
+#define SAMPLE_MS 100             // read the knob 10 times a second
+#define POT_FULL 4000             // above it the duty is 100 %, like the lecture's 4000
+
+#define PWM_MODE LEDC_LOW_SPEED_MODE // the S3 has only the low-speed group
+#define PWM_TIMER LEDC_TIMER_0       // one timer for both channels, like TIM1 in the lecture
+#define PWM_BITS LEDC_TIMER_11_BIT   // counter 0..2047; 20 kHz allows at most 11 bits (80 MHz / 2048 / 20 kHz = 1.95)
+#define PWM_FREQ_HZ 20000            // above hearing: at 1 kHz the motor whined; the eye sees brightness, not blinks
+#define MOTOR_CHANNEL LEDC_CHANNEL_0 // channel 0 of 8
+#define LED_CHANNEL LEDC_CHANNEL_1
+
+#define DUTY_MAX (1u << PWM_BITS) // 2048 = always high: the duty range is [0, 2^bits], like CCR = ARR + 1
+
 void app_main(void)
 {
+    const ledc_timer_config_t timer = {
+        .speed_mode = PWM_MODE,
+        .duty_resolution = PWM_BITS,
+        .timer_num = PWM_TIMER,
+        .freq_hz = PWM_FREQ_HZ,
+        .clk_cfg = LEDC_AUTO_CLK, // the driver picks the clock (APB 80 MHz here)
+    };
+    // The driver works out the divider itself: 80 MHz / (20000 * 2048) = about 1.95
+    ESP_ERROR_CHECK(ledc_timer_config(&timer)); // on an error: print it and restart
+
+    const ledc_channel_config_t motor = {
+        .gpio_num = MOTOR_GPIO,
+        .speed_mode = PWM_MODE,
+        .channel = MOTOR_CHANNEL,
+        .timer_sel = PWM_TIMER, // the channel takes its frequency from this timer
+        .duty = DUTY_MAX / 4,   // 25 %, like CCR1 = 250 of 1000 in the lecture
+        .hpoint = 0,            // high from the period's start until the counter reaches duty
+    };
+    ESP_ERROR_CHECK(ledc_channel_config(&motor));
+
+    const ledc_channel_config_t led = {
+        .gpio_num = LED_GPIO,
+        .speed_mode = PWM_MODE,
+        .channel = LED_CHANNEL,
+        .timer_sel = PWM_TIMER, // the same timer: the periods start together
+        .duty = DUTY_MAX / 4,   // the same duty as the motor
+        .hpoint = 0,
+        .flags.output_invert = 1, // the pin inverted, like TIM1_CH1N: high 75 %
+    };
+    ESP_ERROR_CHECK(ledc_channel_config(&led));
+
+    adc_oneshot_unit_handle_t adc; // the driver's handle for ADC1, filled in by adc_oneshot_new_unit()
+    const adc_oneshot_unit_init_cfg_t unit_cfg = {.unit_id = POT_UNIT};
+    ESP_ERROR_CHECK(adc_oneshot_new_unit(&unit_cfg, &adc));
+
+    const adc_oneshot_chan_cfg_t chan_cfg = {
+        .atten = ADC_ATTEN_DB_12,       // the widest input range, about 0..3.1 V
+        .bitwidth = ADC_BITWIDTH_12,    // 0..4095
+    };
+
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc, POT_CHANNEL, &chan_cfg));
+
+    while (1)
+    {
+        int raw = 0;
+        ESP_ERROR_CHECK(adc_oneshot_read(adc, POT_CHANNEL, &raw)); // one conversion, waits for its result
+
+        // 0..4000 -> 0..2048, like the lecture's adc_value / 4 (0..4000 -> 0..1000)
+        const uint32_t duty = (raw > POT_FULL) ? DUTY_MAX : (uint32_t)raw * DUTY_MAX / POT_FULL;
+        ESP_ERROR_CHECK(ledc_set_duty(PWM_MODE, MOTOR_CHANNEL, duty)); // stores the new duty
+        ESP_ERROR_CHECK(ledc_update_duty(PWM_MODE, MOTOR_CHANNEL));    // applies it from the next period
+        ESP_ERROR_CHECK(ledc_set_duty(PWM_MODE, LED_CHANNEL, duty));   // the same duty: the LED pin is inverted
+        ESP_ERROR_CHECK(ledc_update_duty(PWM_MODE, LED_CHANNEL));
+
+        printf("raw %d duty %" PRIu32 "\n", raw, duty);
+        vTaskDelay(pdMS_TO_TICKS(SAMPLE_MS)); // sleeps, giving the CPU to other tasks
+    }
 }
