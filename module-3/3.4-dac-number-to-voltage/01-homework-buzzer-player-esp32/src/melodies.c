@@ -64,5 +64,5 @@ size_t melodies_count(void)
 
 const melody_t *melodies_get(size_t index)
 {
-    return &s_melodies[index % COUNT_OF(s_melodies)]; // an index past the end wraps around instead of reading past the array
+    return &s_melodies[index]; // the caller keeps index below melodies_count()
 }

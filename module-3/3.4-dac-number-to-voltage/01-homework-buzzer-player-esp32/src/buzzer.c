@@ -8,7 +8,7 @@
 #define BUZZER_TIMER LEDC_TIMER_0
 #define BUZZER_CHANNEL LEDC_CHANNEL_0
 #define BUZZER_BITS LEDC_TIMER_10_BIT // 80 MHz / 1024: tones from about 76 Hz to 78 kHz
-#define BUZZER_DUTY_HALF (1u << (BUZZER_BITS - 1)) // 512 of 1024 = 50 %: the loudest square wave
+#define BUZZER_DUTY_HALF 512 // half of 1024 (10 bits) = 50 %: the loudest square wave
 #define BUZZER_START_HZ 440
 
 void buzzer_init(void)
