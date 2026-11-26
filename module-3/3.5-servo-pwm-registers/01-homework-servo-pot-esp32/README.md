@@ -78,6 +78,10 @@ Task:
 | The loop's period | the log's timestamps while the knob turned | 20 ms between lines: `vTaskDelay` counts 10 ms ticks and wakes at a tick, so the 6.8 ms of reading fit inside the 20 ms |
 | The final code by eye and ear | the knob turned slowly from the left end to past a half turn, then left still | the shaft turns the same way as the knob, smoothly, and stops at a half turn while the knob goes on; a still knob leaves it silent |
 
+![GPIO 18 at 90°: a 20.001 ms period, a 1500.25 µs pulse](pwm-gpio18.png)
+
+The logic analyzer's capture at 90°, plotted from its CSV export.
+
 Two other filters were tried on the board while writing it: 128 readings with a 2° hysteresis on whole degrees and a
 100 ms tick kept a still knob at 73° silent for 29 s, but made a slow turn jerk in 2° steps; a moving average over 8
 ticks of 20 ms with the 1° backlash was smooth. The backlash on a fractional angle stayed, and the simpler 128
