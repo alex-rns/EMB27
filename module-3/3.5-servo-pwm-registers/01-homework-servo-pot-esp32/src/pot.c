@@ -1,5 +1,7 @@
 #include "pot.h"
 
+#include <stddef.h>
+
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
 #include "esp_adc/adc_oneshot.h"
@@ -8,14 +10,31 @@
 #define POT_CHANNEL ADC_CHANNEL_0 // GPIO 1 on the ESP32-S3
 #define POT_ATTEN ADC_ATTEN_DB_12 // an input range of about 0..3100 mV; the code reaches 4095 near 3150 mV
 #define POT_BITS ADC_BITWIDTH_12  // codes 0..4095
-#define POT_SAMPLES 128           // averaged: 16 left the angle jumping by +-4 deg; 128 take 6.8 ms (measured)
-#define POT_FULL_MV 3300          // the 3V3 rail at the right end (the ADC itself tops out near 3155 mV)
-#define POT_TRAVEL_DEG 300        // measured: 1990 mV at a half turn, 180 x 3300 / 1990 = about 298 deg
-#define POT_HYST_DEG 2            // a new angle only when the knob moves this far: the last flicker stays out
+#define POT_SAMPLES 16            // averaged on every read: 0.85 ms (128 took 6.8 ms, measured)
+#define POT_SMA_LEN 8             // the last 8 reads averaged again: 8 ticks of 20 ms = 160 ms
+#define POT_FULL_MV 3300.0f       // the 3V3 rail at the right end (the ADC itself tops out near 3155 mV)
+#define POT_TRAVEL_DEG 300.0f     // measured: 1990 mV at a half turn, 180 x 3300 / 1990 = about 298 deg
+#define POT_BACKLASH_DEG 1.0f     // the output moves only when the knob gets this far from it
 
 static adc_oneshot_unit_handle_t s_adc;
 static adc_cali_handle_t s_cali;
-static uint32_t s_held_deg; // the angle pot_read_deg() last reported
+static int s_window[POT_SMA_LEN]; // the last reads in mV, the oldest replaced first
+static int s_window_sum;
+static size_t s_window_pos;
+static float s_held_deg; // the angle pot_read_deg() last reported
+
+static int pot_read_mv(void)
+{
+    int sum = 0;
+    for (int i = 0; i < POT_SAMPLES; i++) {
+        int raw;
+        ESP_ERROR_CHECK(adc_oneshot_read(s_adc, POT_CHANNEL, &raw));
+        sum += raw;
+    }
+    int mv;
+    ESP_ERROR_CHECK(adc_cali_raw_to_voltage(s_cali, sum / POT_SAMPLES, &mv));
+    return mv;
+}
 
 void pot_init(void)
 {
@@ -38,29 +57,33 @@ void pot_init(void)
         .bitwidth = POT_BITS,
     };
     ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali, &s_cali));
-}
 
-static int pot_read_mv(void)
-{
-    int sum = 0;
-    for (int i = 0; i < POT_SAMPLES; i++) {
-        int raw;
-        ESP_ERROR_CHECK(adc_oneshot_read(s_adc, POT_CHANNEL, &raw));
-        sum += raw;
+    // Start the average from a real reading, or at power-up the servo would swing towards 0 deg and back.
+    const int mv = pot_read_mv();
+    for (size_t i = 0; i < POT_SMA_LEN; i++) {
+        s_window[i] = mv;
     }
-    int mv;
-    ESP_ERROR_CHECK(adc_cali_raw_to_voltage(s_cali, sum / POT_SAMPLES, &mv));
-    return mv;
+    s_window_sum = mv * POT_SMA_LEN;
+    s_held_deg = mv * POT_TRAVEL_DEG / POT_FULL_MV;
 }
 
-uint32_t pot_read_deg(void)
+float pot_read_deg(void)
 {
-    // A linear pot: the angle is the voltage's share of the full 3V3, rounded. 1990 mV -> 181 deg.
-    const uint32_t deg = ((uint32_t)pot_read_mv() * POT_TRAVEL_DEG + POT_FULL_MV / 2) / POT_FULL_MV;
+    // A moving average of the last POT_SMA_LEN reads: the oldest leaves the sum, the newest joins it.
+    const int mv = pot_read_mv();
+    s_window_sum += mv - s_window[s_window_pos];
+    s_window[s_window_pos] = mv;
+    s_window_pos = (s_window_pos + 1) % POT_SMA_LEN;
 
-    // Hysteresis: a reading within POT_HYST_DEG - 1 of the held angle is noise, not a turn of the knob.
-    if (deg >= s_held_deg + POT_HYST_DEG || deg + POT_HYST_DEG <= s_held_deg) {
-        s_held_deg = deg;
+    // A linear pot: the angle is the voltage's share of the full 3V3. 1990 mV -> 181 deg.
+    const float deg = (float)s_window_sum / POT_SMA_LEN * POT_TRAVEL_DEG / POT_FULL_MV;
+
+    // Backlash: the output is dragged along only once the knob is more than POT_BACKLASH_DEG away, so it follows a
+    // turn smoothly and ignores the noise of a still knob; it stays up to that much behind.
+    if (deg > s_held_deg + POT_BACKLASH_DEG) {
+        s_held_deg = deg - POT_BACKLASH_DEG;
+    } else if (deg < s_held_deg - POT_BACKLASH_DEG) {
+        s_held_deg = deg + POT_BACKLASH_DEG;
     }
     return s_held_deg;
 }

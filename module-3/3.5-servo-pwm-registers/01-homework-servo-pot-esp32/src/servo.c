@@ -44,13 +44,15 @@ static void servo_set_pulse_us(uint32_t pulse_us)
     ESP_ERROR_CHECK(ledc_update_duty(SERVO_MODE, SERVO_CHANNEL));    // takes effect at the next period
 }
 
-void servo_set_angle(uint32_t angle_deg)
+void servo_set_angle(float angle_deg)
 {
+    if (angle_deg < 0.0f) {
+        angle_deg = 0.0f;
+    }
     if (angle_deg > SERVO_MAX_DEG) {
         angle_deg = SERVO_MAX_DEG; // past the end the servo would push against its stop
     }
-    // A straight line from (0 deg, MIN_US) to (MAX_DEG, MAX_US), rounded: 90 deg -> 1500 us, 1 deg -> 511 us.
-    const uint32_t pulse_us =
-        SERVO_MIN_US + (angle_deg * (SERVO_MAX_US - SERVO_MIN_US) + SERVO_MAX_DEG / 2) / SERVO_MAX_DEG;
-    servo_set_pulse_us(pulse_us);
+    // A straight line from (0 deg, MIN_US) to (MAX_DEG, MAX_US): 90 deg -> 1500 us, 0.1 deg -> 501 us.
+    const float pulse_us = SERVO_MIN_US + angle_deg * (SERVO_MAX_US - SERVO_MIN_US) / SERVO_MAX_DEG;
+    servo_set_pulse_us((uint32_t)(pulse_us + 0.5f)); // rounded to whole microseconds
 }
