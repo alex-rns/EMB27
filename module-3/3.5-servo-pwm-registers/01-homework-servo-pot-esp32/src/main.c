@@ -1,9 +1,7 @@
 #include "servo.h"
 
-#define SERVO_CENTER_US 1500 // the middle of the travel on hobby servos
-
 void app_main(void)
 {
     servo_init();
-    servo_set_pulse_us(SERVO_CENTER_US);
+    servo_set_angle(SERVO_MAX_DEG / 2); // the middle of the travel
 }
