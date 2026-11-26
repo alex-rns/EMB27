@@ -8,7 +8,7 @@
 #define SERVO_TIMER LEDC_TIMER_0
 #define SERVO_CHANNEL LEDC_CHANNEL_0
 #define SERVO_BITS LEDC_TIMER_14_BIT // the S3's maximum: 16384 steps in 20 ms, about 1.2 us a step
-#define SERVO_STEPS (1u << 14)
+#define SERVO_STEPS 16384u // 2 to the 14th
 #define SERVO_PWM_HZ 50 // a pulse every 20 ms
 #define SERVO_PERIOD_US 20000u
 #define SERVO_MIN_US 500u  // 0 degrees: the lecture's ends, wider than the SG90's nominal 1000..2000 us
@@ -16,7 +16,7 @@
 
 void servo_init(void)
 {
-    const ledc_timer_config_t timer = {
+    ledc_timer_config_t timer = {
         .speed_mode = SERVO_MODE,
         .duty_resolution = SERVO_BITS,
         .timer_num = SERVO_TIMER,
@@ -25,7 +25,7 @@ void servo_init(void)
     };
     ESP_ERROR_CHECK(ledc_timer_config(&timer));
 
-    const ledc_channel_config_t channel = {
+    ledc_channel_config_t channel = {
         .gpio_num = SERVO_GPIO,
         .speed_mode = SERVO_MODE,
         .channel = SERVO_CHANNEL,
@@ -43,8 +43,8 @@ void servo_set_angle(float angle_deg)
     }
     // 0..180 deg -> 500..2500 us, then the pulse's share of the 20 ms period in 14-bit steps:
     // 90 deg -> 1500 us -> 1229 steps.
-    const float pulse_us = SERVO_MIN_US + angle_deg * (SERVO_MAX_US - SERVO_MIN_US) / SERVO_MAX_DEG;
-    const uint32_t duty = (uint32_t)(pulse_us * SERVO_STEPS / SERVO_PERIOD_US + 0.5f); // rounded
+    float pulse_us = SERVO_MIN_US + angle_deg * (SERVO_MAX_US - SERVO_MIN_US) / SERVO_MAX_DEG;
+    uint32_t duty = (uint32_t)(pulse_us * SERVO_STEPS / SERVO_PERIOD_US + 0.5f); // rounded
     ESP_ERROR_CHECK(ledc_set_duty(SERVO_MODE, SERVO_CHANNEL, duty)); // the shadow register
     ESP_ERROR_CHECK(ledc_update_duty(SERVO_MODE, SERVO_CHANNEL));    // takes effect at the next period
 }

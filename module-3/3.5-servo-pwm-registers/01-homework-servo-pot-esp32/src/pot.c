@@ -11,59 +11,52 @@
 #define POT_SAMPLES 128           // averaged: 16 left the angle jumping by +-4 deg; 128 take 6.8 ms (measured)
 #define POT_FULL_MV 3300.0f       // the 3V3 rail at the right end (the ADC itself tops out near 3155 mV)
 #define POT_TRAVEL_DEG 300.0f     // measured: 1990 mV at a half turn, 180 x 3300 / 1990 = about 298 deg
-#define POT_BACKLASH_DEG 1.0f     // the output moves only when the knob gets this far from it
 
-static adc_oneshot_unit_handle_t s_adc;
-static adc_cali_handle_t s_cali;
-static float s_held_deg; // the angle pot_read_deg() last reported
+typedef struct {
+    adc_oneshot_unit_handle_t adc;
+    adc_cali_handle_t calibration;
+} pot_t;
+
+static pot_t pot;
 
 static int pot_read_mv(void)
 {
     int sum = 0;
     for (int i = 0; i < POT_SAMPLES; i++) {
         int raw;
-        ESP_ERROR_CHECK(adc_oneshot_read(s_adc, POT_CHANNEL, &raw));
+        ESP_ERROR_CHECK(adc_oneshot_read(pot.adc, POT_CHANNEL, &raw));
         sum += raw;
     }
     int mv;
-    ESP_ERROR_CHECK(adc_cali_raw_to_voltage(s_cali, sum / POT_SAMPLES, &mv));
+    ESP_ERROR_CHECK(adc_cali_raw_to_voltage(pot.calibration, sum / POT_SAMPLES, &mv));
     return mv;
 }
 
 void pot_init(void)
 {
-    const adc_oneshot_unit_init_cfg_t unit = {
+    adc_oneshot_unit_init_cfg_t unit = {
         .unit_id = ADC_UNIT_1,
     };
-    ESP_ERROR_CHECK(adc_oneshot_new_unit(&unit, &s_adc));
+    ESP_ERROR_CHECK(adc_oneshot_new_unit(&unit, &pot.adc));
 
-    const adc_oneshot_chan_cfg_t channel = {
+    adc_oneshot_chan_cfg_t channel = {
         .atten = POT_ATTEN,
         .bitwidth = POT_BITS,
     };
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(s_adc, POT_CHANNEL, &channel));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(pot.adc, POT_CHANNEL, &channel));
 
     // The factory calibration in eFuse turns a code into millivolts (the S3 uses the curve-fitting scheme).
-    const adc_cali_curve_fitting_config_t cali = {
+    adc_cali_curve_fitting_config_t cali = {
         .unit_id = ADC_UNIT_1,
         .chan = POT_CHANNEL,
         .atten = POT_ATTEN,
         .bitwidth = POT_BITS,
     };
-    ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali, &s_cali));
+    ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali, &pot.calibration));
 }
 
 float pot_read_deg(void)
 {
     // A linear pot: the angle is the voltage's share of the full 3V3. 1990 mV -> 181 deg.
-    const float deg = pot_read_mv() * POT_TRAVEL_DEG / POT_FULL_MV;
-
-    // Backlash: the output is dragged along only once the knob is more than POT_BACKLASH_DEG away, so it follows a
-    // turn smoothly and ignores the noise of a still knob; it stays up to that much behind.
-    if (deg > s_held_deg + POT_BACKLASH_DEG) {
-        s_held_deg = deg - POT_BACKLASH_DEG;
-    } else if (deg < s_held_deg - POT_BACKLASH_DEG) {
-        s_held_deg = deg + POT_BACKLASH_DEG;
-    }
-    return s_held_deg;
+    return pot_read_mv() * POT_TRAVEL_DEG / POT_FULL_MV;
 }
