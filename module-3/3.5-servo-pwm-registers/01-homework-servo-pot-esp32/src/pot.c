@@ -9,6 +9,8 @@
 #define POT_ATTEN ADC_ATTEN_DB_12 // an input range of about 0..3100 mV; the code reaches 4095 near 3150 mV
 #define POT_BITS ADC_BITWIDTH_12  // codes 0..4095
 #define POT_SAMPLES 16            // averaged: the reading jumps by a few codes on its own
+#define POT_FULL_MV 3300          // the 3V3 rail at the right end (the ADC itself tops out near 3155 mV)
+#define POT_TRAVEL_DEG 300        // measured: 1990 mV at a half turn, 180 x 3300 / 1990 = about 298 deg
 
 static adc_oneshot_unit_handle_t s_adc;
 static adc_cali_handle_t s_cali;
@@ -36,7 +38,7 @@ void pot_init(void)
     ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali, &s_cali));
 }
 
-int pot_read_mv(void)
+static int pot_read_mv(void)
 {
     int sum = 0;
     for (int i = 0; i < POT_SAMPLES; i++) {
@@ -47,4 +49,10 @@ int pot_read_mv(void)
     int mv;
     ESP_ERROR_CHECK(adc_cali_raw_to_voltage(s_cali, sum / POT_SAMPLES, &mv));
     return mv;
+}
+
+uint32_t pot_read_deg(void)
+{
+    // A linear pot: the angle is the voltage's share of the full 3V3, rounded. 1990 mV -> 181 deg.
+    return ((uint32_t)pot_read_mv() * POT_TRAVEL_DEG + POT_FULL_MV / 2) / POT_FULL_MV;
 }
