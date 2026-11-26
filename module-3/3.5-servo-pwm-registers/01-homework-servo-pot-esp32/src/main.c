@@ -6,7 +6,7 @@
 #include "pot.h"
 #include "servo.h"
 
-#define TICK_MS 20 // one servo period: a new angle for every pulse
+#define TICK_MS 100 // a new angle 10 times a second; reading the pot takes 6.8 ms of it
 
 static const char *TAG = "servo_pot";
 
