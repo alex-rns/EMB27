@@ -9,12 +9,11 @@ the console whenever it changes. Like the lecture's code, it is one loop with a 
 ESP-IDF 6.1); the git history of this folder builds it one change per commit.
 
 ```
-app_main(), every 20 ms:
-  pot_read_deg() ──► min(angle, 180) ──► servo_set_angle() ──► log the angle if it changed
-       │                                        │
-  GPIO 1 ──► ADC1: 128 readings averaged,        500 + angle × 2000 / 180 µs ──► LEDC: 50 Hz, 14 bits
-             calibrated mV × 300 / 3300,                                         ──► GPIO 18 ──► servo signal
-             a 1° backlash against the noise
+main: app_init(), then every 20 ms app_run():
+  pot_read_deg() ──► filter_noise() ──► min(angle, 180) ──► servo_set_angle() ──► log the angle if it changed
+       │              1.5° hysteresis                              │
+  GPIO 1 ──► ADC1: 128 readings averaged,                 500 + angle × 2000 / 180 µs ──► LEDC: 50 Hz, 14 bits
+             calibrated mV × 300 / 3300                                                 ──► GPIO 18 ──► servo signal
 ```
 
 ## Assignment
@@ -33,13 +32,13 @@ Task:
 
 ## How each point is done
 
-`main.c` marks each point with a `Point 1/2/3` comment.
+`app_run()` in `app.c` marks each point with a `Point 1/2/3` comment.
 
 | Point | Where | How |
 |---|---|---|
-| The potentiometer sets the shaft 1:1 | `pot.c`, `servo.c`, `main.c` | the knob's angle from its 0 V end is `mV × 300 / 3300` (a linear pot with about 300° of travel, measured below); the servo's angle 0..180° becomes a 500..2500 µs pulse. Both are in degrees from the leftmost position, so one degree of the knob moves the shaft one degree |
-| The difference is cut off, the shared range used | `main.c`, `servo.c` | the shared range is 0..180°: `servo_deg = min(pot_deg, 180)`. Past a half turn only the knob moves on. `servo_set_angle()` also holds anything past 180° at 180°, so no caller can push the servo past its end |
-| The angle from the leftmost position is logged | `main.c` | `ESP_LOGI` prints `angle N deg from the leftmost position` in whole degrees, only when the number changes, so a still knob keeps the console quiet |
+| The potentiometer sets the shaft 1:1 | `pot.c`, `servo.c`, `app.c` | the knob's angle from its 0 V end is `mV × 300 / 3300` (a linear pot with about 300° of travel, measured below); the servo's angle 0..180° becomes a 500..2500 µs pulse. Both are in degrees from the leftmost position, so one degree of the knob moves the shaft one degree |
+| The difference is cut off, the shared range used | `app.c`, `servo.c` | the shared range is 0..180°: `servo_deg = min(pot_deg, 180)`. Past a half turn only the knob moves on. `servo_set_angle()` also holds anything past 180° at 180°, so no caller can push the servo past its end |
+| The angle from the leftmost position is logged | `app.c` | `ESP_LOGI` prints `angle N deg from the leftmost position` in whole degrees, only when the number changes, so a still knob keeps the console quiet |
 
 ## Code
 
@@ -49,11 +48,13 @@ Task:
   90° → 1500 µs → 1229), applied from the next period (`ledc_set_duty()` into the shadow register, then
   `ledc_update_duty()`).
 - `pot.c` / `pot.h`: `pot_init()` sets ADC1 oneshot on channel 0 (GPIO 1), 12 dB, 12 bits, and the curve-fitting
-  calibration from eFuse. `pot_read_deg()` averages 128 readings, turns the calibrated millivolts into degrees
-  (`mV × 300 / 3300`) and passes them through a 1° backlash: the reported angle moves only once the knob is more
-  than 1° away from it, so it follows a turn smoothly and ignores the noise of a still knob.
-- `main.c`: `app_main()` sets up the servo and the potentiometer, then loops: read the knob, cut the angle to 180°,
-  set the servo, log the angle if it changed, `vTaskDelay(20 ms)`.
+  calibration from eFuse (both handles in one `pot_t` struct). `pot_read_deg()` averages 128 readings (6.8 ms) and
+  turns the calibrated millivolts into degrees (`mV × 300 / 3300`).
+- `app.c` / `app.h`: the homework's logic. `app_init()` starts the servo and the potentiometer; `app_run()` does one
+  pass, point by point: the knob's angle through `filter_noise()`, cut to 180°, to the servo, and to the log when the
+  whole number changes. `filter_noise()` is a 1.5° hysteresis, as in 3.1: the angle moves only once the knob is more
+  than 1.5° away from it, then follows the knob 1.5° behind, so a turn stays smooth and a still knob's noise stays out.
+- `main.c`: only the glue, as in the teacher's layout: `app_init()`, then `while (1) { app_run(); vTaskDelay(20 ms); }`.
 
 ## Wiring
 
@@ -77,6 +78,7 @@ Task:
 | The cost of 128 readings | `esp_timer_get_time()` around 100 calls | 6.8 ms a call (about 53 µs a reading) |
 | The loop's period | the log's timestamps while the knob turned | 20 ms between lines: `vTaskDelay` counts 10 ms ticks and wakes at a tick, so the 6.8 ms of reading fit inside the 20 ms |
 | The final code by eye and ear | the knob turned slowly from the left end to past a half turn, then left still | the shaft turns the same way as the knob, smoothly, and stops at a half turn while the knob goes on; a still knob leaves it silent |
+| A still knob, the final filter | the log, the knob left at about 121° | 30 s without a new line; with a 1° hysteresis the log flickered between 121 and 122 about once a second |
 
 ![GPIO 18 at 90°: a 20.001 ms period, a 1500.25 µs pulse](pwm-gpio18.png)
 
@@ -84,8 +86,8 @@ The logic analyzer's capture at 90°, plotted from its CSV export.
 
 Two other filters were tried on the board while writing it: 128 readings with a 2° hysteresis on whole degrees and a
 100 ms tick kept a still knob at 73° silent for 29 s, but made a slow turn jerk in 2° steps; a moving average over 8
-ticks of 20 ms with the 1° backlash was smooth. The backlash on a fractional angle stayed, and the simpler 128
-readings at once replaced the moving average.
+ticks of 20 ms with a 1° hysteresis that follows the knob was smooth. That hysteresis stayed, widened to 1.5°, and the
+simpler 128 readings at once replaced the moving average.
 
 A turn down to the left end and back up (every 12th line, 240 ms apart):
 
@@ -109,8 +111,8 @@ I (15871) servo_pot: angle 170 deg from the leftmost position
 - **The ADC stops at about 3155 mV** (as in the 3.2 homework): the knob's last ~13° (past about 287°) all read the
   same. It doesn't matter here, as it is far past 180°.
 - **The ESP32's ADC noise reaches the servo.** With 16 readings the angle jumped by a few degrees on a still knob, each
-  jump became a new pulse, and the log flooded. 128 readings cut the noise by about √8, and the 1° backlash stops the
-  rest. The price: the reported angle can stay up to 1° behind the knob.
+  jump became a new pulse, and the log flooded. 128 readings cut the noise by about √8, and the 1.5° hysteresis stops
+  the rest. The price: the angle can stay up to 1.5° behind the knob.
 - **A delay is fine here.** The assignment asks for no fixed tick and doesn't forbid a delay (3.4's did).
   `vTaskDelay()` puts the task to sleep and FreeRTOS runs the others meanwhile; the lecture's `Delay_ms()` on the
   Black Pill spins the CPU instead.

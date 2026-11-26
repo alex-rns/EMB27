@@ -17,7 +17,7 @@ The homework's assignment, translated in full, is in the
 | # | Step | Type | What it shows |
 |---|---|---|---|
 | 00 | lecture-servo: [stm32](00-lecture-servo-stm32/) | lecture | TIM4 on registers: a 1 µs tick, a 20 ms period, the pulse on PB6 (TIM4_CH1) drives an SG90; ADC1 on PA0 reads a potentiometer (8 readings averaged) and maps it to 500..2500 µs; 20.33 ms measured (the HSI runs 1.6 % slow) |
-| 01 | homework-servo-pot: [esp32](01-homework-servo-pot-esp32/) | homework | a potentiometer on GPIO 1 sets an SG90 on GPIO 18 (LEDC, 50 Hz, 14 bits) 1:1 from the leftmost position: of the knob's ~300° only the servo's 180° are used; the angle is logged when it changes; one loop with a 20 ms delay, as in the lecture; 128 readings averaged and a 1° backlash keep the servo still under a still knob ([assignment](01-homework-servo-pot-esp32/README.md#assignment)) |
+| 01 | homework-servo-pot: [esp32](01-homework-servo-pot-esp32/) | homework | a potentiometer on GPIO 1 sets an SG90 on GPIO 18 (LEDC, 50 Hz, 14 bits) 1:1 from the leftmost position: of the knob's ~300° only the servo's 180° are used; the angle is logged when it changes; one loop with a 20 ms delay, as in the lecture; 128 readings averaged and a 1.5° hysteresis keep the servo still under a still knob ([assignment](01-homework-servo-pot-esp32/README.md#assignment)) |
 
 ## Working with the steps
 
