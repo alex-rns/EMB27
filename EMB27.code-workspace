@@ -5,8 +5,8 @@
       "name": "EMB27 (repo)"
     },
     {
-      "name": "01-homework-servo-pot-esp32",
-      "path": "module-3/3.5-servo-pwm-registers/01-homework-servo-pot-esp32"
+      "name": "01-homework-encoder-pcnt-esp32",
+      "path": "module-3/3.6-encoder-counting/01-homework-encoder-pcnt-esp32"
     }
   ],
   "settings": {
